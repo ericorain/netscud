@@ -1,9 +1,11 @@
 # Python library import
 from netscud.vendors.cisco.cisco_s300 import CiscoS300
+from netscud.vendors.alcatel.alcatel_aos import AlcatelAOS
 
 #  Rhe supported device_types are the keys of this dictionary
 ALL_DEVICE_TYPE_CLASS = {
     "cisco_s300": CiscoS300,
+    "alcatel_aos": AlcatelAOS,
 }
 
 
@@ -33,17 +35,16 @@ async def ConnectDevice(**kwargs):
         
         # No
 
-        # Leave the function
-        return
+        # Display error message
+        raise Exception("ConnectDevice: no device type specified")
 
     # Check if device type is amongst the supported ones
     if device_type not in ALL_DEVICE_TYPE_CLASS:
 
         # Not a supported device
         
-        # Leave the function
-        return
-
+        # Display error message
+        raise Exception("ConnectDevice: device type unknown: " + str(device_type))
 
     # Create a class
     my_class = ALL_DEVICE_TYPE_CLASS[device_type](**kwargs)

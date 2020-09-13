@@ -3,8 +3,8 @@ import asyncio, asyncssh
 import logging
 
 # Debug level
-logging.basicConfig(level=logging.WARNING)
-#logging.basicConfig(level=logging.INFO)
+#logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.INFO)
 asyncssh.set_debug_level(1)
 
 # Declaration of constant values
@@ -47,11 +47,12 @@ class NetworkDevice:
         self.timeout = 5
         self._protocol = "ssh"
         self.possible_prompts = []
+        self._ssh_connect_first_ending_prompt = ["#",">"]
         self._telnet_connect_login = "User Name:"
         self._telnet_connect_password = "Password:"
         self._telnet_connect_first_ending_prompt = ["#",">"]
         self._telnet_connect_authentication_fail_prompt = ["User Name:","authentication failed"]
-        self.cmd_disable_pagging = "terminal datadump"
+        self.cmd_disable_paging = "terminal datadump"
         self.cmd_enter_config_mode = "configure terminal"
         self.cmd_exit_config_mode = "exit"
         self.cmd_get_version = "show version"
@@ -142,10 +143,10 @@ class NetworkDevice:
         """
 
         # Get last line of the data
-        prompt = text.split()[-1]
+        prompt = text.split('\n')[-1]
 
         # Display info message
-        logging.info("find_prompt: prompt: " + str(prompt))
+        logging.info("find_prompt: prompt: '" + str(prompt) + "'")
 
         # Get the possible prompts for future recognition
         self.possible_prompts = self.get_possible_prompts(prompt)
@@ -187,7 +188,7 @@ class NetworkDevice:
         # Prompt should be from "switch#" to "switch"
 
         # Display info message
-        logging.info("get_possible_prompts: prompt found: " + my_prompt)
+        logging.info("get_possible_prompts: prompt found: '" + my_prompt + "'")
 
         # Now create all the possible prompts for that device
         for ending in list_of_possible_ending_prompts:
@@ -350,18 +351,18 @@ class NetworkDevice:
                 raise Exception(output)
 
 
-    async def disable_pagging(self):
+    async def disable_paging(self):
         """
-        Async method disabling pagging on a device
+        Async method disabling paging on a device
 
-        Use the "cmd_disable_pagging" attribute
+        Use the "cmd_disable_paging" attribute
         """
 
         # Display info message
-        logging.info("disable_pagging")
+        logging.info("disable_paging")
         
-        # Send command to the device to disable pagging
-        await self.send_command(self.cmd_disable_pagging)
+        # Send command to the device to disable paging
+        await self.send_command(self.cmd_disable_paging)
 
 
 
@@ -408,7 +409,10 @@ class NetworkDevice:
         logging.info("connectSSH")
 
         # Parameters of the connection       
-        generator = asyncssh.connect(self.ip, username = self.username, password = self.password)
+        generator = asyncssh.connect(self.ip,
+                                    username = self.username,
+                                    password = self.password,
+                                    known_hosts=None)
 
 
         # Trying to connect to the device
@@ -442,14 +446,45 @@ class NetworkDevice:
         # Create a session
         self.stdinx, self.stdoutx, _ = await self.conn.open_session(term_type="netscud")
 
-        # Display message
+        # Display info message
         logging.info("connectSSH: open_session success")
 
+        #await asyncio.sleep(2)
+
+        # By default no data has been read
+        data = ""
+
+        # By default no prompt found
+        prompt_not_found = True
 
         try:
 
-            # Read the prompt
-            data = await asyncio.wait_for(self.stdoutx.read(MAX_BUFFER_DATA), timeout=self.timeout)
+            # Read data
+            while prompt_not_found:
+
+                # Read the prompt
+                data += await asyncio.wait_for(self.stdoutx.read(MAX_BUFFER_DATA), timeout=self.timeout)
+
+                # Display info message
+                logging.info("connectSSH: data: '" + str(data) + "'")
+
+                # Check if an initial prompt is found
+                for prompt in self._ssh_connect_first_ending_prompt:
+                    
+                    # Ending prompt found?
+                    if data.endswith(prompt):
+
+                        # Yes
+
+                        # Display info message
+                        logging.info("connectSSH: first ending prompt found: '" + str(prompt) + "'")
+
+                        # A ending prompt has been found
+                        prompt_not_found = False
+
+                        # Leave the loop
+                        break
+
 
         except Exception as error:
             
@@ -469,7 +504,7 @@ class NetworkDevice:
         logging.info("connectSSH: prompt found: '" + str(self.prompt) + "'")
 
         # Disable paging
-        await self.disable_pagging()
+        await self.disable_paging()
 
 
 
@@ -573,7 +608,7 @@ class NetworkDevice:
         logging.info("connectTelnet: prompt found: '" + str(self.prompt) + "'")
 
         # Disable paging
-        await self.disable_pagging()
+        await self.disable_paging()
 
 
     async def disconnect(self):
