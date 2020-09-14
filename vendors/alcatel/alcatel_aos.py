@@ -11,7 +11,8 @@ class AlcatelAOS(NetworkDevice):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._ssh_connect_first_ending_prompt = ["> "]
+        self._connect_first_ending_prompt = ["--> ", "> "]
+        self.list_of_possible_ending_prompts = ["> "]
         self.cmd_disable_paging = ""
         self.cmd_enter_config_mode = ""
         self.cmd_exit_config_mode = ""

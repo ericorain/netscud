@@ -1,11 +1,13 @@
 # Python library import
-from netscud.vendors.cisco.cisco_s300 import CiscoS300
 from netscud.vendors.alcatel.alcatel_aos import AlcatelAOS
+from netscud.vendors.cisco.cisco_ios import CiscoIOS
+from netscud.vendors.cisco.cisco_s300 import CiscoS300
 
 #  Rhe supported device_types are the keys of this dictionary
 ALL_DEVICE_TYPE_CLASS = {
-    "cisco_s300": CiscoS300,
     "alcatel_aos": AlcatelAOS,
+    "cisco_ios": CiscoIOS,
+    "cisco_s300": CiscoS300,
 }
 
 

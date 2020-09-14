@@ -5,7 +5,10 @@ class CiscoS300(NetworkDevice):
     """
     Class for SG3XX devices
     """
-    #print("456")
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.cmd_disable_paging = "terminal datadump"
     
-    pass
+
 

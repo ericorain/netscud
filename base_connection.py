@@ -46,12 +46,18 @@ class NetworkDevice:
         self.timeout = 5
         self._protocol = "ssh"
         self.possible_prompts = []
-        self._ssh_connect_first_ending_prompt = ["#",">"]
+        self._connect_first_ending_prompt = ["#",">"]
+        self.list_of_possible_ending_prompts = [
+            "(config-line)#",
+            "(config-if)#",
+            "(config)#",
+            ">",
+            "#",
+        ]
         self._telnet_connect_login = "User Name:"
         self._telnet_connect_password = "Password:"
-        self._telnet_connect_first_ending_prompt = ["#",">"]
         self._telnet_connect_authentication_fail_prompt = ["User Name:","authentication failed"]
-        self.cmd_disable_paging = "terminal datadump"
+        self.cmd_disable_paging = "terminal length 0"
         self.cmd_enter_config_mode = "configure terminal"
         self.cmd_exit_config_mode = "exit"
         self.cmd_get_version = "show version"
@@ -157,14 +163,8 @@ class NetworkDevice:
 
         list_of_prompts = []
 
-        # All the ppossible values of the endings of the prompt
-        list_of_possible_ending_prompts = [
-            "(config-line)#",
-            "(config-if)#",
-            "(config)#",
-            ">",
-            "#",
-        ]
+        # Get all the ppossible values of the endings of the prompt
+        list_of_possible_ending_prompts = self.list_of_possible_ending_prompts
 
         # Temporary variable storing the prompt value
         my_prompt = prompt
@@ -468,7 +468,7 @@ class NetworkDevice:
                 logging.info("connectSSH: data: '" + str(data) + "'")
 
                 # Check if an initial prompt is found
-                for prompt in self._ssh_connect_first_ending_prompt:
+                for prompt in self._connect_first_ending_prompt:
                     
                     # Ending prompt found?
                     if data.endswith(prompt):
@@ -595,7 +595,7 @@ class NetworkDevice:
         await self.send_command(self.username, prompt)
 
         # Send password
-        output = await self.telnet_send_password(self.password, self._telnet_connect_first_ending_prompt, self._telnet_connect_authentication_fail_prompt)
+        output = await self.telnet_send_password(self.password, self._connect_first_ending_prompt, self._telnet_connect_authentication_fail_prompt)
 
         # Display info message
         logging.info("connectTelnet: password sent")
