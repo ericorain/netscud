@@ -14,6 +14,9 @@ class AlcatelAOS(NetworkDevice):
 
         self._connect_first_ending_prompt = ["-> ", "> "]
         self.list_of_possible_ending_prompts = ["> "]
+        self._telnet_connect_login = "login :"
+        self._telnet_connect_password = "password :"
+        self._telnet_connect_authentication_fail_prompt = ["login :","Authentication failure"]
         self.cmd_disable_paging = ""
         self.cmd_enter_config_mode = ""
         self.cmd_exit_config_mode = ""
@@ -22,7 +25,10 @@ class AlcatelAOS(NetworkDevice):
         self.cmd_get_model = "show chassis"
         self.cmd_get_serial_number = "show chassis"
         self.cmd_get_config = "show configuration snapshot"
-        self.cmd_save_config = ["write memory","copy running certified"]
+        self.cmd_save_config = ["write memory", # Save data into working configuration
+                                "copy running certified", # AOS 7, AOS 8, save working configuration into certified configuration
+                                "copy working certified" # AOS 6 and lower, save working configuration into certified configuration
+        ]
 
         """
         b065net - DOP-PF ==> wr mem
@@ -194,6 +200,11 @@ class AlcatelAOS(NetworkDevice):
         """
         Asyn method used to save the current configuration on the device
 
+        Alcatel switch can be very slow while copying configuration. Consider to temporary
+        change the time out of the command (using "self.timeout" variable) before running
+        this method.
+        By default the timer is temporary increased by 60 seconds
+
         :return: Commands of the configuration saving process
         :rtype: str
         """
@@ -201,12 +212,96 @@ class AlcatelAOS(NetworkDevice):
         # Display info message
         logging.info("save_config")
 
+        # Time out increased
+        self.timeout += 60
+
         # By default no returned data
         output = ""
 
         # Send commands for saving config
-        for cmd in self.cmd_save_config:
-            output += await self.send_command(cmd)
 
-        # Return
+        # Command to send
+        cmd = self.cmd_save_config[0]
+
+        # Save data into working configuration
+        output += await self.send_command(cmd)
+
+        # Add carriage return to the output
+        output += "\n"
+
+        # Command to send
+        cmd = self.cmd_save_config[1]
+
+        # AOS 7, AOS8, save working configuration into certified configuration
+        data = await self.send_command(cmd)
+
+        # An error with the previous command happened (i.e the command is not supported by the switch)?
+        if ('ERROR: Invalid entry: "running"') in data:
+
+            # Yes
+
+            # Then try to save ce configuration with another command
+
+            # Display info message
+            logging.warning("save_config: '" + self.cmd_save_config[1] + "' command not supported. Trying another 'copy' command: '" + self.cmd_save_config[2] + "'")
+
+            # Add carriage return to the output
+            output += "\n"
+
+            # Command to send
+            cmd = self.cmd_save_config[2]
+
+            # AOS 6 and lower, save working configuration into certified configuration
+            output += await self.send_command(cmd)
+        
+        else:
+
+            # No
+
+            # So result can be saved into the output
+            output += data
+
+
+        # Time out restored
+        self.timeout -= 60
+
+
+        # Return the commands of the configuration saving process
+        return output
+
+
+    async def send_config_set(self, cmds=None):
+        """
+        Async method used to send command in config mode
+
+        There is no configuration mode with Alcatel AOS switches
+        So this command will just run a group of commands
+
+        :param cmds: The commands to the device
+        :type cmds: str or list
+
+        :return: the results of the commands sent
+        """
+
+        # By default there is no output
+        output = ""
+
+        # Optional carriage return
+        carriage_return = ""
+
+        # Run each command
+        for cmd in cmds:
+
+            # Add carriage return if needed (first time no carriage return)
+            output += carriage_return
+
+            # Send a command
+            output+= await self.send_command(cmd)
+
+            # Set carriage return for next commands
+            carriage_return = "\n"
+
+
+
+        # Return the commands sent
         return output

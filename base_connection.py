@@ -3,7 +3,7 @@ import asyncio, asyncssh
 import logging
 
 # Debug level
-#logging.basicConfig(level=logging.WARNING)
+#.basicConfig(level=logging.WARNING)
 logging.basicConfig(level=logging.INFO)
 asyncssh.set_debug_level(1)
 
@@ -43,7 +43,7 @@ class NetworkDevice:
         self.password = ""
         self.device_type = ""
         self.port = 22
-        self.timeout = 5
+        self.timeout = 10
         self._protocol = "ssh"
         self.possible_prompts = []
         self._connect_first_ending_prompt = ["#",">"]
@@ -1097,7 +1097,7 @@ class NetworkDevice:
         :param cmds: The commands to the device
         :type cmds: str or list
 
-        :return: the commands sent
+        :return: the results of the commands sent
         """
 
         # Display info message
@@ -1471,5 +1471,5 @@ class NetworkDevice:
         # Confirm to save the config
         output += await self.send_command("Y")
 
-        # Return
+        # Return the commands of the configuration saving process
         return output
