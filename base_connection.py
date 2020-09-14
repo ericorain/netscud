@@ -502,8 +502,12 @@ class NetworkDevice:
         # Display info message
         logging.info("connectSSH: prompt found: '" + str(self.prompt) + "'")
 
-        # Disable paging
-        await self.disable_paging()
+        # Disable paging command available?
+        if self.cmd_disable_paging:
+            # Yes
+
+            # Disable paging
+            await self.disable_paging()
 
 
 
@@ -606,8 +610,12 @@ class NetworkDevice:
         # Debug info message
         logging.info("connectTelnet: prompt found: '" + str(self.prompt) + "'")
 
-        # Disable paging
-        await self.disable_paging()
+        # Disable paging command available?
+        if self.cmd_disable_paging:
+            # Yes
+
+            # Disable paging
+            await self.disable_paging()
 
 
     async def disconnect(self):
@@ -1372,6 +1380,9 @@ class NetworkDevice:
         # Remove the useless information in the returned string
         output = output.split("System Name: ")[1].strip()
 
+        # Display info message
+        logging.info("get_hostname: hostname found: '" + str(output) + "'")
+
         # Return the name of the device
         return output
 
@@ -1394,6 +1405,9 @@ class NetworkDevice:
 
         # Remove the useless information in the returned string
         output = output.splitlines()[2].split()[1]
+
+        # Display info message
+        logging.info("get_model: model found: '" + str(output) + "'")
 
         # Return the model of the device
         return output
