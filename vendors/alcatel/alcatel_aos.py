@@ -30,20 +30,6 @@ class AlcatelAOS(NetworkDevice):
                                 "copy working certified" # AOS 6 and lower, save working configuration into certified configuration
         ]
 
-        """
-        b065net - DOP-PF ==> wr mem
-
-        File /flash/vcdir_841R03/vcsetup.cfg replaced.
-
-        File /flash/vcdir_841R03/vcboot.cfg replaced.
-
-        b065net - DOP-PF ==> copy running certified
-        Please wait...
-
-
-        b065net - DOP-PF ==>
-        """
-
 
     async def get_hostname(self):
         """
@@ -274,7 +260,7 @@ class AlcatelAOS(NetworkDevice):
         """
         Async method used to send command in config mode
 
-        There is no configuration mode with Alcatel AOS switches
+        There is no configuration mode with Alcatel AOS switches.
         So this command will just run a group of commands
 
         :param cmds: The commands to the device
@@ -300,8 +286,6 @@ class AlcatelAOS(NetworkDevice):
 
             # Set carriage return for next commands
             carriage_return = "\n"
-
-
 
         # Return the commands sent
         return output

@@ -448,8 +448,6 @@ class NetworkDevice:
         # Display info message
         logging.info("connectSSH: open_session success")
 
-        #await asyncio.sleep(2)
-
         # By default no data has been read
         data = ""
 
@@ -598,8 +596,16 @@ class NetworkDevice:
         # Send login
         await self.send_command(self.username, prompt)
 
-        # Send password
-        output = await self.telnet_send_password(self.password, self._connect_first_ending_prompt, self._telnet_connect_authentication_fail_prompt)
+        try:
+            # Send password
+            output = await self.telnet_send_password(self.password, self._connect_first_ending_prompt, self._telnet_connect_authentication_fail_prompt)
+
+        except Exception:
+
+            # Problem with the login and the password
+
+            # Propagate the exception
+            raise
 
         # Display info message
         logging.info("connectTelnet: password sent")
@@ -1044,6 +1050,9 @@ class NetworkDevice:
 
             # Time out during when reading prompt
 
+            # Close the connection in order to not display RuntimeError
+            await self.disconnect()
+
             # Display error message
             logging.error("telnet_send_password: reading prompt: timeout")
 
@@ -1054,7 +1063,10 @@ class NetworkDevice:
         except Exception as error:
 
             # Error during when reading prompt
-            
+
+            # Close the connection in order to not display RuntimeError
+            await self.disconnect()
+
             # Display error message
             logging.error("telnet_send_password: reading prompt: error: " + str(error))
 
