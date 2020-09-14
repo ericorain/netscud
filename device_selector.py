@@ -9,6 +9,7 @@ ALL_DEVICE_TYPE_CLASS = {
 }
 
 
+
 async def ConnectDevice(**kwargs):
     """
     Async function to be used for connnecting a device

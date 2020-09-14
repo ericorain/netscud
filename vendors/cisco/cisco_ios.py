@@ -1,11 +1,9 @@
 # Python library import
 from netscud.base_connection import NetworkDevice
 
-class CiscoS300(NetworkDevice):
+class CiscoIOS(NetworkDevice):
     """
-    Class for SG3XX devices
+    Class for Cisco IOS devices
     """
-    #print("456")
     
     pass
-

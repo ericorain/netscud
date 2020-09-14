@@ -31,7 +31,6 @@ class NetworkDevice:
     """
     Base class for network object
 
-
     """
 
     def __init__(self, **kwargs):
