@@ -1,6 +1,5 @@
 # Python library import
-from netscud.base_connection import NetworkDevice
-import logging
+from netscud.base_connection import NetworkDevice, log
 
 class AlcatelAOS(NetworkDevice):
     """
@@ -40,13 +39,13 @@ class AlcatelAOS(NetworkDevice):
         """
 
         # Display info message
-        logging.info("get_hostname")
+        log.info("get_hostname")
 
         # Get hostname
         output = await self.send_command(self.cmd_get_hostname)
 
         # Display info message
-        logging.info("get_hostname: output: '" + str(output) + "'")
+        log.info("get_hostname: output: '" + str(output) + "'")
 
         # By default no hostname
         hostname = ""
@@ -66,7 +65,7 @@ class AlcatelAOS(NetworkDevice):
                 break
 
         # Display info message
-        logging.info("get_hostname: hostname found: '" + str(hostname) + "'")
+        log.info("get_hostname: hostname found: '" + str(hostname) + "'")
 
         # Return the name of the device
         return hostname
@@ -81,13 +80,13 @@ class AlcatelAOS(NetworkDevice):
         """
 
         # Display info message
-        logging.info("get_model")
+        log.info("get_model")
 
         # Get model
         output = await self.send_command(self.cmd_get_model)
 
         # Display info message
-        logging.info("get_model: output: '" + str(output) + "'")
+        log.info("get_model: output: '" + str(output) + "'")
 
         # By default no model
         model = ""
@@ -107,7 +106,7 @@ class AlcatelAOS(NetworkDevice):
                 break
 
         # Display info message
-        logging.info("get_model: model found: '" + str(model) + "'")
+        log.info("get_model: model found: '" + str(model) + "'")
 
         # Return the model of the device
         return model
@@ -122,13 +121,13 @@ class AlcatelAOS(NetworkDevice):
         """
 
         # Display info message
-        logging.info("get_serial_number")
+        log.info("get_serial_number")
 
         # Get model
         output = await self.send_command(self.cmd_get_serial_number)
 
         # Display info message
-        logging.info("get_serial_number: output: '" + str(output) + "'")
+        log.info("get_serial_number: output: '" + str(output) + "'")
 
         # By default no serial number
         serial_number = ""
@@ -148,7 +147,7 @@ class AlcatelAOS(NetworkDevice):
                 break
 
         # Display info message
-        logging.info("get_serial_number: serial number found: '" + str(serial_number) + "'")
+        log.info("get_serial_number: serial number found: '" + str(serial_number) + "'")
 
         # Return the serial number of the device
         return output
@@ -164,7 +163,7 @@ class AlcatelAOS(NetworkDevice):
         """
 
         # Display info message
-        logging.info("get_version")
+        log.info("get_version")
 
         # By default empty string
         version = ""
@@ -176,7 +175,7 @@ class AlcatelAOS(NetworkDevice):
         version = output.splitlines()[3].split()[1]
 
         # Display info message
-        logging.info("get_version: version: " + version)
+        log.info("get_version: version: " + version)
 
         # Return the version of the software of the device
         return version
@@ -196,7 +195,7 @@ class AlcatelAOS(NetworkDevice):
         """
 
         # Display info message
-        logging.info("save_config")
+        log.info("save_config")
 
         # Time out increased
         self.timeout += 60
@@ -229,7 +228,7 @@ class AlcatelAOS(NetworkDevice):
             # Then try to save ce configuration with another command
 
             # Display info message
-            logging.warning("save_config: '" + self.cmd_save_config[1] + "' command not supported. Trying another 'copy' command: '" + self.cmd_save_config[2] + "'")
+            log.warning("save_config: '" + self.cmd_save_config[1] + "' command not supported. Trying another 'copy' command: '" + self.cmd_save_config[2] + "'")
 
             # Add carriage return to the output
             output += "\n"

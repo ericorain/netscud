@@ -1,6 +1,5 @@
 # Python library import
-from netscud.base_connection import NetworkDevice
-import logging
+from netscud.base_connection import NetworkDevice, log
 
 class CiscoIOS(NetworkDevice):
     """
@@ -35,19 +34,19 @@ class CiscoIOS(NetworkDevice):
         """
 
         # Display info message
-        logging.info("get_hostname")
+        log.info("get_hostname")
 
         # Get hostname
         output = await self.send_command(self.cmd_get_hostname)
 
         # Display info message
-        logging.info("get_hostname: output: '" + str(output) + "'")
+        log.info("get_hostname: output: '" + str(output) + "'")
 
         # Remove the useless information in the returned string
         output = output.split()[0]
 
         # Display info message
-        logging.info("get_hostname: hostname found: '" + str(output) + "'")
+        log.info("get_hostname: hostname found: '" + str(output) + "'")
 
         # Return the name of the device
         return output

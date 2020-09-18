@@ -1,6 +1,5 @@
 # Python library import
-from netscud.base_connection import NetworkDevice
-import logging
+from netscud.base_connection import NetworkDevice, log
 
 class CiscoS300(NetworkDevice):
     """
@@ -27,7 +26,7 @@ class CiscoS300(NetworkDevice):
         """
 
         # Display info message
-        logging.info("get_version")
+        log.info("get_version")
 
         # By default empty string
         version = ""
@@ -38,7 +37,7 @@ class CiscoS300(NetworkDevice):
         # Seek "Version: " on each line of the returned output
         for line in output.splitlines():
 
-            logging.info("get_version: line: " + line)
+            log.info("get_version: line: " + line)
 
             # Is it the line with "Version: "
             if "Version: " in line:
@@ -52,7 +51,7 @@ class CiscoS300(NetworkDevice):
                 break
 
         # Display info message
-        logging.info("get_version: version: " + version)
+        log.info("get_version: version: " + version)
 
         # Return the version of the software of the device
         return version
@@ -67,7 +66,7 @@ class CiscoS300(NetworkDevice):
         """
 
         # Display info message
-        logging.info("save_config")
+        log.info("save_config")
 
         # Send command to ask for saving config. Wait till the question to overwrite
         # the startup file ("Overwrite file [startup-config].... (Y/N)[N] ?")
