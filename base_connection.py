@@ -1,14 +1,12 @@
 # Python library import
-import asyncio, asyncssh
-import logging
+import asyncio, asyncssh, logging
 
 # Module logging logger
 log = logging.getLogger(__package__)
 
 # Debug level
-#log.basicConfig(level=logging.WARNING)
-#log.basicConfig(level=logging.INFO)
-asyncssh.set_debug_level(1)
+#logging.basicConfig(level=logging.INFO)
+#asyncssh.set_debug_level(1)
 
 
 # Declaration of constant values
@@ -17,21 +15,85 @@ asyncssh.set_debug_level(1)
 MAX_BUFFER_DATA = 65535
 
 
-'''
-class Exception_Error_in_output(Exception):
-    """
-    Class used for exceptions when the content of the output returns an error
-    
-    Example: ("% Unrecognized command", "% Ambiguous command", etc.)
-    """
-
-    pass
-'''
-
 class NetworkDevice:
     """
     Base class for network object
 
+
+    :param ip: IP address of a device
+    :type ip: str
+
+    :param username: Username used to connect to a device
+    :type username: str
+
+    :param password: Password used to connect to a device
+    :type password: str
+
+    :param device_type: Type of device used
+    :type device_type: str
+
+    :param port: TCP port used to connect a device. Default value is "22" for SSH
+    :type port: int, optional
+
+    :param timeout: TCP port used to connect a device. Default value is 10 seconds
+    :type timeout: int, optional
+
+    :param _protocol: Protocol used to connect a device. "ssh" or "telnet" are possible options. Default value is "ssh"
+    :type _protocol: str, optional
+
+    :param enable_mode: Enable mode for devices requiring it. Default value is "False"
+    :type enable_mode: bool, optional
+
+    :param enable_password: Enable password used for enable mode.
+    :type enable_password: str, optional
+
+    :param possible_prompts: Used by the connect method to list all possible prompts of the device
+    :type possible_prompts: list
+
+    :param _connect_first_ending_prompt: Default possible ending prompts. Used only the time after login and password to discover the prompt
+    :type _connect_first_ending_prompt: list
+    
+    :param list_of_possible_ending_prompts: Different strings at the end of a prompt the device can get. Used for detecting the prompt returned in sent commands
+    :type list_of_possible_ending_prompts: list
+
+    :param _telnet_connect_login: Login prompt for Telnet. Used to detect when a login is expected or when login and password access is failed
+    :type _telnet_connect_login: str
+
+    :param _telnet_connect_password: Password prompt for Telnet. Used to detect when a login is expected or when login and password access is failed
+    :type _telnet_connect_password: list
+
+    :param _telnet_connect_authentication_fail_prompt: Known failing messages or prompts when an authentication has failed. Used to get an answer faster than timeout events
+    :type _telnet_connect_authentication_fail_prompt: list
+
+    :param cmd_enable: Enable command for entering into enable mode
+    :type cmd_enable: str
+
+    :param cmd_disable_paging: Command used to disable paging on a device. That command is run at connection time
+    :type cmd_disable_paging: str
+
+    :param cmd_enter_config_mode: Command used to enter into a configuration mode on a device when this device support that feature.
+    :type cmd_enter_config_mode: str
+
+    :param cmd_exit_config_mode: Command used to leave a configuration mode on a device when this device support that feature.
+    :type cmd_exit_config_mode: str
+
+    :param cmd_get_version: API command used to get the software version of a device
+    :type cmd_get_version: str
+
+    :param cmd_get_hostname: API command used to get the hostname of a device
+    :type cmd_get_hostname: str
+
+    :param cmd_get_model: API command used to get the model of a device
+    :type cmd_get_model: str
+
+    :param cmd_get_serial_number: API command used to get the serial number of a device
+    :type cmd_get_serial_number: str
+
+    :param cmd_get_config: API command used to get the running configuration of a device
+    :type cmd_get_config: str
+
+    :param cmd_save_config: API command used to save the running configuration on the device
+    :type cmd_save_config: str
     """
 
     def __init__(self, **kwargs):
@@ -179,7 +241,18 @@ class NetworkDevice:
         return prompt
 
     def get_possible_prompts(self, prompt):
+        """
+        Method used to check if a prompt has one of the expected endings then
+        create a list with all possible prompts for the device
 
+        :param prompt: a prompt with a possible ending prompt (eg. "switch#")
+        :type prompt: str
+
+        :return: the list of prompts
+        :rtype: list
+        """
+
+        # By default no prompts are returned
         list_of_prompts = []
 
         # Get all the ppossible values of the endings of the prompt
@@ -222,6 +295,15 @@ class NetworkDevice:
 
 
     def check_if_prompt_is_found(self, text):
+        """
+        Method used to check if a prompt is detected inside a string        
+
+        :param text: a string with prompt
+        :type text: str
+
+        :return: the prompt found
+        :rtype: str
+        """
 
         # By default the prompt is not found
         prompt_found = False
@@ -422,7 +504,7 @@ class NetworkDevice:
 
     async def connectSSH(self):
         """
-        Async method used for connecting a device with SSH
+        Async method used for connecting a device using SSH protocol
         """
 
         # Display info message
@@ -532,7 +614,7 @@ class NetworkDevice:
 
     async def connectTelnet(self):
         """
-        Async method used for connecting a device with Telnet
+        Async method used for connecting a device using Telnet protocol
         """
 
         # Display info message
@@ -731,7 +813,7 @@ class NetworkDevice:
         """
         Async method used to disconnect a device
 
-        If this method is not used then exceptions will happens
+        If this method is not used then exceptions will happen
         when the program will end
         """
 
@@ -767,7 +849,7 @@ class NetworkDevice:
         """
         Async method used to disconnect a device in SSH
 
-        If this method is not used then exceptions will happens
+        If this method is not used then exceptions will happen
         when the program will end
         """
 
@@ -787,7 +869,7 @@ class NetworkDevice:
         """
         Async method used to disconnect a device in Telnet
 
-        If this method is not used then exceptions will happens
+        If this method is not used then exceptions will happen
         when the program will end
         """
 
@@ -1048,17 +1130,19 @@ class NetworkDevice:
 
 
 
-    async def telnet_send_command_with_unexpected_pattern(self, password, pattern, error_pattern = None):
+    async def telnet_send_command_with_unexpected_pattern(self, cmd, pattern, error_pattern = None):
         """
-        Async method used to send command in telnet to a device with possible unexpected patterns
+        Async method used to send command for Telnet connection to a device with possible unexpected patterns
 
         send_command can wait till time out if login and password are wrong. This method
-        speed up the return when authentication failed is identified
+        speed up the returned error message when authentication failed is identified.
+        This method is limited to authentication whem password is required
 
-        :param password: password to send
-        :type password: str
+        :param cmd: command to send
+        :type cmd: str
 
-        :param pattern: optional, a list of pattern replacing very end of the prompt when the prompt is not expected
+        :param pattern: optional, a list of patterns located at the very end of the a returned string. Can be used
+            to define a custom or unexpected prompt a the end of a string
         :type pattern: str
 
         :param error_pattern: optional, a list of failed prompts found when the login and password are not correct
@@ -1072,10 +1156,10 @@ class NetworkDevice:
         log.info("telnet_send_command_with_unexpected_pattern")
 
         # Add carriage return at the end of the command (mandatory to send the command)
-        password = password + "\n"
+        cmd = cmd + "\n"
 
         # Sending command
-        self._writer.write(password.encode())
+        self._writer.write(cmd.encode())
 
         # Temporary string variable
         output = ""
@@ -1185,8 +1269,8 @@ class NetworkDevice:
         # Debug info message
         log.info("telnet_send_command_with_unexpected_pattern: raw output: '" + str(output) + "'\ntelnet_send_command_with_unexpected_pattern: raw output (hex): '" + output.encode().hex() + "'")
 
-        # Remove the password sent from the result of the command
-        output = self.remove_command_in_output(output, str(password))
+        # Remove the command sent from the result of the command
+        output = self.remove_command_in_output(output, str(cmd))
         # Remove the carriage return of the output
         output = self.remove_starting_carriage_return_in_output(output)
         # Remove the ending prompt of the output

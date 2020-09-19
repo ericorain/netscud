@@ -3,7 +3,7 @@ from netscud.devices.alcatel.alcatel_aos import AlcatelAOS
 from netscud.devices.cisco.cisco_ios import CiscoIOS
 from netscud.devices.cisco.cisco_s300 import CiscoS300
 
-#  Rhe supported device_types are the keys of this dictionary
+#  The supported device_types are the keys of this dictionary
 ALL_DEVICE_TYPE_CLASS = {
     "alcatel_aos": AlcatelAOS,
     "cisco_ios": CiscoIOS,
@@ -11,13 +11,12 @@ ALL_DEVICE_TYPE_CLASS = {
 }
 
 
-
 async def ConnectDevice(**kwargs):
     """
     Async function to be used for connnecting a device
     
-    This async function allows to use a class with an async method
-
+    This async function allows to use a class with an async method.
+    This function includes a connection to a device.
 
     :param kwargs: dictionary with the device connection parameters
     :type kwargs: dict
@@ -60,7 +59,6 @@ async def ConnectDevice(**kwargs):
 
         # propagate exception if needed
         raise
-
 
     # Return the class
     return my_class
