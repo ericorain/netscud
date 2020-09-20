@@ -56,6 +56,9 @@ async def ConnectDevice(**kwargs):
         await my_class.connect()
     
     except Exception:
+        
+        # Disconnection (if needed) in case the connection is done but something failed
+        await my_class.disconnect()
 
         # propagate exception if needed
         raise

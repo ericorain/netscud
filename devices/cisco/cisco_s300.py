@@ -8,14 +8,40 @@ class CiscoS300(NetworkDevice):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-
+        self._send_command_error_in_returned_output = ["%"]
         self._telnet_connect_login = "User Name:"
         self._telnet_connect_password = "Password:"
         self._telnet_connect_authentication_fail_prompt = ["User Name:","authentication failed"]
         self.cmd_disable_paging = "terminal datadump"
+        self.cmd_get_hostname = "show system | include System Name:"
         self.cmd_get_serial_number = "show system id unit 1"
 
 
+    async def get_hostname(self):
+        """
+        Asyn method used to get the name of the device
+
+        :return: Name of the device
+        :rtype: str
+        """
+
+        # Display info message
+        log.info("get_hostname")
+
+        # Get hostname
+        output = await self.send_command(self.cmd_get_hostname)
+
+        # Display info message
+        log.info("get_hostname: output: '" + str(output) + "'")
+
+        # Remove the useless information in the returned string
+        output = output.split("System Name: ")[1].strip()
+
+        # Display info message
+        log.info("get_hostname: hostname found: '" + str(output) + "'")
+
+        # Return the name of the device
+        return output
 
     async def get_version(self):
         """

@@ -5,6 +5,7 @@ import asyncio, asyncssh, logging
 log = logging.getLogger(__package__)
 
 # Debug level
+#logging.basicConfig(level=logging.WARNING)
 #logging.basicConfig(level=logging.INFO)
 #asyncssh.set_debug_level(1)
 
@@ -46,6 +47,15 @@ class NetworkDevice:
 
     :param enable_password: Enable password used for enable mode.
     :type enable_password: str, optional
+
+    :param conn: Variable used for the management of the SSH connection
+    :type conn: SSHClientConnection object
+
+    :param _writer: Variable used for the management of the Telnet connection and writing channel
+    :type _writer: StreamWriter object
+
+    :param _reader: Variable used for the management of the Telnet reading channel
+    :type _reader: StreamReader object
 
     :param possible_prompts: Used by the connect method to list all possible prompts of the device
     :type possible_prompts: list
@@ -110,6 +120,9 @@ class NetworkDevice:
         self._protocol = "ssh"
         self.enable_mode = False
         self.enable_password = ""
+        self.conn = None
+        self._writer = None
+        self._reader = None
         self.possible_prompts = []
         self._connect_first_ending_prompt = ["#",">"]
         self.list_of_possible_ending_prompts = [
@@ -119,6 +132,7 @@ class NetworkDevice:
             ">",
             "#",
         ]
+        self._send_command_error_in_returned_output = []
         self._telnet_connect_login = "Username:"
         self._telnet_connect_password = "Password:"
         self._telnet_connect_authentication_fail_prompt = [":","%"]
@@ -127,7 +141,7 @@ class NetworkDevice:
         self.cmd_enter_config_mode = "configure terminal"
         self.cmd_exit_config_mode = "exit"
         self.cmd_get_version = "show version"
-        self.cmd_get_hostname = "show system | include System Name:"
+        self.cmd_get_hostname = "show version | include uptime"
         self.cmd_get_model = "show inventory"
         self.cmd_get_serial_number = "show inventory | i SN"
         self.cmd_get_config = "show running-config"
@@ -424,6 +438,7 @@ class NetworkDevice:
         # Return the text without prompt at the end
         return text
 
+
     def check_error_output(self, output):
         """
         Check if an error is returned by the device ("% Unrecognized command", "% Ambiguous command", etc.)
@@ -440,15 +455,27 @@ class NetworkDevice:
             # Yes
 
             # Display info message
-            log.info("check_error_output: output[0]: " + output[0])
+            log.info("check_error_output: output has some data")
 
-            # Error message?
-            if output[0] == "%":
+            # Check all elements in the list of output
+            for element in self._send_command_error_in_returned_output:
 
-                # Yes
+                # Display info message
+                log.info("check_error_output: element: " + str(element))
 
-                # Raise an exception
-                raise Exception(output)
+                # Display info message
+                log.info("check_error_output: output[0]: " + output[0])
+
+
+                # Check if the output starts with a string with an error message (like "% Invalid input detected at '^' marker.")
+                
+                # Error message?
+                if output.startswith(element):
+
+                    # Yes
+
+                    # Raise an exception
+                    raise Exception(output)
 
 
     async def disable_paging(self):
@@ -463,7 +490,6 @@ class NetworkDevice:
         
         # Send command to the device to disable paging
         await self.send_command(self.cmd_disable_paging)
-
 
 
     async def connect(self):
@@ -864,6 +890,9 @@ class NetworkDevice:
             # Then close the SSH connection
             self.conn.close()
 
+            # No more connection to disconnect
+            self.conn = None
+
 
     async def disconnectTelnet(self):
         """
@@ -883,6 +912,9 @@ class NetworkDevice:
 
             # Then close the SSH connection
             self._writer.close()
+
+            # No more connection to disconnect
+            self._writer = None
 
 
     async def send_command(self, cmd, pattern = None):
@@ -1982,7 +2014,7 @@ class NetworkDevice:
         log.info("get_hostname: output: '" + str(output) + "'")
 
         # Remove the useless information in the returned string
-        output = output.split("System Name: ")[1].strip()
+        output = output.split()[0]
 
         # Display info message
         log.info("get_hostname: hostname found: '" + str(output) + "'")

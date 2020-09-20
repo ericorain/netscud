@@ -10,31 +10,89 @@ class CiscoIOS(NetworkDevice):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
     
-        self.cmd_get_hostname = "show version | include uptime"
+        self._send_command_error_in_returned_output = ["%"]
 
 
-    async def get_hostname(self):
+    def check_error_output(self, output):
         """
-        Asyn method used to get the name of the device
+        Check if an error is returned by the device ("% Unrecognized command", "% Ambiguous command", etc.)
 
-        :return: Name of the device
-        :rtype: str
+        If an error is found, then an exception is raised
         """
 
         # Display info message
-        log.info("get_hostname")
+        log.info("check_error_output")
 
-        # Get hostname
-        output = await self.send_command(self.cmd_get_hostname)
+        # Check if output has some data
+        if output:
 
-        # Display info message
-        log.info("get_hostname: output: '" + str(output) + "'")
+            # Yes
 
-        # Remove the useless information in the returned string
-        output = output.split()[0]
+            # Display info message
+            log.info("check_error_output: output has some data")
 
-        # Display info message
-        log.info("get_hostname: hostname found: '" + str(output) + "'")
+            # With Cisco IOS an error message can have "%" at first or second line
+            ##############################
+            # R1#show vl
+            # % Incomplete command.
+            #
+            # R1#show aze
+            #          ^
+            # % Invalid input detected at '^' marker.
+            #
+            # R1#
+            ##############################
 
-        # Return the name of the device
-        return output
+            # Convertion of a string to a list of strings
+            lines = output.splitlines()
+
+            # By default no data to ccheck
+            output_lines = []
+
+            # No more than 2 lines since error messages are in forst or second line
+            max_number_of_lines = 2
+
+            # Save 2 lines maximum into a list
+            for line in lines:
+
+                # Copy the line
+                output_lines.append(line)
+
+                # Decrease the number of maximum of line
+                max_number_of_lines -= 1
+
+                # Maximum of lines reached?
+                if max_number_of_lines <= 0:
+
+                    # Yes
+
+                    # Then break the lopp
+                    break
+
+
+            # Display info message
+            log.info("check_error_output: number of lines in the output: " + str(len(output_lines)))
+
+            # Check all elements in the list of output
+            for element in self._send_command_error_in_returned_output:
+
+                # Display info message
+                log.info("check_error_output: element: '" + str(element) + "'")
+
+                # Check if the output starts with a string with an error message (like "% Invalid input detected at '^' marker.")
+                for line in output_lines:
+
+                    # Display info message
+                    log.info("check_error_output: line: '" + str(line) + "'")
+                    
+                    # Error message?
+                    if line.startswith(element):
+
+                        # Yes
+
+                        # Display info message
+                        log.info("check_error_output: error in output found : '" + str(element) + "'")
+
+                        # Raise an exception
+                        raise Exception(output)
+
