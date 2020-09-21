@@ -17,7 +17,7 @@ class Inventory:
         self.yaml_host_file_dict = {}
 
         # File to open
-        hosts_file = r"d:\Prog\python\git\netscud\hosts.yaml"
+        hosts_file = r"d:\Prog\python\git\netscud\inventory\hosts.yaml"
 
         # Display info message
         logging.info("Inventory: reading file '" + str(hosts_file) + "'")

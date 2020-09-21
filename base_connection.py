@@ -502,30 +502,39 @@ class NetworkDevice:
         # Display info message
         log.info("connect")
 
-        # SSH?
-        if self._protocol == "ssh":
+        try:
 
-            # Yes
+            # SSH?
+            if self._protocol == "ssh":
 
-            # Then Connect using SSH
-            await self.connectSSH()
+                # Yes
 
-        # Telnet?
-        elif self._protocol == "telnet":
+                # Then Connect using SSH
+                await self.connectSSH()
 
-            # Yes
+            # Telnet?
+            elif self._protocol == "telnet":
 
-            # Then Connect using Telnet
-            await self.connectTelnet()
+                # Yes
+
+                # Then Connect using Telnet
+                await self.connectTelnet()
+            
+            else:
+
+                # Unsupported protocol
+
+                # Raise an exception
+                raise Exception("connect: unsupported protocol: " + str(self._protocol))
         
-        else:
+        except Exception:
 
-            # Unsupported protocol
+            # There was a problem with a connection method
 
-            # Raise an exception
-            raise Exception("connect: unsupported protocol: " + str(self._protocol))
-        
-
+            # Display info message
+            log.info("connect: connection error")
+            
+            raise
 
 
     async def connectSSH(self):
@@ -545,6 +554,7 @@ class NetworkDevice:
 
         # Trying to connect to the device
         try:
+
             self.conn = await asyncio.wait_for(generator, timeout=self.timeout)
 
         except asyncio.exceptions.TimeoutError as error:
@@ -552,11 +562,10 @@ class NetworkDevice:
             # Timeout
 
             # Display error message
-            log.error("connectSSH: connection timeout: '" + str(error) + "'")
+            log.error("connectSSH: connection failed: timeout: '" + str(error) + "'")
 
             # Exception propagation
             raise asyncio.exceptions.TimeoutError("Connection failed: connection timed out.")
-
         
         except Exception as error:
 
