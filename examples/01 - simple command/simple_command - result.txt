@@ -1,0 +1,26 @@
+c:\>simple_command.py
+Interface                      Status         Protocol Description
+Fa0/0                          up             up
+Fa0/1                          up             up
+Fa1/0                          up             up
+Fa1/1                          up             up
+Et2/0                          up             up
+Et2/1                          up             up
+Et2/2                          up             up
+Et2/3                          up             up
+
+c:\>
+
+-------------------------------------------
+
+R1#show interfaces description
+Interface                      Status         Protocol Description
+Fa0/0                          up             up
+Fa0/1                          up             up
+Fa1/0                          up             up
+Fa1/1                          up             up
+Et2/0                          up             up
+Et2/1                          up             up
+Et2/2                          up             up
+Et2/3                          up             up
+R1#
