@@ -14,27 +14,26 @@ ALL_DEVICE_TYPE_CLASS = {
 async def ConnectDevice(**kwargs):
     """
     Async function to be used for connnecting a device
-    
+
     This async function allows to use a class with an async method.
     This function includes a connection to a device.
 
     :param kwargs: dictionary with the device connection parameters
     :type kwargs: dict
 
-    :return: Return the object with the 
+    :return: Return the object with the
     :rtype: object with the device class
     """
 
-
     # Device type provided in the device dictionary?
-    if 'device_type' in kwargs:
-        
+    if "device_type" in kwargs:
+
         # Yes
 
-        #Get device type
-        device_type = kwargs['device_type']
+        # Get device type
+        device_type = kwargs["device_type"]
     else:
-        
+
         # No
 
         # Display error message
@@ -44,7 +43,7 @@ async def ConnectDevice(**kwargs):
     if device_type not in ALL_DEVICE_TYPE_CLASS:
 
         # Not a supported device
-        
+
         # Display error message
         raise Exception("ConnectDevice: device type unknown: " + str(device_type))
 
@@ -54,9 +53,9 @@ async def ConnectDevice(**kwargs):
     try:
         # Run an async method to connect a device
         await my_class.connect()
-    
+
     except Exception:
-        
+
         # Disconnection (if needed) in case the connection is done but something failed
         await my_class.disconnect()
 

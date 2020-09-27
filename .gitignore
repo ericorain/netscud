@@ -3,3 +3,5 @@ __pycache__/
 old/
 inventory/
 hosts.yaml
+.vscode/
+poetry.lock

@@ -5,9 +5,9 @@ import asyncio, asyncssh, logging
 log = logging.getLogger(__package__)
 
 # Debug level
-#logging.basicConfig(level=logging.WARNING)
-#logging.basicConfig(level=logging.INFO)
-#asyncssh.set_debug_level(1)
+# logging.basicConfig(level=logging.WARNING)
+# logging.basicConfig(level=logging.INFO)
+# asyncssh.set_debug_level(1)
 
 
 # Declaration of constant values
@@ -62,7 +62,7 @@ class NetworkDevice:
 
     :param _connect_first_ending_prompt: Default possible ending prompts. Used only the time after login and password to discover the prompt
     :type _connect_first_ending_prompt: list
-    
+
     :param list_of_possible_ending_prompts: Different strings at the end of a prompt the device can get. Used for detecting the prompt returned in sent commands
     :type list_of_possible_ending_prompts: list
 
@@ -124,7 +124,7 @@ class NetworkDevice:
         self._writer = None
         self._reader = None
         self.possible_prompts = []
-        self._connect_first_ending_prompt = ["#",">"]
+        self._connect_first_ending_prompt = ["#", ">"]
         self.list_of_possible_ending_prompts = [
             "(config-line)#",
             "(config-if)#",
@@ -135,7 +135,7 @@ class NetworkDevice:
         self._send_command_error_in_returned_output = []
         self._telnet_connect_login = "Username:"
         self._telnet_connect_password = "Password:"
-        self._telnet_connect_authentication_fail_prompt = [":","%"]
+        self._telnet_connect_authentication_fail_prompt = [":", "%"]
         self.cmd_enable = "enable"
         self.cmd_disable_paging = "terminal length 0"
         self.cmd_enter_config_mode = "configure terminal"
@@ -146,85 +146,80 @@ class NetworkDevice:
         self.cmd_get_serial_number = "show inventory | i SN"
         self.cmd_get_config = "show running-config"
         self.cmd_save_config = "write memory"
-        
 
         # Display info message
         log.info("__init__: kwargs: " + str(kwargs))
 
-
         # Get information from dictionary
 
         # "ip" found?
-        if 'ip' in kwargs:
-            
+        if "ip" in kwargs:
+
             # Save "ip" parameter
-            self.ip = kwargs['ip']
-            
+            self.ip = kwargs["ip"]
+
             # Display info message
             log.info("__init__: ip found: " + str(self.ip))
 
         # "username" found?
-        if 'username' in kwargs:
-            self.username = kwargs['username']
+        if "username" in kwargs:
+            self.username = kwargs["username"]
 
             # Display info message
             log.info("__init__: username found: " + str(self.username))
-        
+
         # "password" found?
-        if 'password' in kwargs:
-            self.password = kwargs['password']
+        if "password" in kwargs:
+            self.password = kwargs["password"]
 
             # Display info message
             log.info("__init__: password found: " + str(self.password))
 
         # "device_type" found?
-        if 'device_type' in kwargs:
-            self.device_type = kwargs['device_type']
-            
+        if "device_type" in kwargs:
+            self.device_type = kwargs["device_type"]
+
             # Display info message
             log.info("__init__: device_type found: " + str(self.device_type))
 
         # "timeout" found?
-        if 'timeout' in kwargs:
-            self.timeout = kwargs['timeout']
+        if "timeout" in kwargs:
+            self.timeout = kwargs["timeout"]
 
             # Display info message
             log.info("__init__: timeout found: " + str(self.timeout))
 
         # "protocol" found?
-        if 'protocol' in kwargs:
-            self._protocol = kwargs['protocol'].lower()
+        if "protocol" in kwargs:
+            self._protocol = kwargs["protocol"].lower()
 
             # Display info message
             log.info("__init__: protocol found: " + str(self._protocol))
-            
+
             # By default telnet port is 23
             if self._protocol.lower() == "telnet":
                 self.port = 23
-        
+
         # "port" found?
-        if 'port' in kwargs:
-            self.port = kwargs['port']
+        if "port" in kwargs:
+            self.port = kwargs["port"]
 
             # Display info message
             log.info("__init__: port found: " + str(self.port))
 
         # "enable_mode" found?
-        if 'enable_mode' in kwargs:
-            self.enable_mode = kwargs['enable_mode']
+        if "enable_mode" in kwargs:
+            self.enable_mode = kwargs["enable_mode"]
 
             # Display info message
             log.info("__init__: enable_mode found: " + str(self.enable_mode))
 
         # "enable_password" found?
-        if 'enable_password' in kwargs:
-            self.enable_password = kwargs['enable_password']
+        if "enable_password" in kwargs:
+            self.enable_password = kwargs["enable_password"]
 
             # Display info message
             log.info("__init__: enable_password found: " + str(self.enable_password))
-
-
-
 
     def find_prompt(self, text):
         """
@@ -243,7 +238,7 @@ class NetworkDevice:
         """
 
         # Get last line of the data
-        prompt = text.split('\n')[-1]
+        prompt = text.split("\n")[-1]
 
         # Display info message
         log.info("find_prompt: prompt: '" + str(prompt) + "'")
@@ -284,11 +279,10 @@ class NetworkDevice:
                 # Yes
 
                 # Then remove the ending
-                my_prompt = my_prompt[:-len(ending)]
+                my_prompt = my_prompt[: -len(ending)]
 
                 # Break the loop
                 break
-
 
         # Prompt should be from "switch#" to "switch"
 
@@ -302,15 +296,16 @@ class NetworkDevice:
             list_of_prompts.append(my_prompt + ending)
 
         # Display info message
-        log.info("get_possible_prompts: list of possible prompts: " + str(list_of_prompts))
+        log.info(
+            "get_possible_prompts: list of possible prompts: " + str(list_of_prompts)
+        )
 
         # Return the list of prompts
         return list_of_prompts
 
-
     def check_if_prompt_is_found(self, text):
         """
-        Method used to check if a prompt is detected inside a string        
+        Method used to check if a prompt is detected inside a string
 
         :param text: a string with prompt
         :type text: str
@@ -335,15 +330,15 @@ class NetworkDevice:
                 prompt_found = True
 
                 # Display info message
-                log.info("check_if_prompt_is_found: prompt found: '" + str(prompt) + "'")
+                log.info(
+                    "check_if_prompt_is_found: prompt found: '" + str(prompt) + "'"
+                )
 
                 # Leave the for loop
                 break
-        
+
         # Return the prompt found
         return prompt_found
-
-
 
     def remove_command_in_output(self, text, cmd):
         """
@@ -364,10 +359,10 @@ class NetworkDevice:
 
         # Display info message
         log.info("remove_command_in_output: cmd = '" + str(cmd) + "'")
-        
+
         # Display info message
         log.info("remove_command_in_output: cmd (hex) = '" + cmd.encode().hex() + "'")
-        
+
         # Remove the command from the beginning of the output
         output = text.lstrip(cmd)
 
@@ -396,7 +391,7 @@ class NetworkDevice:
         return output
 
     def remove_ending_prompt_in_output(self, text):
-    
+
         """
         Method removing the prompt at the end of a string
 
@@ -430,14 +425,13 @@ class NetworkDevice:
                 # Leave the loop
                 break
 
-        #output = text.rstrip("\r\n" + self.prompt)
+        # output = text.rstrip("\r\n" + self.prompt)
 
         # Display info message
         log.info("remove_ending_prompt_in_output: text without prompt:\n'" + text + "'")
 
         # Return the text without prompt at the end
         return text
-
 
     def check_error_output(self, output):
         """
@@ -466,9 +460,8 @@ class NetworkDevice:
                 # Display info message
                 log.info("check_error_output: output[0]: " + output[0])
 
-
                 # Check if the output starts with a string with an error message (like "% Invalid input detected at '^' marker.")
-                
+
                 # Error message?
                 if output.startswith(element):
 
@@ -476,7 +469,6 @@ class NetworkDevice:
 
                     # Raise an exception
                     raise Exception(output)
-
 
     async def disable_paging(self):
         """
@@ -487,10 +479,9 @@ class NetworkDevice:
 
         # Display info message
         log.info("disable_paging")
-        
+
         # Send command to the device to disable paging
         await self.send_command(self.cmd_disable_paging)
-
 
     async def connect(self):
         """
@@ -519,23 +510,22 @@ class NetworkDevice:
 
                 # Then Connect using Telnet
                 await self.connectTelnet()
-            
+
             else:
 
                 # Unsupported protocol
 
                 # Raise an exception
                 raise Exception("connect: unsupported protocol: " + str(self._protocol))
-        
+
         except Exception:
 
             # There was a problem with a connection method
 
             # Display info message
             log.info("connect: connection error")
-            
-            raise
 
+            raise
 
     async def connectSSH(self):
         """
@@ -545,12 +535,10 @@ class NetworkDevice:
         # Display info message
         log.info("connectSSH")
 
-        # Parameters of the connection       
-        generator = asyncssh.connect(self.ip,
-                                    username = self.username,
-                                    password = self.password,
-                                    known_hosts=None)
-
+        # Parameters of the connection
+        generator = asyncssh.connect(
+            self.ip, username=self.username, password=self.password, known_hosts=None
+        )
 
         # Trying to connect to the device
         try:
@@ -558,15 +546,17 @@ class NetworkDevice:
             self.conn = await asyncio.wait_for(generator, timeout=self.timeout)
 
         except asyncio.exceptions.TimeoutError as error:
-             
+
             # Timeout
 
             # Display error message
             log.error("connectSSH: connection failed: timeout: '" + str(error) + "'")
 
             # Exception propagation
-            raise asyncio.exceptions.TimeoutError("Connection failed: connection timed out.")
-        
+            raise asyncio.exceptions.TimeoutError(
+                "Connection failed: connection timed out."
+            )
+
         except Exception as error:
 
             # Connection failed
@@ -598,21 +588,27 @@ class NetworkDevice:
             while prompt_not_found:
 
                 # Read the prompt
-                data += await asyncio.wait_for(self.stdoutx.read(MAX_BUFFER_DATA), timeout=self.timeout)
+                data += await asyncio.wait_for(
+                    self.stdoutx.read(MAX_BUFFER_DATA), timeout=self.timeout
+                )
 
                 # Display info message
                 log.info("connectSSH: data: '" + str(data) + "'")
 
                 # Check if an initial prompt is found
                 for prompt in self._connect_first_ending_prompt:
-                    
+
                     # Ending prompt found?
                     if data.endswith(prompt):
 
                         # Yes
 
                         # Display info message
-                        log.info("connectSSH: first ending prompt found: '" + str(prompt) + "'")
+                        log.info(
+                            "connectSSH: first ending prompt found: '"
+                            + str(prompt)
+                            + "'"
+                        )
 
                         # A ending prompt has been found
                         prompt_not_found = False
@@ -620,17 +616,17 @@ class NetworkDevice:
                         # Leave the loop
                         break
 
-
         except Exception as error:
-            
+
             # Fail while reading the prompt
 
             # Display error message
-            log.error("connectSSH: timeout while reading the prompt: '" + str(error) + "'")
+            log.error(
+                "connectSSH: timeout while reading the prompt: '" + str(error) + "'"
+            )
 
             # Exception propagation
             raise
-
 
         # Find prompt
         self.prompt = self.find_prompt(str(data))
@@ -645,8 +641,6 @@ class NetworkDevice:
             # Disable paging
             await self.disable_paging()
 
-
-
     async def connectTelnet(self):
         """
         Async method used for connecting a device using Telnet protocol
@@ -654,7 +648,6 @@ class NetworkDevice:
 
         # Display info message
         log.info("connectTelnet")
-
 
         try:
 
@@ -666,7 +659,11 @@ class NetworkDevice:
             # Preparation to the connection failed
 
             # Display error message
-            log.error("connectTelnet: preparation to the connection failed: '" + str(error) + "'")
+            log.error(
+                "connectTelnet: preparation to the connection failed: '"
+                + str(error)
+                + "'"
+            )
 
             # Exception propagation
             raise
@@ -677,8 +674,10 @@ class NetworkDevice:
         try:
 
             # Connection with Telnet
-            self._reader, self._writer = await asyncio.wait_for(conn, timeout = self.timeout)
-        
+            self._reader, self._writer = await asyncio.wait_for(
+                conn, timeout=self.timeout
+            )
+
         except asyncio.TimeoutError:
 
             # Time out during connection
@@ -711,14 +710,16 @@ class NetworkDevice:
         while True:
 
             # Read returned prompt
-            byte_data += await asyncio.wait_for(self._reader.read(MAX_BUFFER_DATA), timeout=self.timeout)
+            byte_data += await asyncio.wait_for(
+                self._reader.read(MAX_BUFFER_DATA), timeout=self.timeout
+            )
 
             # Display info message
             log.info("connectTelnet: byte_data: " + str(byte_data))
 
             # Temporary convertion in string. This string has the following form: "b'....'"
             output = str(byte_data)
-            
+
             # Display info message
             log.info("connectTelnet: output: " + str(output))
 
@@ -740,12 +741,9 @@ class NetworkDevice:
 
                 # Leave the loop
                 break
-                
-
 
         # Display info message
         log.info("connectTelnet: login prompt: '" + str(output) + "'")
-
 
         # Login to use?
         if use_login:
@@ -762,7 +760,7 @@ class NetworkDevice:
 
                 # Display info message
                 log.info("connectTelnet: login sent")
-            
+
             except Exception:
 
                 # Problem with the login
@@ -770,15 +768,16 @@ class NetworkDevice:
                 # Propagate the exception
                 raise
 
-
         # Display info message
         log.info("connectTelnet: sending password")
 
         try:
             # Send password
-            output = await self.telnet_send_command_with_unexpected_pattern(self.password,
-                                                                            self._connect_first_ending_prompt,
-                                                                            self._telnet_connect_authentication_fail_prompt)
+            output = await self.telnet_send_command_with_unexpected_pattern(
+                self.password,
+                self._connect_first_ending_prompt,
+                self._telnet_connect_authentication_fail_prompt,
+            )
 
         except Exception:
 
@@ -796,10 +795,9 @@ class NetworkDevice:
         # Display info message
         log.info("connectTelnet: prompt found: '" + str(self.prompt) + "'")
 
-
         # Password enable?
         if self.enable_mode:
-            
+
             # Yes
 
             # Display info message
@@ -817,13 +815,15 @@ class NetworkDevice:
                 log.info("connectTelnet: sending enable password")
 
                 # Send enable password
-                await self.telnet_send_command_with_unexpected_pattern(self.enable_password,
-                                                                        self._connect_first_ending_prompt,
-                                                                        self._telnet_connect_authentication_fail_prompt)
+                await self.telnet_send_command_with_unexpected_pattern(
+                    self.enable_password,
+                    self._connect_first_ending_prompt,
+                    self._telnet_connect_authentication_fail_prompt,
+                )
 
                 # Display info message
                 log.info("connectTelnet: enable password sent")
-            
+
             except Exception:
 
                 # Problem with the enable password
@@ -833,16 +833,14 @@ class NetworkDevice:
 
                 # Propagate the exception
                 raise
-        
 
         # Disable paging command available?
         if self.cmd_disable_paging:
-            
+
             # Yes
 
             # Disable paging
             await self.disable_paging()
-
 
     async def disconnect(self):
         """
@@ -854,7 +852,6 @@ class NetworkDevice:
 
         # Debug info message
         log.info("disconnect")
-
 
         # SSH?
         if self._protocol == "ssh":
@@ -871,14 +868,13 @@ class NetworkDevice:
 
             # Then disconnect using Telnet
             await self.disconnectTelnet()
-        
+
         else:
 
             # Unsupported protocol
 
             # Raise an exception
             raise Exception("Unsupported protocol: " + str(self._protocol))
-
 
     async def disconnectSSH(self):
         """
@@ -902,7 +898,6 @@ class NetworkDevice:
             # No more connection to disconnect
             self.conn = None
 
-
     async def disconnectTelnet(self):
         """
         Async method used to disconnect a device in Telnet
@@ -925,8 +920,7 @@ class NetworkDevice:
             # No more connection to disconnect
             self._writer = None
 
-
-    async def send_command(self, cmd, pattern = None):
+    async def send_command(self, cmd, pattern=None):
         """
         Async method used to send data to a device
 
@@ -958,19 +952,20 @@ class NetworkDevice:
 
             # Then disconnect using Telnet
             output = await self.send_commandTelnet(cmd, pattern)
-        
+
         else:
 
             # Unsupported protocol
 
             # Raise an exception
-            raise Exception("send_command: unsupported protocol: " + str(self._protocol))
+            raise Exception(
+                "send_command: unsupported protocol: " + str(self._protocol)
+            )
 
         # Return the result of the command
         return output
 
-
-    async def send_commandSSH(self, cmd, pattern = None):
+    async def send_commandSSH(self, cmd, pattern=None):
         """
         Async method used to send data to a device
 
@@ -998,16 +993,18 @@ class NetworkDevice:
 
         # Display message
         log.info("send_commandSSH: command sent")
-        
+
         # Variable used to gather data
         output = ""
-        
+
         # Reading data
         while True:
 
             # Read the data received
-            output += await asyncio.wait_for(self.stdoutx.read(MAX_BUFFER_DATA), timeout=self.timeout)
-            
+            output += await asyncio.wait_for(
+                self.stdoutx.read(MAX_BUFFER_DATA), timeout=self.timeout
+            )
+
             # Debug info message
             log.info("send_commandSSH: output: '" + str(output) + "'")
 
@@ -1020,7 +1017,7 @@ class NetworkDevice:
                     # Yes
 
                     # Leave the loop
-                    break                
+                    break
 
             else:
                 # Check if prompt is found
@@ -1031,9 +1028,14 @@ class NetworkDevice:
                     # Leave the loop
                     break
 
-            
         # Debug info message
-        log.info("send_commandSSH: raw output: '" + str(output) + "'\nsend_commandSSH: raw output (hex): '" + output.encode().hex() + "'")
+        log.info(
+            "send_commandSSH: raw output: '"
+            + str(output)
+            + "'\nsend_commandSSH: raw output (hex): '"
+            + output.encode().hex()
+            + "'"
+        )
 
         # Remove the command sent from the result of the command
         output = self.remove_command_in_output(output, str(cmd))
@@ -1043,7 +1045,13 @@ class NetworkDevice:
         output = self.remove_ending_prompt_in_output(output)
 
         # Debug info message
-        log.info("send_commandSSH: cleaned output: '" + str(output) + "'\nsend_commandSSH: cleaned output (hex): '" + output.encode().hex() + "'")
+        log.info(
+            "send_commandSSH: cleaned output: '"
+            + str(output)
+            + "'\nsend_commandSSH: cleaned output (hex): '"
+            + output.encode().hex()
+            + "'"
+        )
 
         # Check if there is an error in the output string (like "% Unrecognized command")
         # and generate an exception if needed
@@ -1052,8 +1060,7 @@ class NetworkDevice:
         # Return the result of the command
         return output
 
-
-    async def send_commandTelnet(self, cmd, pattern = None):
+    async def send_commandTelnet(self, cmd, pattern=None):
         """
         Async method used to send data to a device
 
@@ -1076,8 +1083,6 @@ class NetworkDevice:
         # Sending command
         self._writer.write(cmd.encode())
 
-
-
         # Temporary string variable
         output = ""
 
@@ -1090,18 +1095,19 @@ class NetworkDevice:
             while True:
 
                 # Read returned prompt
-                byte_data += await asyncio.wait_for(self._reader.read(MAX_BUFFER_DATA), timeout=self.timeout)
+                byte_data += await asyncio.wait_for(
+                    self._reader.read(MAX_BUFFER_DATA), timeout=self.timeout
+                )
 
                 # Display info message
                 log.info("send_commandTelnet: byte_data: '" + str(byte_data) + "'")
 
                 # Temporary convertion in string. This string has the following form: "b'....'"
                 output = str(byte_data)
-                
+
                 # Display info message
                 log.info("send_commandTelnet: output: '" + str(output) + "'")
 
-                
                 # Is a patten used?
                 if pattern:
 
@@ -1111,7 +1117,7 @@ class NetworkDevice:
                         # Yes
 
                         # Leave the loop
-                        break                
+                        break
 
                 else:
 
@@ -1123,7 +1129,6 @@ class NetworkDevice:
                         # Leave the loop
                         break
 
-
         except asyncio.TimeoutError:
 
             # Time out during when reading prompt
@@ -1134,23 +1139,27 @@ class NetworkDevice:
             # Exception propagation
             raise
 
-
         except Exception as error:
 
             # Error during when reading prompt
-            
+
             # Display error message
             log.error("send_commandTelnet: error: " + str(error))
 
             # Exception propagation
             raise
 
-
         # Convert data (bytes) into string
         output = byte_data.decode("utf-8", "ignore")
 
         # Debug info message
-        log.info("send_commandTelnet: raw output: '" + str(output) + "'\nsend_commandTelnet: raw output (hex): '" + output.encode().hex() + "'")
+        log.info(
+            "send_commandTelnet: raw output: '"
+            + str(output)
+            + "'\nsend_commandTelnet: raw output (hex): '"
+            + output.encode().hex()
+            + "'"
+        )
 
         # Remove the command sent from the result of the command
         output = self.remove_command_in_output(output, str(cmd))
@@ -1160,7 +1169,13 @@ class NetworkDevice:
         output = self.remove_ending_prompt_in_output(output)
 
         # Debug info message
-        log.info("send_commandTelnet: cleaned output: '" + str(output) + "'\nsend_commandTelnet: cleaned output (hex): '" + output.encode().hex() + "'")
+        log.info(
+            "send_commandTelnet: cleaned output: '"
+            + str(output)
+            + "'\nsend_commandTelnet: cleaned output (hex): '"
+            + output.encode().hex()
+            + "'"
+        )
 
         # Check if there is an error in the output string (like "% Unrecognized command")
         # and generate an exception if needed
@@ -1169,9 +1184,9 @@ class NetworkDevice:
         # Return the result of the command
         return output
 
-
-
-    async def telnet_send_command_with_unexpected_pattern(self, cmd, pattern, error_pattern = None):
+    async def telnet_send_command_with_unexpected_pattern(
+        self, cmd, pattern, error_pattern=None
+    ):
         """
         Async method used to send command for Telnet connection to a device with possible unexpected patterns
 
@@ -1217,18 +1232,27 @@ class NetworkDevice:
             while pattern_not_found:
 
                 # Read returned prompt
-                byte_data += await asyncio.wait_for(self._reader.read(MAX_BUFFER_DATA), timeout=self.timeout)
+                byte_data += await asyncio.wait_for(
+                    self._reader.read(MAX_BUFFER_DATA), timeout=self.timeout
+                )
 
                 # Display info message
-                log.info("telnet_send_command_with_unexpected_pattern: byte_data: '" + str(byte_data) + "'")
+                log.info(
+                    "telnet_send_command_with_unexpected_pattern: byte_data: '"
+                    + str(byte_data)
+                    + "'"
+                )
 
                 # Temporary convertion in string. This string has the following form: "b'....'"
                 output = str(byte_data)
-                
-                # Display info message
-                log.info("telnet_send_command_with_unexpected_pattern: output: '" + str(output) + "'")
 
-                
+                # Display info message
+                log.info(
+                    "telnet_send_command_with_unexpected_pattern: output: '"
+                    + str(output)
+                    + "'"
+                )
+
                 # Is a pattern used?
                 if pattern:
 
@@ -1236,7 +1260,11 @@ class NetworkDevice:
                     for prompt in pattern:
 
                         # Display info message
-                        log.info("telnet_send_command_with_unexpected_pattern: checking prompt: '" + str(prompt) + "'")
+                        log.info(
+                            "telnet_send_command_with_unexpected_pattern: checking prompt: '"
+                            + str(prompt)
+                            + "'"
+                        )
 
                         # A pattern found?
                         if prompt in output:
@@ -1244,10 +1272,14 @@ class NetworkDevice:
                             # Yes
 
                             # A pattern is found. The main loop can be stopped
-                            pattern_not_found =  False
+                            pattern_not_found = False
 
                             # Display info message
-                            log.info("telnet_send_command_with_unexpected_pattern: prompt found: '" + str(prompt) + "'")
+                            log.info(
+                                "telnet_send_command_with_unexpected_pattern: prompt found: '"
+                                + str(prompt)
+                                + "'"
+                            )
 
                             # Leave the loop
                             break
@@ -1259,7 +1291,11 @@ class NetworkDevice:
                     for bad_prompt in error_pattern:
 
                         # Display info message
-                        log.info("telnet_send_command_with_unexpected_pattern: checking unexpected prompt: '" + str(bad_prompt) + "'")
+                        log.info(
+                            "telnet_send_command_with_unexpected_pattern: checking unexpected prompt: '"
+                            + str(bad_prompt)
+                            + "'"
+                        )
 
                         # An error_pattern pattern found?
                         if bad_prompt in output:
@@ -1267,14 +1303,17 @@ class NetworkDevice:
                             # Yes
 
                             # Display error message
-                            log.error("telnet_send_command_with_unexpected_pattern: authentication failed")
+                            log.error(
+                                "telnet_send_command_with_unexpected_pattern: authentication failed"
+                            )
 
                             # Raise exception
-                            raise Exception("telnet_send_command_with_unexpected_pattern: authentication failed")
+                            raise Exception(
+                                "telnet_send_command_with_unexpected_pattern: authentication failed"
+                            )
 
                             # Leave the loop
-                            #break
-
+                            # break
 
         except asyncio.TimeoutError:
 
@@ -1284,11 +1323,12 @@ class NetworkDevice:
             await self.disconnect()
 
             # Display error message
-            log.error("telnet_send_command_with_unexpected_pattern: reading prompt: timeout")
+            log.error(
+                "telnet_send_command_with_unexpected_pattern: reading prompt: timeout"
+            )
 
             # Exception propagation
             raise
-
 
         except Exception as error:
 
@@ -1298,17 +1338,25 @@ class NetworkDevice:
             await self.disconnect()
 
             # Display error message
-            log.error("telnet_send_command_with_unexpected_pattern: reading prompt: error: " + str(error))
+            log.error(
+                "telnet_send_command_with_unexpected_pattern: reading prompt: error: "
+                + str(error)
+            )
 
             # Exception propagation
             raise
-
 
         # Convert data (bytes) into string
         output = byte_data.decode("utf-8", "ignore")
 
         # Debug info message
-        log.info("telnet_send_command_with_unexpected_pattern: raw output: '" + str(output) + "'\ntelnet_send_command_with_unexpected_pattern: raw output (hex): '" + output.encode().hex() + "'")
+        log.info(
+            "telnet_send_command_with_unexpected_pattern: raw output: '"
+            + str(output)
+            + "'\ntelnet_send_command_with_unexpected_pattern: raw output (hex): '"
+            + output.encode().hex()
+            + "'"
+        )
 
         # Remove the command sent from the result of the command
         output = self.remove_command_in_output(output, str(cmd))
@@ -1318,13 +1366,16 @@ class NetworkDevice:
         output = self.remove_ending_prompt_in_output(output)
 
         # Debug info message
-        log.info("telnet_send_command_with_unexpected_pattern: cleaned output: '" + str(output) + "'\ntelnet_send_command_with_unexpected_pattern: cleaned output (hex): '" + output.encode().hex() + "'")
+        log.info(
+            "telnet_send_command_with_unexpected_pattern: cleaned output: '"
+            + str(output)
+            + "'\ntelnet_send_command_with_unexpected_pattern: cleaned output (hex): '"
+            + output.encode().hex()
+            + "'"
+        )
 
         # Return the result of the command
         return output
-
-
-
 
     async def send_config_set(self, cmds=None):
         """
@@ -1345,7 +1396,6 @@ class NetworkDevice:
         # Display info message
         log.info("send_config_set")
 
-
         # Debug info message
         log.info("send_command")
 
@@ -1364,19 +1414,18 @@ class NetworkDevice:
 
             # Then disconnect using Telnet
             output = await self.send_config_setTelnet(cmds)
-        
+
         else:
 
             # Unsupported protocol
 
             # Raise an exception
-            raise Exception("send_config_set: unsupported protocol: " + str(self._protocol))
+            raise Exception(
+                "send_config_set: unsupported protocol: " + str(self._protocol)
+            )
 
         # Return the result of the commands
         return output
-
-
-
 
     async def send_config_setSSH(self, cmds=None):
         """
@@ -1398,7 +1447,7 @@ class NetworkDevice:
         log.info("send_config_setSSH")
 
         # Clear returned output
-        returned_output  = ""
+        returned_output = ""
 
         # Check if cmds is a string
         if isinstance(cmds, str):
@@ -1414,11 +1463,12 @@ class NetworkDevice:
             # Not a list (and not a string)
 
             # Display error message
-            log.error("send_config_setSSH: parameter cmds used in send_config_set is neither a string or a list")            
+            log.error(
+                "send_config_setSSH: parameter cmds used in send_config_set is neither a string or a list"
+            )
 
             # Leave the method
             return returned_output
-
 
         ##############################
         # Entering configuration mode
@@ -1428,11 +1478,11 @@ class NetworkDevice:
         log.info("send_config_set: entering configuration mode")
 
         # Clear output
-        output  = ""
+        output = ""
 
         # Get command for entering in config made
         cmd = self.cmd_enter_config_mode
-        
+
         # Add carriage return at the end of the command (mandatory to send the command)
         cmd = cmd + "\n"
 
@@ -1446,10 +1496,12 @@ class NetworkDevice:
         log.info("send_config_setSSH: configuration mode entered")
 
         while True:
-            
+
             # Read the data received
-            output += await asyncio.wait_for(self.stdoutx.read(MAX_BUFFER_DATA), timeout=self.timeout)
-            
+            output += await asyncio.wait_for(
+                self.stdoutx.read(MAX_BUFFER_DATA), timeout=self.timeout
+            )
+
             # Display info message
             log.info("send_config_setSSH: output: '" + str(output) + "'")
 
@@ -1462,7 +1514,13 @@ class NetworkDevice:
                 break
 
         # Debug info message
-        log.info("send_config_setSSH: raw output: '" + str(output) + "'\nsend_config_setSSH: raw output (hex): '" + output.encode().hex() + "'")
+        log.info(
+            "send_config_setSSH: raw output: '"
+            + str(output)
+            + "'\nsend_config_setSSH: raw output (hex): '"
+            + output.encode().hex()
+            + "'"
+        )
 
         # Add the output to the returned output
         returned_output += output
@@ -1475,14 +1533,17 @@ class NetworkDevice:
         output = self.remove_ending_prompt_in_output(output)
 
         # Display info message
-        log.info("send_config_setSSH: cleaned output: '" + str(output) + "'\nsend_config_setSSH: cleaned output (hex): '" + output.encode().hex() + "'")
+        log.info(
+            "send_config_setSSH: cleaned output: '"
+            + str(output)
+            + "'\nsend_config_setSSH: cleaned output (hex): '"
+            + output.encode().hex()
+            + "'"
+        )
 
         # Check if there is an error in the output string (like "% Unrecognized command")
         # and generate an exception if needed
         self.check_error_output(output)
-
-
-
 
         ##############################
         # Sending commands
@@ -1492,7 +1553,7 @@ class NetworkDevice:
         log.info("send_config_setSSH: sending commands")
 
         # Clear output
-        output  = ""
+        output = ""
 
         # Each command
         for cmd in cmds:
@@ -1510,10 +1571,12 @@ class NetworkDevice:
             log.info("send_config_setSSH: command sent")
 
             while True:
-                
+
                 # Read the data received
-                output += await asyncio.wait_for(self.stdoutx.read(MAX_BUFFER_DATA), timeout=self.timeout)
-                
+                output += await asyncio.wait_for(
+                    self.stdoutx.read(MAX_BUFFER_DATA), timeout=self.timeout
+                )
+
                 # Display info message
                 log.info("send_config_setSSH: output: '" + str(output) + "'")
 
@@ -1526,7 +1589,13 @@ class NetworkDevice:
                     break
 
             # Debug info message
-            log.info("send_config_setSSH: raw output: '" + str(output) + "'\nsend_config_setSSH: raw output (hex): '" + output.encode().hex() + "'")
+            log.info(
+                "send_config_setSSH: raw output: '"
+                + str(output)
+                + "'\nsend_config_setSSH: raw output (hex): '"
+                + output.encode().hex()
+                + "'"
+            )
 
             # Add the output to the returned output
             returned_output += output
@@ -1539,14 +1608,17 @@ class NetworkDevice:
             output = self.remove_ending_prompt_in_output(output)
 
             # Display info message
-            log.info("send_config_setSSH: cleaned output: '" + str(output) + "'\nsend_config_setSSH: cleaned output (hex): '" + output.encode().hex() + "'")
+            log.info(
+                "send_config_setSSH: cleaned output: '"
+                + str(output)
+                + "'\nsend_config_setSSH: cleaned output (hex): '"
+                + output.encode().hex()
+                + "'"
+            )
 
             # Check if there is an error in the output string (like "% Unrecognized command")
             # and generate an exception if needed
             self.check_error_output(output)
-
-
-
 
         ##############################
         # Leaving configuration mode
@@ -1556,7 +1628,7 @@ class NetworkDevice:
         log.info("send_config_setSSH: leaving configuration mode")
 
         # Clear output
-        output  = ""
+        output = ""
 
         # Get command to leave config made
         cmd = self.cmd_exit_config_mode
@@ -1573,12 +1645,13 @@ class NetworkDevice:
         # Display info message
         log.info("send_config_setSSH: command to leave configuration mode sent")
 
-
         while True:
-            
+
             # Read the data received
-            output += await asyncio.wait_for(self.stdoutx.read(MAX_BUFFER_DATA), timeout=self.timeout)
-            
+            output += await asyncio.wait_for(
+                self.stdoutx.read(MAX_BUFFER_DATA), timeout=self.timeout
+            )
+
             # Display info message
             log.info("send_config_setSSH: output: '" + str(output) + "'")
 
@@ -1591,7 +1664,13 @@ class NetworkDevice:
                 break
 
         # Debug info message
-        log.info("send_config_setSSH: raw output: '" + str(output) + "'\nsend_config_setSSH: raw output (hex): '" + output.encode().hex() + "'")
+        log.info(
+            "send_config_setSSH: raw output: '"
+            + str(output)
+            + "'\nsend_config_setSSH: raw output (hex): '"
+            + output.encode().hex()
+            + "'"
+        )
 
         # Add the output to the returned output
         returned_output += output
@@ -1604,19 +1683,20 @@ class NetworkDevice:
         output = self.remove_ending_prompt_in_output(output)
 
         # Display info message
-        log.info("send_config_setSSH: cleaned output: '" + str(output) + "'\nsend_config_setSSH: cleaned output (hex): '" + output.encode().hex() + "'")
+        log.info(
+            "send_config_setSSH: cleaned output: '"
+            + str(output)
+            + "'\nsend_config_setSSH: cleaned output (hex): '"
+            + output.encode().hex()
+            + "'"
+        )
 
         # Check if there is an error in the output string (like "% Unrecognized command")
         # and generate an exception if needed
         self.check_error_output(output)
 
-
         # Return the result of the commands
         return returned_output
-
-
-
-
 
     async def send_config_setTelnet(self, cmds=None):
         """
@@ -1638,7 +1718,7 @@ class NetworkDevice:
         log.info("send_config_setTelnet")
 
         # Clear returned output
-        returned_output  = ""
+        returned_output = ""
 
         # Check if cmds is a string
         if isinstance(cmds, str):
@@ -1654,11 +1734,12 @@ class NetworkDevice:
             # Not a list (and not a string)
 
             # Display error message
-            log.error("send_config_setTelnet: parameter cmds used in send_config_set is neither a string or a list")            
+            log.error(
+                "send_config_setTelnet: parameter cmds used in send_config_set is neither a string or a list"
+            )
 
             # Leave the method
             return returned_output
-
 
         ##############################
         # Entering configuration mode
@@ -1668,11 +1749,11 @@ class NetworkDevice:
         log.info("send_config_setTelnet: entering configuration mode")
 
         # Clear output
-        output  = ""
+        output = ""
 
         # Get command for entering in config made
         cmd = self.cmd_enter_config_mode
-        
+
         # Add carriage return at the end of the command (mandatory to send the command)
         cmd = cmd + "\n"
 
@@ -1695,13 +1776,15 @@ class NetworkDevice:
 
             # Read data
             while True:
-                
+
                 # Read the data received
-                byte_data += await asyncio.wait_for(self._reader.read(MAX_BUFFER_DATA), timeout=self.timeout)
-                
+                byte_data += await asyncio.wait_for(
+                    self._reader.read(MAX_BUFFER_DATA), timeout=self.timeout
+                )
+
                 # Temporary convertion in string. This string has the following form: "b'....'"
                 output = str(byte_data)
-                
+
                 # Display info message
                 log.info("send_config_setTelnet: output: '" + str(output) + "'")
 
@@ -1713,7 +1796,6 @@ class NetworkDevice:
                     # Leave the loop
                     break
 
-
         except asyncio.TimeoutError:
 
             # Time out during when reading prompt
@@ -1724,23 +1806,27 @@ class NetworkDevice:
             # Exception propagation
             raise
 
-
         except Exception as error:
 
             # Error during when reading prompt
-            
+
             # Display error message
             log.error("send_config_setTelnet: error: " + str(error))
 
             # Exception propagation
             raise
 
-
         # Convert data (bytes) into string
         output = byte_data.decode("utf-8", "ignore")
 
         # Debug info message
-        log.info("send_config_setTelnet: raw output: '" + str(output) + "'\nsend_config_setTelnet: raw output (hex): '" + output.encode().hex() + "'")
+        log.info(
+            "send_config_setTelnet: raw output: '"
+            + str(output)
+            + "'\nsend_config_setTelnet: raw output (hex): '"
+            + output.encode().hex()
+            + "'"
+        )
 
         # Add the output to the returned output
         returned_output += output
@@ -1753,14 +1839,17 @@ class NetworkDevice:
         output = self.remove_ending_prompt_in_output(output)
 
         # Display info message
-        log.info("send_config_setTelnet: cleaned output: '" + str(output) + "'\nsend_config_setTelnet: cleaned output (hex): '" + output.encode().hex() + "'")
+        log.info(
+            "send_config_setTelnet: cleaned output: '"
+            + str(output)
+            + "'\nsend_config_setTelnet: cleaned output (hex): '"
+            + output.encode().hex()
+            + "'"
+        )
 
         # Check if there is an error in the output string (like "% Unrecognized command")
         # and generate an exception if needed
         self.check_error_output(output)
-
-
-
 
         ##############################
         # Sending commands
@@ -1770,7 +1859,7 @@ class NetworkDevice:
         log.info("send_config_setTelnet: sending commands")
 
         # Clear output
-        output  = ""
+        output = ""
 
         # Each command
         for cmd in cmds:
@@ -1797,13 +1886,15 @@ class NetworkDevice:
 
                 # Read data
                 while True:
-                    
+
                     # Read the data received
-                    byte_data += await asyncio.wait_for(self._reader.read(MAX_BUFFER_DATA), timeout=self.timeout)
-                    
+                    byte_data += await asyncio.wait_for(
+                        self._reader.read(MAX_BUFFER_DATA), timeout=self.timeout
+                    )
+
                     # Temporary convertion in string. This string has the following form: "b'....'"
                     output = str(byte_data)
-                    
+
                     # Display info message
                     log.info("send_config_setTelnet: output: '" + str(output) + "'")
 
@@ -1825,23 +1916,27 @@ class NetworkDevice:
                 # Exception propagation
                 raise
 
-
             except Exception as error:
 
                 # Error during when reading prompt
-                
+
                 # Display error message
                 log.error("send_config_setTelnet: error: " + str(error))
 
                 # Exception propagation
                 raise
 
-
             # Convert data (bytes) into string
             output = byte_data.decode("utf-8", "ignore")
 
             # Debug info message
-            log.info("send_config_setTelnet: raw output: '" + str(output) + "'\nsend_config_setTelnet: raw output (hex): '" + output.encode().hex() + "'")
+            log.info(
+                "send_config_setTelnet: raw output: '"
+                + str(output)
+                + "'\nsend_config_setTelnet: raw output (hex): '"
+                + output.encode().hex()
+                + "'"
+            )
 
             # Add the output to the returned output
             returned_output += output
@@ -1854,14 +1949,17 @@ class NetworkDevice:
             output = self.remove_ending_prompt_in_output(output)
 
             # Display info message
-            log.info("send_config_setTelnet: cleaned output: '" + str(output) + "'\nsend_config_setTelnet: cleaned output (hex): '" + output.encode().hex() + "'")
+            log.info(
+                "send_config_setTelnet: cleaned output: '"
+                + str(output)
+                + "'\nsend_config_setTelnet: cleaned output (hex): '"
+                + output.encode().hex()
+                + "'"
+            )
 
             # Check if there is an error in the output string (like "% Unrecognized command")
             # and generate an exception if needed
             self.check_error_output(output)
-
-
-
 
         ##############################
         # Leaving configuration mode
@@ -1871,7 +1969,7 @@ class NetworkDevice:
         log.info("send_config_setTelnet: leaving configuration mode")
 
         # Clear output
-        output  = ""
+        output = ""
 
         # Get command to leave config made
         cmd = self.cmd_exit_config_mode
@@ -1888,7 +1986,6 @@ class NetworkDevice:
         # Display info message
         log.info("send_config_setTelnet: command to leave configuration mode sent")
 
-
         # Temporary string variable
         output = ""
 
@@ -1902,13 +1999,15 @@ class NetworkDevice:
 
             # Read data
             while loop:
-                
+
                 # Read the data received
-                byte_data += await asyncio.wait_for(self._reader.read(MAX_BUFFER_DATA), timeout=self.timeout)
-                
+                byte_data += await asyncio.wait_for(
+                    self._reader.read(MAX_BUFFER_DATA), timeout=self.timeout
+                )
+
                 # Temporary convertion in string. This string has the following form: "b'....'"
                 output = str(byte_data)
-                
+
                 # Display info message
                 log.info("send_config_setTelnet: output: '" + str(output) + "'")
 
@@ -1935,23 +2034,27 @@ class NetworkDevice:
             # Exception propagation
             raise
 
-
         except Exception as error:
 
             # Error during when reading prompt
-            
+
             # Display error message
             log.error("send_config_setTelnet: error: " + str(error))
 
             # Exception propagation
             raise
 
-
         # Convert data (bytes) into string
         output = byte_data.decode("utf-8", "ignore")
 
         # Debug info message
-        log.info("send_config_setTelnet: raw output: '" + str(output) + "'\nsend_config_setTelnet: raw output (hex): '" + output.encode().hex() + "'")
+        log.info(
+            "send_config_setTelnet: raw output: '"
+            + str(output)
+            + "'\nsend_config_setTelnet: raw output (hex): '"
+            + output.encode().hex()
+            + "'"
+        )
 
         # Add the output to the returned output
         returned_output += output
@@ -1964,20 +2067,20 @@ class NetworkDevice:
         output = self.remove_ending_prompt_in_output(output)
 
         # Display info message
-        log.info("send_config_setTelnet: cleaned output: '" + str(output) + "'\nsend_config_setTelnet: cleaned output (hex): '" + output.encode().hex() + "'")
+        log.info(
+            "send_config_setTelnet: cleaned output: '"
+            + str(output)
+            + "'\nsend_config_setTelnet: cleaned output (hex): '"
+            + output.encode().hex()
+            + "'"
+        )
 
         # Check if there is an error in the output string (like "% Unrecognized command")
         # and generate an exception if needed
         self.check_error_output(output)
 
-
         # Return the result of the commands
         return returned_output
-
-
-
-
-
 
     async def get_version(self):
         """
@@ -2004,7 +2107,7 @@ class NetworkDevice:
 
         # Return the version of the software of the device
         return version
-           
+
     async def get_hostname(self):
         """
         Asyn method used to get the name of the device
@@ -2056,7 +2159,6 @@ class NetworkDevice:
 
         # Return the model of the device
         return output
-
 
     async def get_serial_number(self):
         """
