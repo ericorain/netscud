@@ -1,7 +1,11 @@
 # Python library import
 import yaml, logging
 
+<<<<<<< HEAD
 # logging.basicConfig(level=logging.INFO)
+=======
+logging.basicConfig(level=logging.INFO)
+>>>>>>> 0d922d3... Just a commit
 # logging.basicConfig(level=logging.WARNING)
 
 
@@ -75,7 +79,10 @@ class Inventory:
         # Read all devices from yaml extracted data
         for device in input_data:
 
+<<<<<<< HEAD
             # Convert data (dict + list) into a dictionary (dict)
+=======
+>>>>>>> 0d922d3... Just a commit
             device_dict = {**input_data[device], **{"name": device}}
 
             # Display info message
@@ -86,7 +93,10 @@ class Inventory:
             # Add the dictionary of a device into a list
             list_of_devices.append(device_dict)
 
+<<<<<<< HEAD
         # Return a list with the devices
+=======
+>>>>>>> 0d922d3... Just a commit
         return list_of_devices
 
     def get_all_devices(self):
@@ -130,6 +140,7 @@ class Inventory:
             # Get the devices
             list_of_devices = self.all_devices
 
+<<<<<<< HEAD
         # Get selections from method parameters
 
         # "device_type" found?
@@ -140,10 +151,14 @@ class Inventory:
 
             # Display info message
             logging.info("select: device_type: " + str(device_type))
+=======
+        return list_of_devices
+>>>>>>> 0d922d3... Just a commit
 
             # By default no device found for this temporary list
             list_temp = []
 
+<<<<<<< HEAD
             # Read all devices to check if the parameter is found
             for device in list_of_devices:
 
@@ -184,6 +199,8 @@ class Inventory:
         return list_of_devices
 
 
+=======
+>>>>>>> 0d922d3... Just a commit
 # Main function call
 if __name__ == "__main__":
 
