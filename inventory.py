@@ -9,6 +9,7 @@ import yaml, logging
 # logging.basicConfig(level=logging.INFO)
 =======
 logging.basicConfig(level=logging.INFO)
+<<<<<<< HEAD
 >>>>>>> 0d922d3... Just a commit
 <<<<<<< HEAD
 =======
@@ -16,6 +17,8 @@ logging.basicConfig(level=logging.INFO)
 >>>>>>> 9bce50c... Select method for inventory and list of supported devices added
 =======
 >>>>>>> ce6b77e... Just a commit
+=======
+>>>>>>> 7f1cda1... C:/Users/PC/AppData/Local/pypoetry/Cache/virtualenvs/netscud-QY00SrmA-py3.8/Scripts/python.exe d:/Prog/python/git/test.py
 # logging.basicConfig(level=logging.WARNING)
 
 
@@ -92,6 +95,7 @@ class Inventory:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             # Convert data (dict + list) into a dictionary (dict)
 =======
 >>>>>>> 0d922d3... Just a commit
@@ -103,6 +107,8 @@ class Inventory:
 =======
 >>>>>>> 0d922d3... Just a commit
 >>>>>>> ce6b77e... Just a commit
+=======
+>>>>>>> 7f1cda1... C:/Users/PC/AppData/Local/pypoetry/Cache/virtualenvs/netscud-QY00SrmA-py3.8/Scripts/python.exe d:/Prog/python/git/test.py
             device_dict = {**input_data[device], **{"name": device}}
 
             # Display info message
@@ -116,6 +122,7 @@ class Inventory:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         # Return a list with the devices
 =======
 >>>>>>> 0d922d3... Just a commit
@@ -127,6 +134,8 @@ class Inventory:
 =======
 >>>>>>> 0d922d3... Just a commit
 >>>>>>> ce6b77e... Just a commit
+=======
+>>>>>>> 7f1cda1... C:/Users/PC/AppData/Local/pypoetry/Cache/virtualenvs/netscud-QY00SrmA-py3.8/Scripts/python.exe d:/Prog/python/git/test.py
         return list_of_devices
 
     def get_all_devices(self):
@@ -195,6 +204,7 @@ class Inventory:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9bce50c... Select method for inventory and list of supported devices added
 =======
@@ -212,6 +222,8 @@ class Inventory:
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> 7f1cda1... C:/Users/PC/AppData/Local/pypoetry/Cache/virtualenvs/netscud-QY00SrmA-py3.8/Scripts/python.exe d:/Prog/python/git/test.py
         return list_of_devices
 >>>>>>> 0d922d3... Just a commit
 =======
@@ -241,6 +253,7 @@ class Inventory:
                     # Yes
                     list_temp.append(device)
 
+<<<<<<< HEAD
             # Save the temporary list into the list of devices
             list_of_devices = list_temp
 
@@ -274,6 +287,8 @@ class Inventory:
 
 =======
 >>>>>>> 0d922d3... Just a commit
+=======
+>>>>>>> 7f1cda1... C:/Users/PC/AppData/Local/pypoetry/Cache/virtualenvs/netscud-QY00SrmA-py3.8/Scripts/python.exe d:/Prog/python/git/test.py
 # Main function call
 if __name__ == "__main__":
 
