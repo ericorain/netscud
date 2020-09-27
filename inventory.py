@@ -12,6 +12,7 @@ import yaml, logging
 logging.basicConfig(level=logging.INFO)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 0d922d3... Just a commit
 <<<<<<< HEAD
 =======
@@ -26,6 +27,8 @@ logging.basicConfig(level=logging.INFO)
 =======
 # logging.basicConfig(level=logging.INFO)
 >>>>>>> 150fe6d... Select method for inventory and list of supported devices added
+=======
+>>>>>>> 0d922d3... Just a commit
 # logging.basicConfig(level=logging.WARNING)
 
 
@@ -105,6 +108,7 @@ class Inventory:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             # Convert data (dict + list) into a dictionary (dict)
 =======
 >>>>>>> 0d922d3... Just a commit
@@ -123,6 +127,8 @@ class Inventory:
 =======
             # Convert data (dict + list) into a dictionary (dict)
 >>>>>>> 150fe6d... Select method for inventory and list of supported devices added
+=======
+>>>>>>> 0d922d3... Just a commit
             device_dict = {**input_data[device], **{"name": device}}
 
             # Display info message
@@ -139,6 +145,7 @@ class Inventory:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         # Return a list with the devices
 =======
 >>>>>>> 0d922d3... Just a commit
@@ -157,6 +164,8 @@ class Inventory:
 =======
         # Return a list with the devices
 >>>>>>> 150fe6d... Select method for inventory and list of supported devices added
+=======
+>>>>>>> 0d922d3... Just a commit
         return list_of_devices
 
     def get_all_devices(self):
@@ -239,6 +248,7 @@ class Inventory:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9bce50c... Select method for inventory and list of supported devices added
 =======
@@ -306,6 +316,8 @@ class Inventory:
 
         # Return a list with all the devices
 >>>>>>> 150fe6d... Select method for inventory and list of supported devices added
+=======
+>>>>>>> 0d922d3... Just a commit
         return list_of_devices
 >>>>>>> 0d922d3... Just a commit
 =======
@@ -355,6 +367,7 @@ class Inventory:
             # Read all devices to check if the parameter is found
             for device in list_of_devices:
 
+<<<<<<< HEAD
                 # Parameter found?
                 if device["name"] == name:
 
@@ -374,6 +387,8 @@ class Inventory:
 >>>>>>> 7f1cda1... C:/Users/PC/AppData/Local/pypoetry/Cache/virtualenvs/netscud-QY00SrmA-py3.8/Scripts/python.exe d:/Prog/python/git/test.py
 =======
 >>>>>>> 402701c... Just a commit
+=======
+>>>>>>> 0d922d3... Just a commit
 # Main function call
 if __name__ == "__main__":
 
