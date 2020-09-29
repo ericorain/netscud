@@ -1,7 +1,7 @@
 # Python library import
 import yaml, logging
 
-logging.basicConfig(level=logging.INFO)
+# logging.basicConfig(level=logging.INFO)
 # logging.basicConfig(level=logging.WARNING)
 
 
@@ -9,15 +9,22 @@ class Inventory:
     """
     Class used to read inventory yaml file and select devices that will receive commands
 
+
+    :param all_devices: A list of dictionaries with the parameters of the devices (ip address, device_type, etc.)
+    :type all_devices: list
+
+    :param yaml_host_file_dict: Raw yaml data read from yaml file
+    :type yaml_host_file_dict: dict
+
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, host_yaml="inventory/hosts.yaml"):
 
         self.all_devices = []
         self.yaml_host_file_dict = {}
 
         # File to open
-        hosts_file = r"d:\Prog\python\git\netscud\inventory\hosts.yaml"
+        hosts_file = host_yaml
 
         # Display info message
         logging.info("Inventory: reading file '" + str(hosts_file) + "'")
@@ -33,9 +40,10 @@ class Inventory:
 
             # Error while opening the file
 
-            # Display info message
+            #  Display info message
             logging.info("Error while opening file " + hosts_file)
 
+            # Propagate the exception
             raise
 
         # Display info message
@@ -57,17 +65,8 @@ class Inventory:
         """
         Build a list from yaml data (dictionary)
 
-
-        """
-
-        """
-        # No data?
-        if input_data == None and self.all_devices:
-            
-            # Yes, no data
-
-            # Then all the devices are selected
-            input_data = self.all_devices
+        :return: the list with the parameters of the devices
+        :rtype: list
         """
 
         # By default no devices
@@ -76,6 +75,7 @@ class Inventory:
         # Read all devices from yaml extracted data
         for device in input_data:
 
+            # Convert data (dict + list) into a dictionary (dict)
             device_dict = {**input_data[device], **{"name": device}}
 
             # Display info message
@@ -86,14 +86,15 @@ class Inventory:
             # Add the dictionary of a device into a list
             list_of_devices.append(device_dict)
 
+        # Return a list with the devices
         return list_of_devices
 
     def get_all_devices(self):
         """
         Get all devices in a list
 
-
-
+        :return: the list of devices
+        :rtype: list
         """
 
         # By default no devices
@@ -107,6 +108,79 @@ class Inventory:
             # Get the devices
             list_of_devices = self.all_devices
 
+        # Return a list with all the devices
+        return list_of_devices
+
+    def select(self, **kwargs):
+        """
+        Select devices from parameters
+
+        :return: the list of devices
+        :rtype: list
+        """
+
+        # By default no devices
+        list_of_devices = []
+
+        # Some devices?
+        if self.all_devices:
+
+            # Yes
+
+            # Get the devices
+            list_of_devices = self.all_devices
+
+        # Get selections from method parameters
+
+        # "device_type" found?
+        if "device_type" in kwargs:
+
+            # Get "device_type" parameter
+            device_type = kwargs["device_type"]
+
+            # Display info message
+            logging.info("select: device_type: " + str(device_type))
+
+            # By default no device found for this temporary list
+            list_temp = []
+
+            # Read all devices to check if the parameter is found
+            for device in list_of_devices:
+
+                # Parameter found?
+                if device["device_type"] == device_type:
+
+                    # Yes
+                    list_temp.append(device)
+
+            # Save the temporary list into the list of devices
+            list_of_devices = list_temp
+
+        # "name" found?
+        if "name" in kwargs:
+
+            # Get "name" parameter
+            name = kwargs["name"]
+
+            # Display info message
+            logging.info("select: name: " + str(name))
+
+            # By default no device found for this temporary list
+            list_temp = []
+
+            # Read all devices to check if the parameter is found
+            for device in list_of_devices:
+
+                # Parameter found?
+                if device["name"] == name:
+
+                    # Yes
+                    list_temp.append(device)
+
+            # Save the temporary list into the list of devices
+            list_of_devices = list_temp
+
+        # Return a list with all the devices
         return list_of_devices
 
 
@@ -118,4 +192,16 @@ if __name__ == "__main__":
     print("Get_devices:")
 
     for device in inv.get_all_devices():
+        print("Device :\n" + str(device))
+
+    print("*" * 80)
+    print("Selection:")
+
+    # new_inventory = inv.select(device_type="cisco_s300")
+    # new_inventory = inv.select(name="Device1")
+    # new_inventory = inv.select(device_type="cisco_s300", name="Device1")
+
+    new_inventory = inv.select(device_type="cisco_s300") + inv.select(name="Device2")
+
+    for device in new_inventory:
         print("Device :\n" + str(device))

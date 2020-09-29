@@ -550,7 +550,13 @@ class NetworkDevice:
             # Timeout
 
             # Display error message
-            log.error("connectSSH: connection failed: timeout: '" + str(error) + "'")
+            log.error(
+                "connectSSH: connection failed: "
+                + str(self.ip)
+                + " timeout: '"
+                + str(error)
+                + "'"
+            )
 
             # Exception propagation
             raise asyncio.exceptions.TimeoutError(
