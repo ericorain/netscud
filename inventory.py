@@ -2,10 +2,14 @@
 import yaml, logging
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 # logging.basicConfig(level=logging.INFO)
 =======
 logging.basicConfig(level=logging.INFO)
 >>>>>>> 0d922d3... Just a commit
+=======
+# logging.basicConfig(level=logging.INFO)
+>>>>>>> 9bce50c... Select method for inventory and list of supported devices added
 # logging.basicConfig(level=logging.WARNING)
 
 
@@ -80,9 +84,13 @@ class Inventory:
         for device in input_data:
 
 <<<<<<< HEAD
+<<<<<<< HEAD
             # Convert data (dict + list) into a dictionary (dict)
 =======
 >>>>>>> 0d922d3... Just a commit
+=======
+            # Convert data (dict + list) into a dictionary (dict)
+>>>>>>> 9bce50c... Select method for inventory and list of supported devices added
             device_dict = {**input_data[device], **{"name": device}}
 
             # Display info message
@@ -94,9 +102,13 @@ class Inventory:
             list_of_devices.append(device_dict)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         # Return a list with the devices
 =======
 >>>>>>> 0d922d3... Just a commit
+=======
+        # Return a list with the devices
+>>>>>>> 9bce50c... Select method for inventory and list of supported devices added
         return list_of_devices
 
     def get_all_devices(self):
@@ -106,6 +118,7 @@ class Inventory:
         :return: the list of devices
         :rtype: list
         """
+<<<<<<< HEAD
 
         # By default no devices
         list_of_devices = []
@@ -125,6 +138,27 @@ class Inventory:
         """
         Select devices from parameters
 
+=======
+
+        # By default no devices
+        list_of_devices = []
+
+        # Some devices?
+        if self.all_devices:
+
+            # Yes
+
+            # Get the devices
+            list_of_devices = self.all_devices
+
+        # Return a list with all the devices
+        return list_of_devices
+
+    def select(self, **kwargs):
+        """
+        Select devices from parameters
+
+>>>>>>> 9bce50c... Select method for inventory and list of supported devices added
         :return: the list of devices
         :rtype: list
         """
@@ -141,6 +175,9 @@ class Inventory:
             list_of_devices = self.all_devices
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9bce50c... Select method for inventory and list of supported devices added
         # Get selections from method parameters
 
         # "device_type" found?
@@ -151,14 +188,20 @@ class Inventory:
 
             # Display info message
             logging.info("select: device_type: " + str(device_type))
+<<<<<<< HEAD
 =======
         return list_of_devices
 >>>>>>> 0d922d3... Just a commit
+=======
+>>>>>>> 9bce50c... Select method for inventory and list of supported devices added
 
             # By default no device found for this temporary list
             list_temp = []
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9bce50c... Select method for inventory and list of supported devices added
             # Read all devices to check if the parameter is found
             for device in list_of_devices:
 
