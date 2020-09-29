@@ -3,13 +3,19 @@ import yaml, logging
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ce6b77e... Just a commit
 # logging.basicConfig(level=logging.INFO)
 =======
 logging.basicConfig(level=logging.INFO)
 >>>>>>> 0d922d3... Just a commit
+<<<<<<< HEAD
 =======
 # logging.basicConfig(level=logging.INFO)
 >>>>>>> 9bce50c... Select method for inventory and list of supported devices added
+=======
+>>>>>>> ce6b77e... Just a commit
 # logging.basicConfig(level=logging.WARNING)
 
 
@@ -85,12 +91,18 @@ class Inventory:
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             # Convert data (dict + list) into a dictionary (dict)
 =======
 >>>>>>> 0d922d3... Just a commit
 =======
             # Convert data (dict + list) into a dictionary (dict)
 >>>>>>> 9bce50c... Select method for inventory and list of supported devices added
+=======
+            # Convert data (dict + list) into a dictionary (dict)
+=======
+>>>>>>> 0d922d3... Just a commit
+>>>>>>> ce6b77e... Just a commit
             device_dict = {**input_data[device], **{"name": device}}
 
             # Display info message
@@ -103,12 +115,18 @@ class Inventory:
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         # Return a list with the devices
 =======
 >>>>>>> 0d922d3... Just a commit
 =======
         # Return a list with the devices
 >>>>>>> 9bce50c... Select method for inventory and list of supported devices added
+=======
+        # Return a list with the devices
+=======
+>>>>>>> 0d922d3... Just a commit
+>>>>>>> ce6b77e... Just a commit
         return list_of_devices
 
     def get_all_devices(self):
@@ -176,8 +194,11 @@ class Inventory:
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9bce50c... Select method for inventory and list of supported devices added
+=======
+>>>>>>> ce6b77e... Just a commit
         # Get selections from method parameters
 
         # "device_type" found?
@@ -189,19 +210,28 @@ class Inventory:
             # Display info message
             logging.info("select: device_type: " + str(device_type))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         return list_of_devices
 >>>>>>> 0d922d3... Just a commit
 =======
 >>>>>>> 9bce50c... Select method for inventory and list of supported devices added
+=======
+=======
+        return list_of_devices
+>>>>>>> 0d922d3... Just a commit
+>>>>>>> ce6b77e... Just a commit
 
             # By default no device found for this temporary list
             list_temp = []
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9bce50c... Select method for inventory and list of supported devices added
+=======
+>>>>>>> ce6b77e... Just a commit
             # Read all devices to check if the parameter is found
             for device in list_of_devices:
 
