@@ -1,27 +1,7 @@
 # Python library import
 import yaml, logging
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> ce6b77e... Just a commit
-=======
->>>>>>> ce6b77ebd45357677172d8dfa4c9b59de13c4667
 # logging.basicConfig(level=logging.INFO)
-=======
-logging.basicConfig(level=logging.INFO)
->>>>>>> 0d922d3... Just a commit
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-# logging.basicConfig(level=logging.INFO)
->>>>>>> 9bce50c... Select method for inventory and list of supported devices added
-=======
->>>>>>> ce6b77e... Just a commit
-=======
->>>>>>> ce6b77ebd45357677172d8dfa4c9b59de13c4667
 # logging.basicConfig(level=logging.WARNING)
 
 
@@ -95,26 +75,7 @@ class Inventory:
         # Read all devices from yaml extracted data
         for device in input_data:
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
             # Convert data (dict + list) into a dictionary (dict)
-=======
->>>>>>> 0d922d3... Just a commit
-=======
-            # Convert data (dict + list) into a dictionary (dict)
->>>>>>> 9bce50c... Select method for inventory and list of supported devices added
-=======
-            # Convert data (dict + list) into a dictionary (dict)
-=======
->>>>>>> 0d922d3... Just a commit
->>>>>>> ce6b77e... Just a commit
-=======
-            # Convert data (dict + list) into a dictionary (dict)
-=======
->>>>>>> 0d922d3... Just a commit
->>>>>>> ce6b77ebd45357677172d8dfa4c9b59de13c4667
             device_dict = {**input_data[device], **{"name": device}}
 
             # Display info message
@@ -125,26 +86,7 @@ class Inventory:
             # Add the dictionary of a device into a list
             list_of_devices.append(device_dict)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
         # Return a list with the devices
-=======
->>>>>>> 0d922d3... Just a commit
-=======
-        # Return a list with the devices
->>>>>>> 9bce50c... Select method for inventory and list of supported devices added
-=======
-        # Return a list with the devices
-=======
->>>>>>> 0d922d3... Just a commit
->>>>>>> ce6b77e... Just a commit
-=======
-        # Return a list with the devices
-=======
->>>>>>> 0d922d3... Just a commit
->>>>>>> ce6b77ebd45357677172d8dfa4c9b59de13c4667
         return list_of_devices
 
     def get_all_devices(self):
@@ -154,8 +96,6 @@ class Inventory:
         :return: the list of devices
         :rtype: list
         """
-<<<<<<< HEAD
-<<<<<<< HEAD
 
         # By default no devices
         list_of_devices = []
@@ -175,48 +115,6 @@ class Inventory:
         """
         Select devices from parameters
 
-=======
-
-        # By default no devices
-        list_of_devices = []
-
-        # Some devices?
-        if self.all_devices:
-
-            # Yes
-
-            # Get the devices
-            list_of_devices = self.all_devices
-
-        # Return a list with all the devices
-        return list_of_devices
-
-    def select(self, **kwargs):
-        """
-        Select devices from parameters
-
->>>>>>> 9bce50c... Select method for inventory and list of supported devices added
-=======
-
-        # By default no devices
-        list_of_devices = []
-
-        # Some devices?
-        if self.all_devices:
-
-            # Yes
-
-            # Get the devices
-            list_of_devices = self.all_devices
-
-        # Return a list with all the devices
-        return list_of_devices
-
-    def select(self, **kwargs):
-        """
-        Select devices from parameters
-
->>>>>>> ce6b77ebd45357677172d8dfa4c9b59de13c4667
         :return: the list of devices
         :rtype: list
         """
@@ -232,16 +130,6 @@ class Inventory:
             # Get the devices
             list_of_devices = self.all_devices
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 9bce50c... Select method for inventory and list of supported devices added
-=======
->>>>>>> ce6b77e... Just a commit
-=======
->>>>>>> ce6b77ebd45357677172d8dfa4c9b59de13c4667
         # Get selections from method parameters
 
         # "device_type" found?
@@ -252,44 +140,15 @@ class Inventory:
 
             # Display info message
             logging.info("select: device_type: " + str(device_type))
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-        return list_of_devices
->>>>>>> 0d922d3... Just a commit
-=======
->>>>>>> 9bce50c... Select method for inventory and list of supported devices added
-=======
-=======
-        return list_of_devices
->>>>>>> 0d922d3... Just a commit
->>>>>>> ce6b77e... Just a commit
-=======
-=======
-        return list_of_devices
->>>>>>> 0d922d3... Just a commit
->>>>>>> ce6b77ebd45357677172d8dfa4c9b59de13c4667
 
             # By default no device found for this temporary list
             list_temp = []
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 9bce50c... Select method for inventory and list of supported devices added
-=======
->>>>>>> ce6b77e... Just a commit
-=======
->>>>>>> ce6b77ebd45357677172d8dfa4c9b59de13c4667
             # Read all devices to check if the parameter is found
             for device in list_of_devices:
 
                 # Parameter found?
                 if device["device_type"] == device_type:
-<<<<<<< HEAD
 
                     # Yes
                     list_temp.append(device)
@@ -324,45 +183,7 @@ class Inventory:
         # Return a list with all the devices
         return list_of_devices
 
-=======
 
-                    # Yes
-                    list_temp.append(device)
-
-            # Save the temporary list into the list of devices
-            list_of_devices = list_temp
-
-        # "name" found?
-        if "name" in kwargs:
-
-            # Get "name" parameter
-            name = kwargs["name"]
-
-            # Display info message
-            logging.info("select: name: " + str(name))
-
-            # By default no device found for this temporary list
-            list_temp = []
-
-            # Read all devices to check if the parameter is found
-            for device in list_of_devices:
-
-                # Parameter found?
-                if device["name"] == name:
-
-                    # Yes
-                    list_temp.append(device)
-
-            # Save the temporary list into the list of devices
-            list_of_devices = list_temp
-
-        # Return a list with all the devices
-        return list_of_devices
-
->>>>>>> ce6b77ebd45357677172d8dfa4c9b59de13c4667
-
-=======
->>>>>>> 0d922d3... Just a commit
 # Main function call
 if __name__ == "__main__":
 

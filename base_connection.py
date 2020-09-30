@@ -568,7 +568,13 @@ class NetworkDevice:
             # Connection failed
 
             # Display error message
-            log.error("connectSSH: connection failed: '" + str(error) + "'")
+            log.error(
+                "connectSSH: connection failed: "
+                + str(self.ip)
+                + " '"
+                + str(error)
+                + "'"
+            )
 
             # Exception propagation
             raise
@@ -628,7 +634,11 @@ class NetworkDevice:
 
             # Display error message
             log.error(
-                "connectSSH: timeout while reading the prompt: '" + str(error) + "'"
+                "connectSSH: timeout while reading the prompt: "
+                + str(self.ip)
+                + " '"
+                + str(error)
+                + "'"
             )
 
             # Exception propagation
