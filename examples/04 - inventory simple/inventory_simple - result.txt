@@ -1,0 +1,13 @@
+
+c:\>inventory_simple.py
+All the devices:
+{'ip': '192.168.0.1', 'username': 'cisco', 'password': 'cisco', 'device_type': 'cisco_s300', 'name': 'Device1'}
+{'ip': '192.168.0.2', 'username': 'cisco', 'password': 'cisco', 'device_type': 'cisco_ios', 'name': 'Device2'}
+
+Cisco IOS devices:
+{'ip': '192.168.0.2', 'username': 'cisco', 'password': 'cisco', 'device_type': 'cisco_ios', 'name': 'Device2'}
+
+c:\>
+
+-------------------------------------------
+
