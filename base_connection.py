@@ -7,7 +7,7 @@ log = logging.getLogger(__package__)
 # Debug level
 # logging.basicConfig(level=logging.WARNING)
 # logging.basicConfig(level=logging.INFO)
-# asyncssh.set_debug_level(1)
+# asyncssh.set_debug_level(2)
 
 
 # Declaration of constant values
@@ -220,6 +220,23 @@ class NetworkDevice:
 
             # Display info message
             log.info("__init__: enable_password found: " + str(self.enable_password))
+
+    async def __aenter__(self):
+        """
+        Context manager opening connection
+        """
+
+        return self
+
+    # async def _aexit_(self, exc_type, exc_value, traceback):
+    async def __aexit__(self, exc_type, exc_value, traceback):
+
+        """
+        Context manager closing connection
+        """
+
+        # Close the connection
+        await self.disconnect()
 
     def find_prompt(self, text):
         """
@@ -537,7 +554,11 @@ class NetworkDevice:
 
         # Parameters of the connection
         generator = asyncssh.connect(
-            self.ip, username=self.username, password=self.password, known_hosts=None
+            self.ip,
+            username=self.username,
+            password=self.password,
+            known_hosts=None,
+            encryption_algs="*",  # Parameter that includes all encryption algorithms (even the old ones disabled by default)
         )
 
         # Trying to connect to the device
