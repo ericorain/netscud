@@ -8,20 +8,17 @@ async def task():
     """
 
     my_device = {
-        "ip": "192.168.0.16",
+        "ip": "192.168.0.2",
         "username": "cisco",
         "password": "cisco",
-        "device_type": "cisco_ios",
+        "device_type": "cisco_s300",
     }
 
     # Creation of a device
-    async with netscud.ConnectDevice(**my_device) as sw1:
-
-        # Command to send
-        cmd = "show interfaces description"
+    async with netscud.ConnectDevice(**my_device) as device:
 
         # Sending command
-        output = await sw1.send_command(cmd)
+        output = await device.get_model()
 
         # Display message
         print(output)

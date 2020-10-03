@@ -15,23 +15,20 @@ async def task():
     }
 
     # Connection to the device
-    sw1 = await netscud.ConnectDevice(**my_device)
+    async with netscud.ConnectDevice(**my_device) as sw1:
 
-    # Commands to send
-    cmds = [
-        "interface FastEthernet1/0",
-        "ip address 1.1.1.1 255.255.255.0",
-        "no shutdown",
-    ]
+        # Commands to send
+        cmds = [
+            "interface FastEthernet1/0",
+            "ip address 1.1.1.1 255.255.255.0",
+            "no shutdown",
+        ]
 
-    # Sending command
-    output = await sw1.send_config_set(cmds)
+        # Sending command
+        output = await sw1.send_config_set(cmds)
 
-    # Display message
-    print(output)
-
-    # Disconnection
-    await sw1.disconnect()
+        # Display message
+        print(output)
 
 
 # Main function call

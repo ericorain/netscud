@@ -11,7 +11,7 @@ ALL_DEVICE_TYPE_CLASS = {
 }
 
 
-async def ConnectDevice(**kwargs):
+def ConnectDevice(**kwargs):
     """
     Async function to be used for connnecting a device
 
@@ -49,18 +49,6 @@ async def ConnectDevice(**kwargs):
 
     # Create a class
     my_class = ALL_DEVICE_TYPE_CLASS[device_type](**kwargs)
-
-    try:
-        # Run an async method to connect a device
-        await my_class.connect()
-
-    except Exception:
-
-        # Disconnection (if needed) in case the connection is done but something failed
-        await my_class.disconnect()
-
-        # propagate exception if needed
-        raise
 
     # Return the class
     return my_class

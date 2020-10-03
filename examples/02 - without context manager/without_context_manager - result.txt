@@ -1,0 +1,21 @@
+c:\>without_context_manager.py
+*** IP Routing is NSF aware ***
+
+Routing Protocol is "ospf 1"
+  Outgoing update filter list for all interfaces is not set
+  Incoming update filter list for all interfaces is not set
+  Router ID 1.1.1.1
+  Number of areas in this router is 1. 1 normal 0 stub 0 nssa
+  Maximum path: 4
+  Routing for Networks:
+    192.168.252.0 0.0.0.255 area 0
+    192.168.253.0 0.0.0.255 area 0
+    192.168.254.0 0.0.0.255 area 0
+  Passive Interface(s):
+    FastEthernet1/1
+  Routing Information Sources:
+    Gateway         Distance      Last Update
+    1.1.1.2              110      04:10:02
+  Distance: (default is 110)
+
+c:\>

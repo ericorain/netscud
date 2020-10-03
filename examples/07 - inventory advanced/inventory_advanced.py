@@ -10,28 +10,25 @@ async def run_client(**host):
     async function used by each device individually
 
     """
+
+    # Default returned value
     output = ""
 
     try:
 
         # Connection to the device
-        device = await netscud.ConnectDevice(**host)
+        async with netscud.ConnectDevice(**host) as device:
 
-        # Sending command
-        output = await device.get_version()
+            # Sending command
+            output = await device.get_version()
 
-        # Display message
-        print("output: '" + str(output) + "'")
+            # Display message
+            print("output: '" + str(output) + "'")
 
     except:
 
-        pass
-
-    # If a connection is active then when can disconnect the device
-    if "device" in locals():
-
-        # Disconnection of the device
-        await device.disconnect()
+        # If something is wrong then an error message is displayed
+        print("Error")
 
     # Return result
     return output
@@ -51,7 +48,7 @@ async def main_task():
     # Create a group of tasks (generator) for all the devices
     tasks = (run_client(**device) for device in my_devices)
 
-    # Run the tasks
+    # Run the tasks and collect the results
     result = await asyncio.gather(*tasks)
 
     # Display message

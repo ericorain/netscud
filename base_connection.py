@@ -226,6 +226,18 @@ class NetworkDevice:
         Context manager opening connection
         """
 
+        try:
+            # Run an async method to connect a device
+            await self.connect()
+
+        except Exception:
+
+            # Disconnection (if needed) in case the connection is done but something failed
+            await self.disconnect()
+
+            # propagate exception if needed
+            raise
+
         return self
 
     # async def _aexit_(self, exc_type, exc_value, traceback):

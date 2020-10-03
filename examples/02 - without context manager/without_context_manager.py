@@ -15,16 +15,22 @@ async def task():
     }
 
     # Creation of a device
-    async with netscud.ConnectDevice(**my_device) as sw1:
+    sw1 = netscud.ConnectDevice(**my_device)
 
-        # Command to send
-        cmd = "show interfaces description"
+    # Connection to the device
+    await sw1.connect()
 
-        # Sending command
-        output = await sw1.send_command(cmd)
+    # Command to send
+    cmd = "show interfaces description"
 
-        # Display message
-        print(output)
+    # Sending command
+    output = await sw1.send_command(cmd)
+
+    # Display message
+    print(output)
+
+    # Disconnection
+    await sw1.disconnect()
 
 
 # Main function call
