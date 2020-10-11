@@ -1,0 +1,17 @@
+switch#wr
+Overwrite file [startup-config].... (Y/N)[N] ?N
+
+switch#
+
+-------------------------------------------
+
+c:\>special_prompt.py
+Overwrite file [startup-config].... (Y/N)[N] ?Y
+06-Oct-2020 22:08:32 %COPY-I-FILECPY: Files Copy - source URL running-config destination URL flash://system/configuration/startup-config
+06-Oct-2020 22:08:33 %COPY-N-TRAP: The copy operation was completed successfully
+
+
+c:\>
+
+
+

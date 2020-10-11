@@ -5,3 +5,6 @@ inventory/
 hosts.yaml
 .vscode/
 poetry.lock
+docs/*
+!docs/build/html
+test_plan.xlsx

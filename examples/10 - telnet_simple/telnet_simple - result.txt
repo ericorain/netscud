@@ -1,0 +1,10 @@
+c:\>telnet_simple.py
+Maximum Parallel Paths: 1 (1 after reset)
+IP Forwarding: enabled
+Codes: > - best, C - connected, S - static
+
+
+S   0.0.0.0/0 [1/4] via 192.168.0.1, 10:20:58, vlan 2
+C   192.168.0.0/24 is directly connected, vlan 2
+
+c:\>

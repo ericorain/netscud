@@ -48,7 +48,7 @@ async def main_task():
     # Create a group of tasks (generator) for all the devices
     tasks = (run_client(**device) for device in my_devices)
 
-    # Run the tasks and collect the results
+    # Run the tasks concurrently and collect the results
     result = await asyncio.gather(*tasks)
 
     # Display message
