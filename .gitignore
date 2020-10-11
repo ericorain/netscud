@@ -10,3 +10,4 @@ docs/*
 docs/build/*
 !docs/build/html/
 test_plan.xlsx
+dist/

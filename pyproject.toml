@@ -1,8 +1,13 @@
 [tool.poetry]
 name = "netscud"
 version = "1.0.0"
-description = ""
+description = "Network device Asynchronous python library"
 authors = ["ericorain <ericorain@hotmail.com>"]
+packages = [
+    { include = "*" },
+]
+exclude = ["old", "docs", ".git", ".gitignore", "examples", "README.md"]
+
 
 [tool.poetry.dependencies]
 python = "^3.8"
