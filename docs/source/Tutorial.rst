@@ -100,7 +100,7 @@ On a Cisco IOS device the "show interfaces description" should look like this:
 
 The first example script would give that result:
 
-.. code-block::
+::
 
    c:\>simple_command.py
    Interface                      Status         Protocol Description
@@ -235,7 +235,7 @@ In this example a list of 3 commands are selecting an interface, set its IP addr
 
 Thus before this program a network device could get this configuration:
 
-.. code-block::
+::
 
    R1#show ip interface brief
    Interface              IP-Address      OK? Method Status                Protocol
@@ -267,7 +267,7 @@ At runtime the program gives that result:
 
 Then on the network device we have that configuration:
 
-.. code-block::
+::
 
    R1#show ip interface brief
    Interface              IP-Address      OK? Method Status                Protocol
