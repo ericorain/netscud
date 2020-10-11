@@ -1,0 +1,750 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>6. Classes and methods &mdash; netscud  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="5. FAQ" href="FAQ.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> netscud
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">1. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Before_starting.html">2. Before starting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tutorial.html">3. Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="API.html">4. API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FAQ.html">5. FAQ</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">6. Classes and methods</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-netscud">6.1. <code class="xref py py-mod docutils literal notranslate"><span class="pre">netscud</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">netscud</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li><span class="section-number">6. </span>Classes and methods</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/library.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="classes-and-methods">
+<h1><span class="section-number">6. </span>Classes and methods<a class="headerlink" href="#classes-and-methods" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-netscud">
+<span id="netscud"></span><h2><span class="section-number">6.1. </span><a class="reference internal" href="#module-netscud" title="netscud"><code class="xref py py-mod docutils literal notranslate"><span class="pre">netscud</span></code></a><a class="headerlink" href="#module-netscud" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="netscud.ConnectDevice">
+<code class="sig-prename descclassname">netscud.</code><code class="sig-name descname">ConnectDevice</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#netscud.ConnectDevice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Async function to be used for connnecting a device</p>
+<p>This async function allows to use a class with an async method.
+This function includes a connection to a device.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>kwargs</strong> (<em>dict</em>) – dictionary with the device connection parameters</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Return the object with the</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>object with the device class</p>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-netscud.base_connection"></span><dl class="py class">
+<dt id="netscud.base_connection.NetworkDevice">
+<em class="property">class </em><code class="sig-prename descclassname">netscud.base_connection.</code><code class="sig-name descname">NetworkDevice</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for network object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ip</strong> (<em>str</em>) – IP address of a device</p></li>
+<li><p><strong>username</strong> (<em>str</em>) – Username used to connect to a device</p></li>
+<li><p><strong>password</strong> (<em>str</em>) – Password used to connect to a device</p></li>
+<li><p><strong>device_type</strong> (<em>str</em>) – Type of device used</p></li>
+<li><p><strong>port</strong> (<em>int</em><em>, </em><em>optional</em>) – TCP port used to connect a device. Default value is “22” for SSH</p></li>
+<li><p><strong>timeout</strong> (<em>int</em><em>, </em><em>optional</em>) – TCP port used to connect a device. Default value is 10 seconds</p></li>
+<li><p><strong>_protocol</strong> (<em>str</em><em>, </em><em>optional</em>) – Protocol used to connect a device. “ssh” or “telnet” are possible options. Default value is “ssh”</p></li>
+<li><p><strong>enable_mode</strong> (<em>bool</em><em>, </em><em>optional</em>) – Enable mode for devices requiring it. Default value is “False”</p></li>
+<li><p><strong>enable_password</strong> (<em>str</em><em>, </em><em>optional</em>) – Enable password used for enable mode.</p></li>
+<li><p><strong>conn</strong> (<em>SSHClientConnection object</em>) – Variable used for the management of the SSH connection</p></li>
+<li><p><strong>_writer</strong> (<em>StreamWriter object</em>) – Variable used for the management of the Telnet connection and writing channel</p></li>
+<li><p><strong>_reader</strong> (<em>StreamReader object</em>) – Variable used for the management of the Telnet reading channel</p></li>
+<li><p><strong>possible_prompts</strong> (<em>list</em>) – Used by the connect method to list all possible prompts of the device</p></li>
+<li><p><strong>_connect_first_ending_prompt</strong> (<em>list</em>) – Default possible ending prompts. Used only the time after login and password to discover the prompt</p></li>
+<li><p><strong>list_of_possible_ending_prompts</strong> (<em>list</em>) – Different strings at the end of a prompt the device can get. Used for detecting the prompt returned in sent commands</p></li>
+<li><p><strong>_telnet_connect_login</strong> (<em>str</em>) – Login prompt for Telnet. Used to detect when a login is expected or when login and password access is failed</p></li>
+<li><p><strong>_telnet_connect_password</strong> (<em>list</em>) – Password prompt for Telnet. Used to detect when a login is expected or when login and password access is failed</p></li>
+<li><p><strong>_telnet_connect_authentication_fail_prompt</strong> (<em>list</em>) – Known failing messages or prompts when an authentication has failed. Used to get an answer faster than timeout events</p></li>
+<li><p><strong>cmd_enable</strong> (<em>str</em>) – Enable command for entering into enable mode</p></li>
+<li><p><strong>cmd_disable_paging</strong> (<em>str</em>) – Command used to disable paging on a device. That command is run at connection time</p></li>
+<li><p><strong>cmd_enter_config_mode</strong> (<em>str</em>) – Command used to enter into a configuration mode on a device when this device support that feature.</p></li>
+<li><p><strong>cmd_exit_config_mode</strong> (<em>str</em>) – Command used to leave a configuration mode on a device when this device support that feature.</p></li>
+<li><p><strong>cmd_get_version</strong> (<em>str</em>) – API command used to get the software version of a device</p></li>
+<li><p><strong>cmd_get_hostname</strong> (<em>str</em>) – API command used to get the hostname of a device</p></li>
+<li><p><strong>cmd_get_model</strong> (<em>str</em>) – API command used to get the model of a device</p></li>
+<li><p><strong>cmd_get_serial_number</strong> (<em>str</em>) – API command used to get the serial number of a device</p></li>
+<li><p><strong>cmd_get_config</strong> (<em>str</em>) – API command used to get the running configuration of a device</p></li>
+<li><p><strong>cmd_save_config</strong> (<em>str</em>) – API command used to save the running configuration on the device</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.check_error_output">
+<code class="sig-name descname">check_error_output</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">output</span></em><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.check_error_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if an error is returned by the device (“% Unrecognized command”, “% Ambiguous command”, etc.)</p>
+<p>If an error is found, then an exception is raised</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.check_if_prompt_is_found">
+<code class="sig-name descname">check_if_prompt_is_found</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">text</span></em><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.check_if_prompt_is_found" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method used to check if a prompt is detected inside a string</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>text</strong> (<em>str</em>) – a string with prompt</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the prompt found</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.connect">
+<em class="property">async </em><code class="sig-name descname">connect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Async method used for connecting a device</p>
+<p>Currently supported: SSH and Telnet</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.connectSSH">
+<em class="property">async </em><code class="sig-name descname">connectSSH</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.connectSSH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Async method used for connecting a device using SSH protocol</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.connectTelnet">
+<em class="property">async </em><code class="sig-name descname">connectTelnet</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.connectTelnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Async method used for connecting a device using Telnet protocol</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.disable_paging">
+<em class="property">async </em><code class="sig-name descname">disable_paging</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.disable_paging" title="Permalink to this definition">¶</a></dt>
+<dd><p>Async method disabling paging on a device</p>
+<p>Use the “cmd_disable_paging” attribute</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.disconnect">
+<em class="property">async </em><code class="sig-name descname">disconnect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.disconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Async method used to disconnect a device</p>
+<p>If this method is not used then exceptions will happen
+when the program will end</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.disconnectSSH">
+<em class="property">async </em><code class="sig-name descname">disconnectSSH</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.disconnectSSH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Async method used to disconnect a device in SSH</p>
+<p>If this method is not used then exceptions will happen
+when the program will end</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.disconnectTelnet">
+<em class="property">async </em><code class="sig-name descname">disconnectTelnet</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.disconnectTelnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Async method used to disconnect a device in Telnet</p>
+<p>If this method is not used then exceptions will happen
+when the program will end</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.find_prompt">
+<code class="sig-name descname">find_prompt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">text</span></em><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.find_prompt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method used to find a prompt inside an output string</p>
+<p>This method is used during the first communication with the device.
+First it find the prompt then caculate the different forms the prompt
+can take. This will be useful later on while finding prompt in other
+output stream (read).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>text</strong> (<em>str</em>) – data with a prompt</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the prompt found</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.get_config">
+<em class="property">async </em><code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asyn method used to get the configuration of the device</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Configuration of the device</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.get_hostname">
+<em class="property">async </em><code class="sig-name descname">get_hostname</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.get_hostname" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asyn method used to get the name of the device</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Name of the device</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.get_model">
+<em class="property">async </em><code class="sig-name descname">get_model</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.get_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asyn method used to get the model of the device</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Model of the device</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.get_possible_prompts">
+<code class="sig-name descname">get_possible_prompts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">prompt</span></em><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.get_possible_prompts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method used to check if a prompt has one of the expected endings then
+create a list with all possible prompts for the device</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>prompt</strong> (<em>str</em>) – a prompt with a possible ending prompt (eg. “switch#”)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the list of prompts</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.get_serial_number">
+<em class="property">async </em><code class="sig-name descname">get_serial_number</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.get_serial_number" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get serial number of the switch or the serial number of the first switch of a stack</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Serial number of the device</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.get_version">
+<em class="property">async </em><code class="sig-name descname">get_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.get_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asyn method used to get the version of the software of the device</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Version of the software of the device</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.remove_command_in_output">
+<code class="sig-name descname">remove_command_in_output</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">text</span></em>, <em class="sig-param"><span class="n">cmd</span></em><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.remove_command_in_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method removing the command at the beginning of a string</p>
+<p>After sending commands an “echo” of the command sent
+is display in the output string. This method removes it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> (<em>str</em>) – the text with the command at the beginning</p></li>
+<li><p><strong>cmd</strong> (<em>str</em>) – the command previously sent</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the output string without the command</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.remove_ending_prompt_in_output">
+<code class="sig-name descname">remove_ending_prompt_in_output</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">text</span></em><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.remove_ending_prompt_in_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method removing the prompt at the end of a string</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>text</strong> (<em>str</em>) – the text with a prompt at the beginning</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the output string without the ending prompt</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.remove_starting_carriage_return_in_output">
+<code class="sig-name descname">remove_starting_carriage_return_in_output</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">text</span></em><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.remove_starting_carriage_return_in_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method removing the carriage return at the beginning of a string</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>text</strong> (<em>str</em>) – the text with the command at the beginning</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the output string without the starting carriage return</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.save_config">
+<em class="property">async </em><code class="sig-name descname">save_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.save_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asyn method used to save the current configuration on the device</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Commands of the configuration saving process</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.send_command">
+<em class="property">async </em><code class="sig-name descname">send_command</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cmd</span></em>, <em class="sig-param"><span class="n">pattern</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.send_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Async method used to send data to a device</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cmd</strong> (<em>str</em>) – command to send</p></li>
+<li><p><strong>pattern</strong> – optional, a pattern replacing the prompt when the prompt is not expected</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the output of command</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.send_commandSSH">
+<em class="property">async </em><code class="sig-name descname">send_commandSSH</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cmd</span></em>, <em class="sig-param"><span class="n">pattern</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.send_commandSSH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Async method used to send data to a device</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cmd</strong> (<em>str</em>) – command to send</p></li>
+<li><p><strong>pattern</strong> (<em>str</em>) – optional, a pattern replacing the prompt when the prompt is not expected</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the output of command</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.send_commandTelnet">
+<em class="property">async </em><code class="sig-name descname">send_commandTelnet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cmd</span></em>, <em class="sig-param"><span class="n">pattern</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.send_commandTelnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Async method used to send data to a device</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cmd</strong> (<em>str</em>) – command to send</p></li>
+<li><p><strong>pattern</strong> (<em>str</em>) – optional, a pattern replacing the prompt when the prompt is not expected</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the output of command</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.send_config_set">
+<em class="property">async </em><code class="sig-name descname">send_config_set</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cmds</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.send_config_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Async method used to send command in config mode</p>
+<p>The commands send can be either a string a a list of strings. There are
+3 steps:
+- Entering configuration mode
+- Sending the commands
+- Leaving configuration mode</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>cmds</strong> (<em>str</em><em> or </em><em>list</em>) – The commands to the device</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the results of the commands sent</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.send_config_setSSH">
+<em class="property">async </em><code class="sig-name descname">send_config_setSSH</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cmds</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.send_config_setSSH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Async method used to send command in config mode</p>
+<p>The commands send can be either a string a a list of strings. There are
+3 steps:
+- Entering configuration mode
+- Sending the commands
+- Leaving configuration mode</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>cmds</strong> (<em>str</em><em> or </em><em>list</em>) – The commands to the device</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the results of the commands sent</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.send_config_setTelnet">
+<em class="property">async </em><code class="sig-name descname">send_config_setTelnet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cmds</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.send_config_setTelnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Async method used to send command in config mode</p>
+<p>The commands send can be either a string a a list of strings. There are
+3 steps:
+- Entering configuration mode
+- Sending the commands
+- Leaving configuration mode</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>cmds</strong> (<em>str</em><em> or </em><em>list</em>) – The commands to the device</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the results of the commands sent</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.base_connection.NetworkDevice.telnet_send_command_with_unexpected_pattern">
+<em class="property">async </em><code class="sig-name descname">telnet_send_command_with_unexpected_pattern</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cmd</span></em>, <em class="sig-param"><span class="n">pattern</span></em>, <em class="sig-param"><span class="n">error_pattern</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#netscud.base_connection.NetworkDevice.telnet_send_command_with_unexpected_pattern" title="Permalink to this definition">¶</a></dt>
+<dd><p>Async method used to send command for Telnet connection to a device with possible unexpected patterns</p>
+<p>send_command can wait till time out if login and password are wrong. This method
+speed up the returned error message when authentication failed is identified.
+This method is limited to authentication whem password is required</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cmd</strong> (<em>str</em>) – command to send</p></li>
+<li><p><strong>pattern</strong> (<em>str</em>) – optional, a list of patterns located at the very end of the a returned string. Can be used
+to define a custom or unexpected prompt a the end of a string</p></li>
+<li><p><strong>error_pattern</strong> (<em>str</em>) – optional, a list of failed prompts found when the login and password are not correct</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the output of command</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-netscud.inventory"></span><dl class="py class">
+<dt id="netscud.inventory.Inventory">
+<em class="property">class </em><code class="sig-prename descclassname">netscud.inventory.</code><code class="sig-name descname">Inventory</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">host_yaml</span><span class="o">=</span><span class="default_value">'inventory/hosts.yaml'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#netscud.inventory.Inventory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class used to read inventory yaml file and select devices that will receive commands</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>all_devices</strong> (<em>list</em>) – A list of dictionaries with the parameters of the devices (ip address, device_type, etc.)</p></li>
+<li><p><strong>yaml_host_file_dict</strong> (<em>dict</em>) – Raw yaml data read from yaml file</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="netscud.inventory.Inventory.convert_yaml_to_list">
+<code class="sig-name descname">convert_yaml_to_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_data</span></em><span class="sig-paren">)</span><a class="headerlink" href="#netscud.inventory.Inventory.convert_yaml_to_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a list from yaml data (dictionary)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the list with the parameters of the devices</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.inventory.Inventory.get_all_devices">
+<code class="sig-name descname">get_all_devices</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#netscud.inventory.Inventory.get_all_devices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all devices in a list</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the list of devices</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="netscud.inventory.Inventory.select">
+<code class="sig-name descname">select</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#netscud.inventory.Inventory.select" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select devices from parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the list of devices</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-netscud.device_selector"></span><dl class="py function">
+<dt id="netscud.device_selector.ConnectDevice">
+<code class="sig-prename descclassname">netscud.device_selector.</code><code class="sig-name descname">ConnectDevice</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#netscud.device_selector.ConnectDevice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Async function to be used for connnecting a device</p>
+<p>This async function allows to use a class with an async method.
+This function includes a connection to a device.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>kwargs</strong> (<em>dict</em>) – dictionary with the device connection parameters</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Return the object with the</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>object with the device class</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="FAQ.html" class="btn btn-neutral float-left" title="5. FAQ" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Eric ORAIN
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
