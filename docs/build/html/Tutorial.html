@@ -1,0 +1,1189 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>3. Tutorial &mdash; netscud  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4. API" href="API.html" />
+    <link rel="prev" title="2. Before starting" href="Before_starting.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> netscud
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">1. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Before_starting.html">2. Before starting</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">3. Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#simple-command">3.1. Simple command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#without-context-manager">3.2. Without context manager</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#config-command">3.3. Config command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#managing-exceptions">3.4. Managing exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#api">3.5. API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#inventory-simple">3.6. Inventory simple</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#inventory-advanced">3.7. Inventory advanced</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#hidden-password">3.8. Hidden password</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#special-prompt">3.9. Special prompt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#telnet-simple">3.10. Telnet simple</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="API.html">4. API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FAQ.html">5. FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="library.html">6. Classes and methods</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">netscud</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li><span class="section-number">3. </span>Tutorial</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/Tutorial.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="tutorial">
+<h1><span class="section-number">3. </span>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h1>
+<p>This tutorial is made of examples to learn gradually how to use asynchronous SSH programming for network device (i.e. network switches or routers) with netscud.</p>
+<div class="section" id="simple-command">
+<h2><span class="section-number">3.1. </span>Simple command<a class="headerlink" href="#simple-command" title="Permalink to this headline">¶</a></h2>
+<p>This first example is a very basic program that sends a command to a device then print it out.</p>
+<p>Here is the complete example:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Python library import</span>
+<span class="kn">import</span> <span class="nn">asyncio</span><span class="o">,</span> <span class="nn">netscud</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">task</span><span class="p">():</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Async function</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+
+   <span class="n">my_device</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s2">&quot;ip&quot;</span><span class="p">:</span> <span class="s2">&quot;192.168.0.16&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;device_type&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco_ios&quot;</span><span class="p">,</span>
+   <span class="p">}</span>
+
+   <span class="c1"># Creation of a device</span>
+   <span class="k">async</span> <span class="k">with</span> <span class="n">netscud</span><span class="o">.</span><span class="n">ConnectDevice</span><span class="p">(</span><span class="o">**</span><span class="n">my_device</span><span class="p">)</span> <span class="k">as</span> <span class="n">sw1</span><span class="p">:</span>
+
+      <span class="c1"># Command to send</span>
+      <span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;show interfaces description&quot;</span>
+
+      <span class="c1"># Sending command</span>
+      <span class="n">output</span> <span class="o">=</span> <span class="k">await</span> <span class="n">sw1</span><span class="o">.</span><span class="n">send_command</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+
+      <span class="c1"># Display message</span>
+      <span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+
+
+<span class="c1"># Main function call</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+
+   <span class="c1"># Main async loop</span>
+   <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">task</span><span class="p">())</span>
+</pre></div>
+</div>
+<p><strong>Explanation:</strong></p>
+<p>At the beginning it shows how to define the parameters of a network device (IP address, Login, Password and Device type) with a python dictionary. Parameters must be adapted according to your device.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">my_device</span> <span class="o">=</span> <span class="p">{</span>
+   <span class="s2">&quot;ip&quot;</span><span class="p">:</span> <span class="s2">&quot;192.168.0.16&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;device_type&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco_ios&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>netscud.ConnectDevice() is a function that is used for connecting a device and returns an object used to interact with the device with various methods. The default connection is performed in SSH. Do pay attention that a “with” instruction is used (also known as context manager) which allows to have an automatic close of the connection with the device.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Creation of a device</span>
+<span class="k">async</span> <span class="k">with</span> <span class="n">netscud</span><span class="o">.</span><span class="n">ConnectDevice</span><span class="p">(</span><span class="o">**</span><span class="n">my_device</span><span class="p">)</span> <span class="k">as</span> <span class="n">sw1</span><span class="p">:</span>
+</pre></div>
+</div>
+<p>Commands to the device is sent with send_command() method. Parameters to send_commands can be a string variable (send_command(cmd)) or a string (send_command(“show interfaces description”)). A string with the result of the command is returned; here in the output variable. send_command() is used for sending reading commands to a device; it is not made for writing commands to a device (like send_config_set() below).</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Sending command</span>
+<span class="n">output</span> <span class="o">=</span> <span class="k">await</span> <span class="n">sw1</span><span class="o">.</span><span class="n">send_command</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then the result is printed out on the screen.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Display message</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>On a Cisco IOS device the “show interfaces description” should look like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">R1</span><span class="c1">#show interfaces description</span>
+<span class="n">Interface</span>                      <span class="n">Status</span>         <span class="n">Protocol</span> <span class="n">Description</span>
+<span class="n">Fa0</span><span class="o">/</span><span class="mi">0</span>                          <span class="n">up</span>             <span class="n">up</span>
+<span class="n">Fa0</span><span class="o">/</span><span class="mi">1</span>                          <span class="n">up</span>             <span class="n">up</span>
+<span class="n">Fa1</span><span class="o">/</span><span class="mi">0</span>                          <span class="n">up</span>             <span class="n">up</span>
+<span class="n">Fa1</span><span class="o">/</span><span class="mi">1</span>                          <span class="n">up</span>             <span class="n">up</span>
+<span class="n">Et2</span><span class="o">/</span><span class="mi">0</span>                          <span class="n">up</span>             <span class="n">up</span>
+<span class="n">Et2</span><span class="o">/</span><span class="mi">1</span>                          <span class="n">up</span>             <span class="n">up</span>
+<span class="n">Et2</span><span class="o">/</span><span class="mi">2</span>                          <span class="n">up</span>             <span class="n">up</span>
+<span class="n">Et2</span><span class="o">/</span><span class="mi">3</span>                          <span class="n">up</span>             <span class="n">up</span>
+<span class="n">R1</span><span class="c1">#</span>
+</pre></div>
+</div>
+<p>The first example script would give that result:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">:</span>\<span class="o">&gt;</span><span class="n">simple_command</span><span class="o">.</span><span class="n">py</span>
+<span class="n">Interface</span>                      <span class="n">Status</span>         <span class="n">Protocol</span> <span class="n">Description</span>
+<span class="n">Fa0</span><span class="o">/</span><span class="mi">0</span>                          <span class="n">up</span>             <span class="n">up</span>
+<span class="n">Fa0</span><span class="o">/</span><span class="mi">1</span>                          <span class="n">up</span>             <span class="n">up</span>
+<span class="n">Fa1</span><span class="o">/</span><span class="mi">0</span>                          <span class="n">up</span>             <span class="n">up</span>
+<span class="n">Fa1</span><span class="o">/</span><span class="mi">1</span>                          <span class="n">up</span>             <span class="n">up</span>
+<span class="n">Et2</span><span class="o">/</span><span class="mi">0</span>                          <span class="n">up</span>             <span class="n">up</span>
+<span class="n">Et2</span><span class="o">/</span><span class="mi">1</span>                          <span class="n">up</span>             <span class="n">up</span>
+<span class="n">Et2</span><span class="o">/</span><span class="mi">2</span>                          <span class="n">up</span>             <span class="n">up</span>
+<span class="n">Et2</span><span class="o">/</span><span class="mi">3</span>                          <span class="n">up</span>             <span class="n">up</span>
+
+<span class="n">c</span><span class="p">:</span>\<span class="o">&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="without-context-manager">
+<h2><span class="section-number">3.2. </span>Without context manager<a class="headerlink" href="#without-context-manager" title="Permalink to this headline">¶</a></h2>
+<p>netscud allows not to use context manager (“with” instruction) but in that case more commands are needed for the same purpose. Example 1 is preferred since there is no need to close connections manually which is less prone to errors.</p>
+<p>Here is an example:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Python library import</span>
+<span class="kn">import</span> <span class="nn">asyncio</span><span class="o">,</span> <span class="nn">netscud</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">task</span><span class="p">():</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Async function</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+
+   <span class="n">my_device</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s2">&quot;ip&quot;</span><span class="p">:</span> <span class="s2">&quot;192.168.0.16&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;device_type&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco_ios&quot;</span><span class="p">,</span>
+   <span class="p">}</span>
+
+   <span class="c1"># Creation of a device</span>
+   <span class="n">sw1</span> <span class="o">=</span> <span class="n">netscud</span><span class="o">.</span><span class="n">ConnectDevice</span><span class="p">(</span><span class="o">**</span><span class="n">my_device</span><span class="p">)</span>
+
+   <span class="c1"># Connection to the device</span>
+   <span class="k">await</span> <span class="n">sw1</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+
+   <span class="c1"># Command to send</span>
+   <span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;show interfaces description&quot;</span>
+
+   <span class="c1"># Sending command</span>
+   <span class="n">output</span> <span class="o">=</span> <span class="k">await</span> <span class="n">sw1</span><span class="o">.</span><span class="n">send_command</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+
+   <span class="c1"># Display message</span>
+   <span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+
+   <span class="c1"># Disconnection</span>
+   <span class="k">await</span> <span class="n">sw1</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
+
+
+<span class="c1"># Main function call</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+
+   <span class="c1"># Main async loop</span>
+   <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">task</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="config-command">
+<h2><span class="section-number">3.3. </span>Config command<a class="headerlink" href="#config-command" title="Permalink to this headline">¶</a></h2>
+<p>send_command() sends commands mostly for reading information (like Cisco IOS “show” commands). But in order to send configuration commands to a switch or a router send_config_set() is to be used. Basically send_config_set() is equivalent as all the commands that can be sent in “configure terminal” mode on Cisco IOS devices.</p>
+<p>In this example 3 commands are sent to a network device:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Python library import</span>
+<span class="kn">import</span> <span class="nn">asyncio</span><span class="o">,</span> <span class="nn">netscud</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">task</span><span class="p">():</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Async function</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+
+   <span class="n">my_device</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s2">&quot;ip&quot;</span><span class="p">:</span> <span class="s2">&quot;192.168.0.16&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;device_type&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco_ios&quot;</span><span class="p">,</span>
+   <span class="p">}</span>
+
+   <span class="c1"># Connection to the device</span>
+   <span class="k">async</span> <span class="k">with</span> <span class="n">netscud</span><span class="o">.</span><span class="n">ConnectDevice</span><span class="p">(</span><span class="o">**</span><span class="n">my_device</span><span class="p">)</span> <span class="k">as</span> <span class="n">sw1</span><span class="p">:</span>
+
+      <span class="c1"># Commands to send</span>
+      <span class="n">cmds</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;interface FastEthernet1/0&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;ip address 1.1.1.1 255.255.255.0&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;no shutdown&quot;</span><span class="p">,</span>
+      <span class="p">]</span>
+
+      <span class="c1"># Sending command</span>
+      <span class="n">output</span> <span class="o">=</span> <span class="k">await</span> <span class="n">sw1</span><span class="o">.</span><span class="n">send_config_set</span><span class="p">(</span><span class="n">cmds</span><span class="p">)</span>
+
+      <span class="c1"># Display message</span>
+      <span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+
+
+<span class="c1"># Main function call</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+
+   <span class="c1"># Main async loop</span>
+   <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">task</span><span class="p">())</span>
+</pre></div>
+</div>
+<p><strong>Explanation:</strong></p>
+<p>send_config_set() accepts either a string or a list of strings; in this case all the strings are commands to configure the network device.</p>
+<p>In this example a list of 3 commands are selecting an interface, set its IP address then enable it.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Commands to send</span>
+<span class="n">cmds</span> <span class="o">=</span> <span class="p">[</span>
+      <span class="s2">&quot;interface FastEthernet1/0&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;ip address 1.1.1.1 255.255.255.0&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;no shutdown&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1"># Sending command</span>
+<span class="n">output</span> <span class="o">=</span> <span class="k">await</span> <span class="n">sw1</span><span class="o">.</span><span class="n">send_config_set</span><span class="p">(</span><span class="n">cmds</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Thus before this program a network device could get this configuration:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>R1#show ip interface brief
+Interface              IP-Address      OK? Method Status                Protocol
+FastEthernet0/0        192.168.0.16    YES NVRAM  up                    up
+FastEthernet0/1        unassigned      YES manual up                    up
+FastEthernet1/0        unassigned      YES manual administratively down down
+FastEthernet1/1        unassigned      YES DHCP   up                    up
+Ethernet2/0            unassigned      YES DHCP   up                    up
+Ethernet2/1            unassigned      YES NVRAM  up                    up
+Ethernet2/2            unassigned      YES NVRAM  up                    up
+Ethernet2/3            unassigned      YES NVRAM  up                    up
+R1#
+</pre></div>
+</div>
+<p>At runtime the program gives that result:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">:</span>\<span class="o">&gt;</span><span class="n">config_command</span><span class="o">.</span><span class="n">py</span>
+<span class="n">configure</span> <span class="n">terminal</span>
+<span class="n">Enter</span> <span class="n">configuration</span> <span class="n">commands</span><span class="p">,</span> <span class="n">one</span> <span class="n">per</span> <span class="n">line</span><span class="o">.</span>  <span class="n">End</span> <span class="k">with</span> <span class="n">CNTL</span><span class="o">/</span><span class="n">Z</span><span class="o">.</span>
+<span class="n">R1</span><span class="p">(</span><span class="n">config</span><span class="p">)</span><span class="c1">#interface FastEthernet1/0</span>
+<span class="n">R1</span><span class="p">(</span><span class="n">config</span><span class="o">-</span><span class="k">if</span><span class="p">)</span><span class="c1">#ip address 1.1.1.1 255.255.255.0</span>
+<span class="n">R1</span><span class="p">(</span><span class="n">config</span><span class="o">-</span><span class="k">if</span><span class="p">)</span><span class="c1">#no shutdown</span>
+<span class="n">R1</span><span class="p">(</span><span class="n">config</span><span class="o">-</span><span class="k">if</span><span class="p">)</span><span class="c1">#exit</span>
+<span class="n">R1</span><span class="p">(</span><span class="n">config</span><span class="p">)</span><span class="c1">#</span>
+
+<span class="n">c</span><span class="p">:</span>\<span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Then on the network device we have that configuration:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>R1#show ip interface brief
+Interface              IP-Address      OK? Method Status                Protocol
+FastEthernet0/0        192.168.0.16    YES NVRAM  up                    up
+FastEthernet0/1        unassigned      YES manual up                    up
+FastEthernet1/0        1.1.1.1         YES manual up                    up
+FastEthernet1/1        unassigned      YES DHCP   up                    up
+Ethernet2/0            unassigned      YES DHCP   up                    up
+Ethernet2/1            unassigned      YES NVRAM  up                    up
+Ethernet2/2            unassigned      YES NVRAM  up                    up
+Ethernet2/3            unassigned      YES NVRAM  up                    up
+R1#
+</pre></div>
+</div>
+</div>
+<div class="section" id="managing-exceptions">
+<h2><span class="section-number">3.4. </span>Managing exceptions<a class="headerlink" href="#managing-exceptions" title="Permalink to this headline">¶</a></h2>
+<p>It can be useful to manage an error triggered by an exception. The following example shows how to do that.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Python library import</span>
+<span class="kn">import</span> <span class="nn">asyncio</span><span class="o">,</span> <span class="nn">netscud</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">task</span><span class="p">():</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Async function</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+
+   <span class="n">my_device</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s2">&quot;ip&quot;</span><span class="p">:</span> <span class="s2">&quot;192.168.0.16&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;device_type&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco_ios&quot;</span><span class="p">,</span>
+   <span class="p">}</span>
+
+   <span class="k">try</span><span class="p">:</span>
+
+      <span class="c1"># Connection to the device</span>
+      <span class="k">async</span> <span class="k">with</span> <span class="n">netscud</span><span class="o">.</span><span class="n">ConnectDevice</span><span class="p">(</span><span class="o">**</span><span class="n">my_device</span><span class="p">)</span> <span class="k">as</span> <span class="n">sw1</span><span class="p">:</span>
+
+            <span class="c1"># Command to send</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;show interfaces subscription&quot;</span>
+
+            <span class="k">try</span><span class="p">:</span>
+
+               <span class="c1"># Sending command</span>
+               <span class="n">output</span> <span class="o">=</span> <span class="k">await</span> <span class="n">sw1</span><span class="o">.</span><span class="n">send_command</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+
+               <span class="c1"># Display message</span>
+               <span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+
+               <span class="c1"># Error during connection</span>
+
+               <span class="c1"># Display message</span>
+               <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error:</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
+
+               <span class="c1"># Leave the program</span>
+               <span class="k">return</span>
+
+   <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+
+      <span class="c1"># Error during connection</span>
+
+      <span class="c1"># Display message</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
+
+      <span class="c1"># Leave the program</span>
+      <span class="k">return</span>
+
+
+<span class="c1"># Main function call</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+
+   <span class="c1"># Main async loop</span>
+   <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">task</span><span class="p">())</span>
+</pre></div>
+</div>
+<p><strong>Explanation:</strong></p>
+<p>The command sent is wrong for a Cisco IOS device: “show interfaces subscription” command which does not exist is sent to the device instead of “show interfaces description”.</p>
+<p>The result would be the following if we do not catch the exceptions:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">:</span>\<span class="o">&gt;</span><span class="n">managing_exceptions</span><span class="o">.</span><span class="n">py</span>
+<span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
+
+<span class="p">[</span><span class="o">...</span><span class="p">]</span>
+
+   <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+<span class="ne">Exception</span><span class="p">:</span>                      <span class="o">^</span>
+<span class="o">%</span> <span class="n">Invalid</span> <span class="nb">input</span> <span class="n">detected</span> <span class="n">at</span> <span class="s1">&#39;^&#39;</span> <span class="n">marker</span><span class="o">.</span>
+<span class="ne">Exception</span> <span class="n">ignored</span> <span class="ow">in</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">function</span> <span class="n">_ProactorBasePipeTransport</span><span class="o">.</span><span class="fm">__del__</span> <span class="n">at</span> <span class="mh">0x03DF6850</span><span class="o">&gt;</span>
+<span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
+<span class="n">File</span> <span class="s2">&quot;C:\Python3\lib</span><span class="se">\a</span><span class="s2">syncio\proactor_events.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">116</span><span class="p">,</span> <span class="ow">in</span> <span class="fm">__del__</span>
+<span class="n">File</span> <span class="s2">&quot;C:\Python3\lib</span><span class="se">\a</span><span class="s2">syncio\proactor_events.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">108</span><span class="p">,</span> <span class="ow">in</span> <span class="n">close</span>
+<span class="n">File</span> <span class="s2">&quot;C:\Python3\lib</span><span class="se">\a</span><span class="s2">syncio</span><span class="se">\b</span><span class="s2">ase_events.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">719</span><span class="p">,</span> <span class="ow">in</span> <span class="n">call_soon</span>
+<span class="n">File</span> <span class="s2">&quot;C:\Python3\lib</span><span class="se">\a</span><span class="s2">syncio</span><span class="se">\b</span><span class="s2">ase_events.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">508</span><span class="p">,</span> <span class="ow">in</span> <span class="n">_check_closed</span>
+<span class="ne">RuntimeError</span><span class="p">:</span> <span class="n">Event</span> <span class="n">loop</span> <span class="ow">is</span> <span class="n">closed</span>
+
+<span class="n">c</span><span class="p">:</span>\<span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>The first “try … except” is used for connection problems. The error message after the “except Exception as error:” part can be adapted to your needs.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="hll"><span class="k">try</span><span class="p">:</span>
+</span>
+   <span class="c1"># Connection to the device</span>
+   <span class="k">async</span> <span class="k">with</span> <span class="n">netscud</span><span class="o">.</span><span class="n">ConnectDevice</span><span class="p">(</span><span class="o">**</span><span class="n">my_device</span><span class="p">)</span> <span class="k">as</span> <span class="n">sw1</span><span class="p">:</span>
+
+         <span class="c1"># Command to send</span>
+         <span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;show interfaces subscription&quot;</span>
+
+         <span class="p">[</span><span class="o">...</span><span class="p">]</span>
+
+<span class="hll"><span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+</span><span class="hll">
+</span><span class="hll">   <span class="c1"># Error during connection</span>
+</span><span class="hll">
+</span><span class="hll">   <span class="c1"># Display message</span>
+</span><span class="hll">   <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
+</span><span class="hll">
+</span><span class="hll">   <span class="c1"># Leave the program</span>
+</span><span class="hll">   <span class="k">return</span>
+</span></pre></div>
+</div>
+<p>The second “try … except” is used for errors with the command sent. It can be a wrong command or a time out.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Command to send</span>
+<span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;show interfaces subscription&quot;</span>
+
+<span class="hll"><span class="k">try</span><span class="p">:</span>
+</span>
+   <span class="c1"># Sending command</span>
+   <span class="n">output</span> <span class="o">=</span> <span class="k">await</span> <span class="n">sw1</span><span class="o">.</span><span class="n">send_command</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+
+   <span class="c1"># Display message</span>
+   <span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+
+<span class="hll"><span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+</span><span class="hll">
+</span><span class="hll">   <span class="c1"># Error during connection</span>
+</span><span class="hll">
+</span><span class="hll">   <span class="c1"># Display message</span>
+</span><span class="hll">   <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error:</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
+</span><span class="hll">
+</span><span class="hll">   <span class="c1"># Leave the program</span>
+</span><span class="hll">   <span class="k">return</span>
+</span></pre></div>
+</div>
+<p>Then the result with the exceptions caught gives:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">:</span>\<span class="o">&gt;</span><span class="n">managing_exceptions</span><span class="o">.</span><span class="n">py</span>
+<span class="n">Error</span><span class="p">:</span>
+                     <span class="o">^</span>
+<span class="o">%</span> <span class="n">Invalid</span> <span class="nb">input</span> <span class="n">detected</span> <span class="n">at</span> <span class="s1">&#39;^&#39;</span> <span class="n">marker</span><span class="o">.</span>
+
+<span class="n">c</span><span class="p">:</span>\<span class="o">&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="api">
+<h2><span class="section-number">3.5. </span>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<p>Some commands are common to many devices that is why some API commands have been added to netscud.</p>
+<p>The API commands have two advantages:</p>
+<ul class="simple">
+<li><p>There is not need to remember the network device command</p></li>
+<li><p>A single command can used for many different type devices</p></li>
+</ul>
+<p>The second advantage is very useful in a concurrency program (we will see that in “Inventory advanced” chapter).</p>
+<p>That example below show how to use the API get_model() method on a Cisco SG3XX device.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Python library import</span>
+<span class="kn">import</span> <span class="nn">asyncio</span><span class="o">,</span> <span class="nn">netscud</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">task</span><span class="p">():</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Async function</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+
+   <span class="n">my_device</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s2">&quot;ip&quot;</span><span class="p">:</span> <span class="s2">&quot;192.168.0.2&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;device_type&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco_s300&quot;</span><span class="p">,</span>
+   <span class="p">}</span>
+
+   <span class="c1"># Creation of a device</span>
+   <span class="k">async</span> <span class="k">with</span> <span class="n">netscud</span><span class="o">.</span><span class="n">ConnectDevice</span><span class="p">(</span><span class="o">**</span><span class="n">my_device</span><span class="p">)</span> <span class="k">as</span> <span class="n">device</span><span class="p">:</span>
+
+      <span class="c1"># Sending command</span>
+      <span class="n">output</span> <span class="o">=</span> <span class="k">await</span> <span class="n">device</span><span class="o">.</span><span class="n">get_model</span><span class="p">()</span>
+
+      <span class="c1"># Display message</span>
+      <span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+
+
+<span class="c1"># Main function call</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+
+   <span class="c1"># Main async loop</span>
+   <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">task</span><span class="p">())</span>
+</pre></div>
+</div>
+<p><strong>Explanation:</strong></p>
+<p>The get_model() method of the network device is giving the model of the current device in the output variable (a string type).</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Sending command</span>
+<span class="n">output</span> <span class="o">=</span> <span class="k">await</span> <span class="n">device</span><span class="o">.</span><span class="n">get_model</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The result of the script depends on the network device. So here is an example of result for a Cisco SG3XX device:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">:</span>\<span class="o">&gt;</span><span class="n">api</span><span class="o">.</span><span class="n">py</span>
+<span class="n">SG350</span><span class="o">-</span><span class="mi">10</span> <span class="mi">10</span><span class="o">-</span><span class="n">Port</span> <span class="n">Gigabit</span> <span class="n">Managed</span> <span class="n">Switch</span>
+
+<span class="n">c</span><span class="p">:</span>\<span class="o">&gt;</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The list of all API is available in the API chapter, see <a class="reference internal" href="API.html#api-ref"><span class="std std-ref">API</span></a>.</p>
+</div>
+</div>
+<div class="section" id="inventory-simple">
+<h2><span class="section-number">3.6. </span>Inventory simple<a class="headerlink" href="#inventory-simple" title="Permalink to this headline">¶</a></h2>
+<p>Since it can be annoying to specify all devices in a script netscud provide a way to use inventories. An inventory is a list of devices with their parameters and is stored in a yaml file.</p>
+<p>Scripts can be reused with different inventories and the login and password are not stored in the code.</p>
+<p>Like the dictionary used in script it defines a device with:</p>
+<ul class="simple">
+<li><p>A Reference (it could be its name)</p></li>
+<li><p>IP address</p></li>
+<li><p>Login</p></li>
+<li><p>Password</p></li>
+<li><p>Device type</p></li>
+</ul>
+<p>By default the inventory file is called “hosts.yaml” and is located in “./inventory”.</p>
+<p>Here is an example of inventory “./inventory/hosts.yaml”:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">Device1</span><span class="p">:</span>
+   <span class="nt">ip</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">192.168.0.1</span>
+   <span class="nt">username</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cisco</span>
+   <span class="nt">password</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cisco</span>
+   <span class="nt">device_type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cisco_s300</span>
+
+<span class="nt">Device2</span><span class="p">:</span>
+   <span class="nt">ip</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">192.168.0.2</span>
+   <span class="nt">username</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cisco</span>
+   <span class="nt">password</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cisco</span>
+   <span class="nt">device_type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cisco_ios</span>
+</pre></div>
+</div>
+<p>So basically 2 devices are defined with their parameters: one for a Cisco SG3XX network device and another one for a Cisco IOS device.</p>
+<p>The following example shows how to use the inventory but do not explain how to use it with a device; that will be seen in the next chapter.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Python library import</span>
+<span class="kn">import</span> <span class="nn">asyncio</span><span class="o">,</span> <span class="nn">netscud</span>
+
+<span class="c1"># from netscud import Inventory</span>
+<span class="kn">from</span> <span class="nn">netscud.inventory</span> <span class="kn">import</span> <span class="n">Inventory</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">main_task</span><span class="p">():</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Async main function</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+
+   <span class="c1"># Create an inventory with the devices from yaml file</span>
+   <span class="n">My_inventory</span> <span class="o">=</span> <span class="n">Inventory</span><span class="p">()</span>
+
+   <span class="c1"># Get the list of all devices from the inventory</span>
+   <span class="n">my_devices</span> <span class="o">=</span> <span class="n">My_inventory</span><span class="o">.</span><span class="n">get_all_devices</span><span class="p">()</span>
+
+   <span class="c1"># Display message</span>
+   <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;All the devices:&quot;</span><span class="p">)</span>
+
+   <span class="c1"># Display the devices one by one</span>
+   <span class="k">for</span> <span class="n">device</span> <span class="ow">in</span> <span class="n">my_devices</span><span class="p">:</span>
+      <span class="nb">print</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+   <span class="c1"># Get the list of some devices from the inventory</span>
+   <span class="n">my_devices</span> <span class="o">=</span> <span class="n">My_inventory</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">device_type</span><span class="o">=</span><span class="s2">&quot;cisco_ios&quot;</span><span class="p">)</span>
+
+   <span class="c1"># Display message</span>
+   <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Cisco IOS devices:&quot;</span><span class="p">)</span>
+
+   <span class="c1"># Display the devices one by one</span>
+   <span class="k">for</span> <span class="n">device</span> <span class="ow">in</span> <span class="n">my_devices</span><span class="p">:</span>
+      <span class="nb">print</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+
+<span class="c1"># Main function call</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+
+   <span class="c1"># Main async loop</span>
+   <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main_task</span><span class="p">())</span>
+</pre></div>
+</div>
+<p><strong>Explanation:</strong></p>
+<p>The first thing to do is to import the Inventory class. That class will be used to load and manipulate the data into the inventory.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># from netscud import Inventory</span>
+<span class="kn">from</span> <span class="nn">netscud.inventory</span> <span class="kn">import</span> <span class="n">Inventory</span>
+</pre></div>
+</div>
+<p>This instruction creates an Inventory object and read the “./inventory/hosts.yaml” file.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create an inventory with the devices from yaml file</span>
+<span class="n">My_inventory</span> <span class="o">=</span> <span class="n">Inventory</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Then there are 2 options:</p>
+<ul class="simple">
+<li><p>Either we get the list of all the devices</p></li>
+<li><p>Or we filter (i.e. select) only the devices we want</p></li>
+</ul>
+<ol class="loweralpha simple">
+<li><p>All the devices</p></li>
+</ol>
+<p>get_all_devices() method is giving back all the devices of the inventory. The list is a list of dictionaries; it is similar as an inline declaration of devices in a script.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get the list of all devices from the inventory</span>
+<span class="n">my_devices</span> <span class="o">=</span> <span class="n">My_inventory</span><span class="o">.</span><span class="n">get_all_devices</span><span class="p">()</span>
+</pre></div>
+</div>
+<ol class="upperalpha simple" start="2">
+<li><p>Filtering devices</p></li>
+</ol>
+<p>It is possible to select a device from the Inventory with:</p>
+<ul class="simple">
+<li><p>Its name (“name”)</p></li>
+<li><p>Its device type (“device_type”)</p></li>
+</ul>
+<p>So mainly the filter method will be used for selection a specific device (with its name or IP address) or a group de device of the same type.</p>
+<p>The method used for selecting a group of device is called select() and is expecting a parameter with a string value.</p>
+<p>The following command from the example select all the devices the “device_type” parameter set to “cisco_ios”; that is all the Cisco IOS devices of the inventory. In this example just one device is selected.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get the list of some devices from the inventory</span>
+<span class="n">my_devices</span> <span class="o">=</span> <span class="n">My_inventory</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">device_type</span><span class="o">=</span><span class="s2">&quot;cisco_ios&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The result of the script is this one; it first display all the devices then a specific type of device:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">:</span>\<span class="o">&gt;</span><span class="n">inventory_simple</span><span class="o">.</span><span class="n">py</span>
+<span class="n">All</span> <span class="n">the</span> <span class="n">devices</span><span class="p">:</span>
+<span class="p">{</span><span class="s1">&#39;ip&#39;</span><span class="p">:</span> <span class="s1">&#39;192.168.0.1&#39;</span><span class="p">,</span> <span class="s1">&#39;username&#39;</span><span class="p">:</span> <span class="s1">&#39;cisco&#39;</span><span class="p">,</span> <span class="s1">&#39;password&#39;</span><span class="p">:</span> <span class="s1">&#39;cisco&#39;</span><span class="p">,</span> <span class="s1">&#39;device_type&#39;</span><span class="p">:</span> <span class="s1">&#39;cisco_s300&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Device1&#39;</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;ip&#39;</span><span class="p">:</span> <span class="s1">&#39;192.168.0.2&#39;</span><span class="p">,</span> <span class="s1">&#39;username&#39;</span><span class="p">:</span> <span class="s1">&#39;cisco&#39;</span><span class="p">,</span> <span class="s1">&#39;password&#39;</span><span class="p">:</span> <span class="s1">&#39;cisco&#39;</span><span class="p">,</span> <span class="s1">&#39;device_type&#39;</span><span class="p">:</span> <span class="s1">&#39;cisco_ios&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Device2&#39;</span><span class="p">}</span>
+
+<span class="n">Cisco</span> <span class="n">IOS</span> <span class="n">devices</span><span class="p">:</span>
+<span class="p">{</span><span class="s1">&#39;ip&#39;</span><span class="p">:</span> <span class="s1">&#39;192.168.0.2&#39;</span><span class="p">,</span> <span class="s1">&#39;username&#39;</span><span class="p">:</span> <span class="s1">&#39;cisco&#39;</span><span class="p">,</span> <span class="s1">&#39;password&#39;</span><span class="p">:</span> <span class="s1">&#39;cisco&#39;</span><span class="p">,</span> <span class="s1">&#39;device_type&#39;</span><span class="p">:</span> <span class="s1">&#39;cisco_ios&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Device2&#39;</span><span class="p">}</span>
+
+<span class="n">c</span><span class="p">:</span>\<span class="o">&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="inventory-advanced">
+<h2><span class="section-number">3.7. </span>Inventory advanced<a class="headerlink" href="#inventory-advanced" title="Permalink to this headline">¶</a></h2>
+<p>The previous chapter introduced the management of an inventory.</p>
+<p>This chapter explains how to use netscud inventories with:</p>
+<ul class="simple">
+<li><p>API commands</p></li>
+<li><p>Managing exceptions</p></li>
+<li><p>Using concurrency</p></li>
+</ul>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Python library import</span>
+<span class="kn">import</span> <span class="nn">asyncio</span><span class="o">,</span> <span class="nn">netscud</span>
+
+<span class="c1"># from netscud import Inventory</span>
+<span class="kn">from</span> <span class="nn">netscud.inventory</span> <span class="kn">import</span> <span class="n">Inventory</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">run_client</span><span class="p">(</span><span class="o">**</span><span class="n">host</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   async function used by each device individually</span>
+
+<span class="sd">   &quot;&quot;&quot;</span>
+
+   <span class="c1"># Default returned value</span>
+   <span class="n">output</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+   <span class="k">try</span><span class="p">:</span>
+
+      <span class="c1"># Connection to the device</span>
+      <span class="k">async</span> <span class="k">with</span> <span class="n">netscud</span><span class="o">.</span><span class="n">ConnectDevice</span><span class="p">(</span><span class="o">**</span><span class="n">host</span><span class="p">)</span> <span class="k">as</span> <span class="n">device</span><span class="p">:</span>
+
+            <span class="c1"># Sending command</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="k">await</span> <span class="n">device</span><span class="o">.</span><span class="n">get_version</span><span class="p">()</span>
+
+            <span class="c1"># Display message</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;output: &#39;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">output</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;&#39;&quot;</span><span class="p">)</span>
+
+   <span class="k">except</span><span class="p">:</span>
+
+      <span class="c1"># If something is wrong then an error message is displayed</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error&quot;</span><span class="p">)</span>
+
+   <span class="c1"># Return result</span>
+   <span class="k">return</span> <span class="n">output</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">main_task</span><span class="p">():</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Async main function</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+
+   <span class="c1"># Create an inventory with the devices from yaml file</span>
+   <span class="n">My_inventory</span> <span class="o">=</span> <span class="n">Inventory</span><span class="p">()</span>
+
+   <span class="c1"># Get the list of all devices from the inventory</span>
+   <span class="n">my_devices</span> <span class="o">=</span> <span class="n">My_inventory</span><span class="o">.</span><span class="n">get_all_devices</span><span class="p">()</span>
+
+   <span class="c1"># Create a group of tasks (generator) for all the devices</span>
+   <span class="n">tasks</span> <span class="o">=</span> <span class="p">(</span><span class="n">run_client</span><span class="p">(</span><span class="o">**</span><span class="n">device</span><span class="p">)</span> <span class="k">for</span> <span class="n">device</span> <span class="ow">in</span> <span class="n">my_devices</span><span class="p">)</span>
+
+   <span class="c1"># Run the tasks concurrently and collect the results</span>
+   <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="n">tasks</span><span class="p">)</span>
+
+   <span class="c1"># Display message</span>
+   <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Result:</span><span class="se">\n</span><span class="s2">&#39;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;&#39;&quot;</span><span class="p">)</span>
+
+
+<span class="c1"># Main function call</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+
+   <span class="c1"># Main async loop</span>
+   <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main_task</span><span class="p">())</span>
+</pre></div>
+</div>
+<p><strong>Explanation:</strong></p>
+<p>The inventory “./inventory/hosts.yaml” is the same as before:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">Device1</span><span class="p">:</span>
+   <span class="nt">ip</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">192.168.0.1</span>
+   <span class="nt">username</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cisco</span>
+   <span class="nt">password</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cisco</span>
+   <span class="nt">device_type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cisco_s300</span>
+
+<span class="nt">Device2</span><span class="p">:</span>
+   <span class="nt">ip</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">192.168.0.2</span>
+   <span class="nt">username</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cisco</span>
+   <span class="nt">password</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cisco</span>
+   <span class="nt">device_type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cisco_ios</span>
+</pre></div>
+</div>
+<p>After main_task() aync function is launched an inventory is read and all the devices of this inventory is stored into a list of devices in the my_devices variable.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create an inventory with the devices from yaml file</span>
+<span class="n">My_inventory</span> <span class="o">=</span> <span class="n">Inventory</span><span class="p">()</span>
+
+<span class="c1"># Get the list of all devices from the inventory</span>
+<span class="n">my_devices</span> <span class="o">=</span> <span class="n">My_inventory</span><span class="o">.</span><span class="n">get_all_devices</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Then a generator called “tasks” is created with the list of devices. If you are not familiar with generator concept just copy or adapt the command.</p>
+<p>run_client() is the function used for all devices. It takes as parameter a device with all its parameters.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a group of tasks (generator) for all the devices</span>
+<span class="n">tasks</span> <span class="o">=</span> <span class="p">(</span><span class="n">run_client</span><span class="p">(</span><span class="o">**</span><span class="n">device</span><span class="p">)</span> <span class="k">for</span> <span class="n">device</span> <span class="ow">in</span> <span class="n">my_devices</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We have created the “tasks” generator in order to send concurrent commands to the asyncio function gather(). gather() runs functions in concurrency. This example using gather() function shows well one of the advantage of using async techniques in network programming; no needs of processes or threads.</p>
+<p>gather() must be awaited and is expecting the generator “tasks” as a parameter. The result is a list of answers for each devices. The gather() function is ended when all tasks are finished.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run the tasks concurrently and collect the results</span>
+<span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="n">tasks</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>run_client() runs an API command for each device to get the version of the device and then print out the result. If an error occurs then an exception is caught and a message (“Error”) is displayed.</p>
+<p>Finally if a result has been returned by the device then it is returned so that gather will get the value for that specific device. The message disaplyed by print function is not mandatory; it is just here for educational purpose and could be remove.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span> <span class="nf">run_client</span><span class="p">(</span><span class="o">**</span><span class="n">host</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   async function used by each device individually</span>
+
+<span class="sd">   &quot;&quot;&quot;</span>
+
+   <span class="c1"># Default returned value</span>
+   <span class="n">output</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+   <span class="k">try</span><span class="p">:</span>
+
+      <span class="c1"># Connection to the device</span>
+      <span class="k">async</span> <span class="k">with</span> <span class="n">netscud</span><span class="o">.</span><span class="n">ConnectDevice</span><span class="p">(</span><span class="o">**</span><span class="n">host</span><span class="p">)</span> <span class="k">as</span> <span class="n">device</span><span class="p">:</span>
+
+            <span class="c1"># Sending command</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="k">await</span> <span class="n">device</span><span class="o">.</span><span class="n">get_version</span><span class="p">()</span>
+
+            <span class="c1"># Display message</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;output: &#39;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">output</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;&#39;&quot;</span><span class="p">)</span>
+
+   <span class="k">except</span><span class="p">:</span>
+
+      <span class="c1"># If something is wrong then an error message is displayed</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error&quot;</span><span class="p">)</span>
+
+   <span class="c1"># Return result</span>
+   <span class="k">return</span> <span class="n">output</span>
+</pre></div>
+</div>
+<p>The result of the script is the following. As you can see every time the run_client() function is run a “print(“output”) is displayed but as said before it could be remove. The result received by gather() in the result variable is a list of strings; one for each device.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">:</span>\<span class="o">&gt;</span><span class="n">inventory_advanced</span><span class="o">.</span><span class="n">py</span>
+<span class="n">output</span><span class="p">:</span> <span class="s1">&#39;15.2(4)S5&#39;</span>
+<span class="n">output</span><span class="p">:</span> <span class="s1">&#39;2.5.5.47&#39;</span>
+
+<span class="n">Result</span><span class="p">:</span>
+<span class="s1">&#39;[&#39;</span><span class="mf">2.5</span><span class="o">.</span><span class="mf">5.47</span><span class="s1">&#39;, &#39;</span><span class="mf">15.2</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span><span class="n">S5</span><span class="s1">&#39;]&#39;</span>
+
+<span class="n">c</span><span class="p">:</span>\<span class="o">&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="hidden-password">
+<h2><span class="section-number">3.8. </span>Hidden password<a class="headerlink" href="#hidden-password" title="Permalink to this headline">¶</a></h2>
+<p>This chapter is not specific to netscud. It explain how to use netscud with a login and a password not stored in a netscud script without using inventory. Other solution like using vault can be used but here is just a simple practical example.</p>
+<p>The idea is simple: the credentials are stored into a file. This file should not be accessible by unauthorized users or included in git repository.</p>
+<p>Here is the file with credentials “credentials.txt”:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ciscologin</span>
+<span class="n">ciscopassword</span>
+</pre></div>
+</div>
+<p>As you see this is very simple: the first line contains the login of your device and the second line contains the password of your network device. The values must be adapted according to your device.</p>
+<p>The script to read the credentials is the following:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Python library import</span>
+<span class="kn">import</span> <span class="nn">asyncio</span><span class="o">,</span> <span class="nn">netscud</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">task</span><span class="p">():</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Async function</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+
+   <span class="c1"># Read a text file with 2 lines: 1 with a login and the other one with a password</span>
+   <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;credentials.txt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+      <span class="n">credentials</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+   <span class="c1"># Extract the 2 data from the text read</span>
+   <span class="p">(</span><span class="n">login</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span> <span class="o">=</span> <span class="n">credentials</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+   <span class="c1"># Variable declaration with the login and password read</span>
+   <span class="n">my_device</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s2">&quot;ip&quot;</span><span class="p">:</span> <span class="s2">&quot;192.168.0.2&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="n">login</span><span class="p">,</span>
+      <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="n">password</span><span class="p">,</span>
+      <span class="s2">&quot;device_type&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco_s300&quot;</span><span class="p">,</span>
+   <span class="p">}</span>
+
+   <span class="c1"># Creation of a device</span>
+   <span class="k">async</span> <span class="k">with</span> <span class="n">netscud</span><span class="o">.</span><span class="n">ConnectDevice</span><span class="p">(</span><span class="o">**</span><span class="n">my_device</span><span class="p">)</span> <span class="k">as</span> <span class="n">device</span><span class="p">:</span>
+
+      <span class="c1"># Sending command</span>
+      <span class="n">output</span> <span class="o">=</span> <span class="k">await</span> <span class="n">device</span><span class="o">.</span><span class="n">send_command</span><span class="p">(</span><span class="s2">&quot;show vlan&quot;</span><span class="p">)</span>
+
+      <span class="c1"># Display message</span>
+      <span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+
+
+<span class="c1"># Main function call</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+
+   <span class="c1"># Main async loop</span>
+   <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">task</span><span class="p">())</span>
+</pre></div>
+</div>
+<p><strong>Explanation:</strong></p>
+<p>First the file “credentials.txt” is read and the content of the file is stored into a variable: credentials.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Read a text file with 2 lines: 1 with a login and the other one with a password</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;credentials.txt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+   <span class="n">credentials</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Login and password are separated from the string variable credentials and stored into login and variable password respectively.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Extract the 2 data from the text read</span>
+<span class="p">(</span><span class="n">login</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span> <span class="o">=</span> <span class="n">credentials</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Finally the login and password variables are used for the username and password parameters of a device. Then the script can run the same way as usual.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Variable declaration with the login and password read</span>
+<span class="n">my_device</span> <span class="o">=</span> <span class="p">{</span>
+   <span class="s2">&quot;ip&quot;</span><span class="p">:</span> <span class="s2">&quot;192.168.0.2&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="n">login</span><span class="p">,</span>
+   <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="n">password</span><span class="p">,</span>
+   <span class="s2">&quot;device_type&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco_s300&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The result of the script is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">:</span>\<span class="o">&gt;</span><span class="n">hidden_password</span><span class="o">.</span><span class="n">py</span>
+<span class="n">Created</span> <span class="n">by</span><span class="p">:</span> <span class="n">D</span><span class="o">-</span><span class="n">Default</span><span class="p">,</span> <span class="n">S</span><span class="o">-</span><span class="n">Static</span><span class="p">,</span> <span class="n">G</span><span class="o">-</span><span class="n">GVRP</span><span class="p">,</span> <span class="n">R</span><span class="o">-</span><span class="n">Radius</span> <span class="n">Assigned</span> <span class="n">VLAN</span><span class="p">,</span> <span class="n">V</span><span class="o">-</span><span class="n">Voice</span> <span class="n">VLAN</span>
+
+<span class="n">Vlan</span>       <span class="n">Name</span>           <span class="n">Tagged</span> <span class="n">Ports</span>      <span class="n">UnTagged</span> <span class="n">Ports</span>      <span class="n">Created</span> <span class="n">by</span>
+<span class="o">----</span> <span class="o">-----------------</span> <span class="o">------------------</span> <span class="o">------------------</span> <span class="o">----------------</span>
+<span class="mi">1</span>           <span class="mi">1</span>                             <span class="n">gi1</span><span class="o">-</span><span class="mi">7</span><span class="p">,</span><span class="n">gi9</span><span class="p">,</span><span class="n">Po1</span><span class="o">-</span><span class="mi">8</span>          <span class="n">DV</span>
+<span class="mi">2</span>          <span class="n">MAN</span>                                <span class="n">gi8</span><span class="p">,</span><span class="n">gi10</span>             <span class="n">S</span>
+
+<span class="n">c</span><span class="p">:</span>\<span class="o">&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="special-prompt">
+<h2><span class="section-number">3.9. </span>Special prompt<a class="headerlink" href="#special-prompt" title="Permalink to this headline">¶</a></h2>
+<p>In some cases it can be useful to answer to a question a network device is asking from a command.</p>
+<p>Thus in Cisco SG3XX device it can be necessary to answer to a yes/no question.</p>
+<p>Here is an example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>switch#wr
+Overwrite file [startup-config].... (Y/N)[N] ?N
+
+switch#
+</pre></div>
+</div>
+<p>If we send a send_command() as usual it will end with a time out because this command expect to get a prompt return; here it would be “switch#” which does not exist in the string “Overwrite file [startup-config]…. (Y/N)[N] ?”.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Python library import</span>
+<span class="kn">import</span> <span class="nn">asyncio</span><span class="o">,</span> <span class="nn">netscud</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">task</span><span class="p">():</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Async function</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+
+   <span class="n">my_device</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s2">&quot;ip&quot;</span><span class="p">:</span> <span class="s2">&quot;192.168.0.2&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;device_type&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco_s300&quot;</span><span class="p">,</span>
+   <span class="p">}</span>
+
+   <span class="c1"># Creation of a device</span>
+   <span class="k">async</span> <span class="k">with</span> <span class="n">netscud</span><span class="o">.</span><span class="n">ConnectDevice</span><span class="p">(</span><span class="o">**</span><span class="n">my_device</span><span class="p">)</span> <span class="k">as</span> <span class="n">sw1</span><span class="p">:</span>
+
+      <span class="c1"># Command to send</span>
+      <span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;write memory&quot;</span>
+
+      <span class="c1"># Special pattern (from &quot;Overwrite file [startup-config].... (Y/N)[N] ?&quot;)</span>
+      <span class="n">pattern</span> <span class="o">=</span> <span class="s2">&quot;?&quot;</span>
+
+      <span class="c1"># Sending command</span>
+      <span class="n">output</span> <span class="o">=</span> <span class="k">await</span> <span class="n">sw1</span><span class="o">.</span><span class="n">send_command</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">pattern</span><span class="p">)</span>
+
+      <span class="c1"># Command to send</span>
+      <span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;y&quot;</span>
+
+      <span class="c1"># Sending command</span>
+      <span class="n">output</span> <span class="o">+=</span> <span class="k">await</span> <span class="n">sw1</span><span class="o">.</span><span class="n">send_command</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+
+      <span class="c1"># Display message</span>
+      <span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+
+
+<span class="c1"># Main function call</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+
+   <span class="c1"># Main async loop</span>
+   <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">task</span><span class="p">())</span>
+</pre></div>
+</div>
+<p><strong>Explanation:</strong></p>
+<p>The solution is to use a special parameter in the send_command() command.</p>
+<p>First in addition to the command we use a second parameter here called pattern with the expected string pattern or the end of this pattern.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Command to send</span>
+<span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;write memory&quot;</span>
+
+<span class="c1"># Special pattern (from &quot;Overwrite file [startup-config].... (Y/N)[N] ?&quot;)</span>
+<span class="n">pattern</span> <span class="o">=</span> <span class="s2">&quot;?&quot;</span>
+
+<span class="c1"># Sending command</span>
+<span class="n">output</span> <span class="o">=</span> <span class="k">await</span> <span class="n">sw1</span><span class="o">.</span><span class="n">send_command</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">pattern</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then the second command is just answering the device answer.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Command to send</span>
+<span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;y&quot;</span>
+
+<span class="c1"># Sending command</span>
+<span class="n">output</span> <span class="o">+=</span> <span class="k">await</span> <span class="n">sw1</span><span class="o">.</span><span class="n">send_command</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The result of the script is the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>c:\&gt;special_prompt.py
+Overwrite file [startup-config].... (Y/N)[N] ?Y
+06-Oct-2020 22:08:32 %COPY-I-FILECPY: Files Copy - source URL running-config destination URL flash://system/configuration/startup-config
+06-Oct-2020 22:08:33 %COPY-N-TRAP: The copy operation was completed successfully
+
+
+c:\&gt;
+</pre></div>
+</div>
+</div>
+<div class="section" id="telnet-simple">
+<h2><span class="section-number">3.10. </span>Telnet simple<a class="headerlink" href="#telnet-simple" title="Permalink to this headline">¶</a></h2>
+<p>Async Telnet is supported by netscud even though it is not a secure protocol.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Python library import</span>
+<span class="kn">import</span> <span class="nn">asyncio</span><span class="o">,</span> <span class="nn">netscud</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">task</span><span class="p">():</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Async function</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+
+   <span class="n">my_device</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s2">&quot;ip&quot;</span><span class="p">:</span> <span class="s2">&quot;192.168.0.2&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;device_type&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco_s300&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;protocol&quot;</span><span class="p">:</span> <span class="s2">&quot;telnet&quot;</span><span class="p">,</span>
+   <span class="p">}</span>
+
+   <span class="c1"># Creation of a device</span>
+   <span class="k">async</span> <span class="k">with</span> <span class="n">netscud</span><span class="o">.</span><span class="n">ConnectDevice</span><span class="p">(</span><span class="o">**</span><span class="n">my_device</span><span class="p">)</span> <span class="k">as</span> <span class="n">sw1</span><span class="p">:</span>
+
+      <span class="c1"># Command to send</span>
+      <span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;show ip route&quot;</span>
+
+      <span class="c1"># Sending command</span>
+      <span class="n">output</span> <span class="o">=</span> <span class="k">await</span> <span class="n">sw1</span><span class="o">.</span><span class="n">send_command</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+
+      <span class="c1"># Display message</span>
+      <span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+
+
+<span class="c1"># Main function call</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+
+   <span class="c1"># Main async loop</span>
+   <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">task</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>As you can see the only difference with SSH connection is the “protocol” parameter in the definition of the device with the value “telnet”. API and send_command() can be used as usual.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">my_device</span> <span class="o">=</span> <span class="p">{</span>
+   <span class="s2">&quot;ip&quot;</span><span class="p">:</span> <span class="s2">&quot;192.168.0.2&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;device_type&quot;</span><span class="p">:</span> <span class="s2">&quot;cisco_s300&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;protocol&quot;</span><span class="p">:</span> <span class="s2">&quot;telnet&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The result given is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">:</span>\<span class="o">&gt;</span><span class="n">telnet_simple</span><span class="o">.</span><span class="n">py</span>
+<span class="n">Maximum</span> <span class="n">Parallel</span> <span class="n">Paths</span><span class="p">:</span> <span class="mi">1</span> <span class="p">(</span><span class="mi">1</span> <span class="n">after</span> <span class="n">reset</span><span class="p">)</span>
+<span class="n">IP</span> <span class="n">Forwarding</span><span class="p">:</span> <span class="n">enabled</span>
+<span class="n">Codes</span><span class="p">:</span> <span class="o">&gt;</span> <span class="o">-</span> <span class="n">best</span><span class="p">,</span> <span class="n">C</span> <span class="o">-</span> <span class="n">connected</span><span class="p">,</span> <span class="n">S</span> <span class="o">-</span> <span class="n">static</span>
+
+
+<span class="n">S</span>   <span class="mf">0.0</span><span class="o">.</span><span class="mf">0.0</span><span class="o">/</span><span class="mi">0</span> <span class="p">[</span><span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">]</span> <span class="n">via</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">0.1</span><span class="p">,</span> <span class="mi">10</span><span class="p">:</span><span class="mi">20</span><span class="p">:</span><span class="mi">58</span><span class="p">,</span> <span class="n">vlan</span> <span class="mi">2</span>
+<span class="n">C</span>   <span class="mf">192.168</span><span class="o">.</span><span class="mf">0.0</span><span class="o">/</span><span class="mi">24</span> <span class="ow">is</span> <span class="n">directly</span> <span class="n">connected</span><span class="p">,</span> <span class="n">vlan</span> <span class="mi">2</span>
+
+<span class="n">c</span><span class="p">:</span>\<span class="o">&gt;</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="API.html" class="btn btn-neutral float-right" title="4. API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Before_starting.html" class="btn btn-neutral float-left" title="2. Before starting" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Eric ORAIN
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
