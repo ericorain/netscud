@@ -84,7 +84,7 @@ Then the result is printed out on the screen.
 
 On a Cisco IOS device the "show interfaces description" should look like this:
 
-.. code-block::
+::
 
    R1#show interfaces description
    Interface                      Status         Protocol Description

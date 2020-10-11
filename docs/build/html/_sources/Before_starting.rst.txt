@@ -1,6 +1,9 @@
 Before starting
 ####################
 
+Basic information
+*****************
+
 netscud uses 2 protocols to access a device:
 
 * SSH
@@ -51,3 +54,15 @@ Here is an example of a command using "await" inside an async function:
     output = await my_switch.send_command("show ip int br)
 
 This command send the command "show ip int br" to a router and give the hand to another await command if needed. Then when the answer is available it return the result of the command into the "output" variable.
+
+
+Supported devices
+*****************
+
+Right now the following devices are supported:
+
+::
+
+    - Cisco IOS
+    - Cisco SG3XX
+    - Alcatel AOS

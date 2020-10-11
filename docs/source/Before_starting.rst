@@ -60,7 +60,9 @@ Supported devices
 *****************
 
 Right now the following devices are supported:
+
 ::
+
     - Cisco IOS
     - Cisco SG3XX
     - Alcatel AOS

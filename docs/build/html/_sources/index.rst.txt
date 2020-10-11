@@ -45,7 +45,24 @@ As an overview here is an example of netscud code for a Cisco IOS device:
       # Main async loop
       asyncio.run(main())
 
-If you are not afraid by this first script then the following is for you.
+The result of this script is:
+
+::
+
+   c:\>script.py
+   Interface              IP-Address      OK? Method Status                Protocol
+   FastEthernet0/0        192.168.0.16    YES NVRAM  up                    up
+   FastEthernet0/1        unassigned      YES manual up                    up
+   FastEthernet1/0        unassigned      YES manual administratively down down
+   FastEthernet1/1        unassigned      YES DHCP   up                    up
+   Ethernet2/0            unassigned      YES DHCP   up                    up
+   Ethernet2/1            unassigned      YES NVRAM  up                    up
+   Ethernet2/2            unassigned      YES NVRAM  up                    up
+   Ethernet2/3            unassigned      YES NVRAM  up                    up
+
+   c:\>
+
+If you are not afraid by this first script then what is following is for you.
 
 
 .. toctree::
