@@ -75,7 +75,6 @@ If you are not afraid by this first script then what is following is for you.
    Tutorial
    API
    FAQ
-   library
 
 
 Indices and tables

@@ -31,8 +31,8 @@ author = "Eric ORAIN"
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "sphinx_rtd_theme",
-    "sphinx.ext.autodoc",
+    'sphinx_rtd_theme',
+    'sphinx.ext.autodoc'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
