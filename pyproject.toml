@@ -6,7 +6,7 @@ authors = ["ericorain <ericorain@hotmail.com>"]
 packages = [
     { include = "*" },
 ]
-exclude = ["old", "docs", ".git", ".gitignore", "examples", "README.md"]
+exclude = ["old", "docs", ".git", ".gitignore", "examples", "README.md", ".readthedocs.yml"]
 
 
 [tool.poetry.dependencies]

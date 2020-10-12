@@ -3,7 +3,7 @@ Installation
 
 netscud requires:
 
-* python 3.7+
+* python 3.8+
 
 and the following python modules:
 
