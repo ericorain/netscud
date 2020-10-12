@@ -51,3 +51,5 @@ Ethernet2/3            unassigned      YES NVRAM  up                    up
 
 c:\>
 ```
+
+Documentation can be found here: https://netscud.readthedocs.io/en/latest/
