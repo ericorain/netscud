@@ -1,0 +1,267 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>2. Before starting &mdash; netscud 1.0.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="3. Tutorial" href="Tutorial.html" />
+    <link rel="prev" title="1. Installation" href="Installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> netscud
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">1. Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">2. Before starting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#basic-information">2.1. Basic information</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#supported-devices">2.2. Supported devices</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Tutorial.html">3. Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="API.html">4. API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FAQ.html">5. FAQ</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">netscud</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li><span class="section-number">2. </span>Before starting</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/Before_starting.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="before-starting">
+<h1><span class="section-number">2. </span>Before starting<a class="headerlink" href="#before-starting" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="basic-information">
+<h2><span class="section-number">2.1. </span>Basic information<a class="headerlink" href="#basic-information" title="Permalink to this headline">¶</a></h2>
+<p>netscud uses 2 protocols to access a device:</p>
+<ul class="simple">
+<li><p>SSH</p></li>
+<li><p>Telnet</p></li>
+</ul>
+<p>By default SSH is selected in the scripts.</p>
+<p>The commands you send to the network device with netscud are the same as those someone can send using a terminal like Tera term or putty but it is sent programmatically using Python.</p>
+<p>netscud uses asynchronous and non-blocking commands. So when connections and commands are in used they are not waiting (blocking) for the answer of the network devices. To achive this goal a event loop is used. This loop is managed by asyncio.</p>
+<p>Asynchronous techniques are very interesting with I/O bound issues such as communcation with devices not only with SSH but also with other protocols.</p>
+<p>The commands with asyncio are not always easy to write since the structure of an asynchronous program is different than a synchronous program. That is why the tutorial gradually shows how to write those programs properly till the gather() function.</p>
+<p>Every scripts start with the declaration of asyncio library and netscud. The first is needed for the ability to use async code and the second is for network device access.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Python library import</span>
+<span class="kn">import</span> <span class="nn">asyncio</span><span class="o">,</span> <span class="nn">netscud</span>
+</pre></div>
+</div>
+<p>What is more every script needs to run a code that executes an asynchronous function. This asynchronous function will allow asynchronous instruction (which use keywords such as “async” and “await”).</p>
+<p>In this example a script run the asynchronous function task():</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Main async loop</span>
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">task</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>The asynchronous function is similar to other function but requires the keyword “async” at the beginning of the definition:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span> <span class="nf">task</span><span class="p">():</span>
+
+   <span class="o">...</span>
+</pre></div>
+</div>
+<p>The non-blocking instructions are using “await” keyword. They will be activated or release with the event loop running in the background of the script. Those specific function are for connection and sending command with devices.</p>
+<p>Here is an example of a command using “await” inside an async function:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Sending command</span>
+<span class="n">output</span> <span class="o">=</span> <span class="k">await</span> <span class="n">my_switch</span><span class="o">.</span><span class="n">send_command</span><span class="p">(</span><span class="s2">&quot;show ip int br)</span>
+</pre></div>
+</div>
+<p>This command send the command “show ip int br” to a router and give the hand to another await command if needed. Then when the answer is available it return the result of the command into the “output” variable.</p>
+</div>
+<div class="section" id="supported-devices">
+<h2><span class="section-number">2.2. </span>Supported devices<a class="headerlink" href="#supported-devices" title="Permalink to this headline">¶</a></h2>
+<p>Right now the following devices are supported:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span> <span class="n">Cisco</span> <span class="n">IOS</span>
+<span class="o">-</span> <span class="n">Cisco</span> <span class="n">SG3XX</span>
+<span class="o">-</span> <span class="n">Alcatel</span> <span class="n">AOS</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Tutorial.html" class="btn btn-neutral float-right" title="3. Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Installation.html" class="btn btn-neutral float-left" title="1. Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Eric ORAIN
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
