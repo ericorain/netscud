@@ -1,1 +1,2 @@
 netscud==1.0.0
+sphinx==3.2.1
