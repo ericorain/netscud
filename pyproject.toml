@@ -7,7 +7,10 @@ packages = [
     { include = "*" },
 ]
 exclude = ["old", "docs", ".git", ".gitignore", "examples", "README.md", ".readthedocs.yml"]
-
+license = "Apache-2.0"
+readme = "README.md"
+homepage = "https://github.com/ericorain/netscud"
+documentation = "https://netscud.readthedocs.io/en/latest/"
 
 [tool.poetry.dependencies]
 python = "^3.8"
