@@ -27,7 +27,7 @@ class Inventory:
         hosts_file = host_yaml
 
         # Display info message
-        logging.info("Inventory: reading file '" + str(hosts_file) + "'")
+        logging.info(f"Inventory: reading file '{hosts_file}'")
 
         try:
             # Open hosts.yaml file
@@ -41,25 +41,21 @@ class Inventory:
             # Error while opening the file
 
             #  Display info message
-            logging.info("Error while opening file " + hosts_file)
+            logging.info(f"Error while opening file {hosts_file}")
 
             # Propagate the exception
             raise
 
         # Display info message
         logging.info(
-            "Inventory: reading file '"
-            + str(hosts_file)
-            + "' data:\n'"
-            + str(self.yaml_host_file_dict)
-            + "'"
+            f"Inventory: reading file '{hosts_file}' data:\n'{self.yaml_host_file_dict}'"
         )
 
         # Convert yaml file data (dict) into a list of devices
         self.all_devices = self.convert_yaml_to_list(self.yaml_host_file_dict)
 
         # Display info message
-        logging.info("Inventory: all_devices:\n'" + str(self.all_devices) + "'")
+        logging.info(f"Inventory: all_devices:\n'{self.all_devices}'")
 
     def convert_yaml_to_list(self, input_data):
         """
@@ -79,9 +75,7 @@ class Inventory:
             device_dict = {**input_data[device], **{"name": device}}
 
             # Display info message
-            logging.info(
-                "convert_yaml_to_list: device dict: '" + str(device_dict) + "'"
-            )
+            logging.info(f"convert_yaml_to_list: device dict: '{device_dict}'")
 
             # Add the dictionary of a device into a list
             list_of_devices.append(device_dict)
@@ -139,7 +133,7 @@ class Inventory:
             device_type = kwargs["device_type"]
 
             # Display info message
-            logging.info("select: device_type: " + str(device_type))
+            logging.info(f"select: device_type: {device_type}")
 
             # By default no device found for this temporary list
             list_temp = []
@@ -163,7 +157,7 @@ class Inventory:
             name = kwargs["name"]
 
             # Display info message
-            logging.info("select: name: " + str(name))
+            logging.info(f"select: name: {name}")
 
             # By default no device found for this temporary list
             list_temp = []
@@ -182,26 +176,3 @@ class Inventory:
 
         # Return a list with all the devices
         return list_of_devices
-
-
-# Main function call
-if __name__ == "__main__":
-
-    inv = Inventory()
-
-    print("Get_devices:")
-
-    for device in inv.get_all_devices():
-        print("Device :\n" + str(device))
-
-    print("*" * 80)
-    print("Selection:")
-
-    # new_inventory = inv.select(device_type="cisco_s300")
-    # new_inventory = inv.select(name="Device1")
-    # new_inventory = inv.select(device_type="cisco_s300", name="Device1")
-
-    new_inventory = inv.select(device_type="cisco_s300") + inv.select(name="Device2")
-
-    for device in new_inventory:
-        print("Device :\n" + str(device))

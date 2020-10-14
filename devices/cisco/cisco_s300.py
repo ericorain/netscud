@@ -1,21 +1,25 @@
 # Python library import
 from netscud.base_connection import NetworkDevice, log
 
+
 class CiscoS300(NetworkDevice):
     """
     Class for SG3XX devices
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self._send_command_error_in_returned_output = ["%"]
         self._telnet_connect_login = "User Name:"
         self._telnet_connect_password = "Password:"
-        self._telnet_connect_authentication_fail_prompt = ["User Name:","authentication failed"]
+        self._telnet_connect_authentication_fail_prompt = [
+            "User Name:",
+            "authentication failed",
+        ]
         self.cmd_disable_paging = "terminal datadump"
         self.cmd_get_hostname = "show system | include System Name:"
         self.cmd_get_serial_number = "show system id unit 1"
-
 
     async def get_hostname(self):
         """
@@ -32,13 +36,13 @@ class CiscoS300(NetworkDevice):
         output = await self.send_command(self.cmd_get_hostname)
 
         # Display info message
-        log.info("get_hostname: output: '" + str(output) + "'")
+        log.info(f"get_hostname: output: '{output}'")
 
         # Remove the useless information in the returned string
         output = output.split("System Name: ")[1].strip()
 
         # Display info message
-        log.info("get_hostname: hostname found: '" + str(output) + "'")
+        log.info(f"get_hostname: hostname found: '{output}'")
 
         # Return the name of the device
         return output
@@ -63,7 +67,7 @@ class CiscoS300(NetworkDevice):
         # Seek "Version: " on each line of the returned output
         for line in output.splitlines():
 
-            log.info("get_version: line: " + line)
+            log.info(f"get_version: line: {line}")
 
             # Is it the line with "Version: "
             if "Version: " in line:
@@ -77,11 +81,10 @@ class CiscoS300(NetworkDevice):
                 break
 
         # Display info message
-        log.info("get_version: version: " + version)
+        log.info(f"get_version: version: {version}")
 
         # Return the version of the software of the device
         return version
-
 
     async def save_config(self):
         """

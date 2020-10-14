@@ -1,17 +1,16 @@
 # Python library import
 from netscud.base_connection import NetworkDevice, log
 
+
 class CiscoIOS(NetworkDevice):
     """
     Class for Cisco IOS devices
     """
 
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-    
-        self._send_command_error_in_returned_output = ["%"]
 
+        self._send_command_error_in_returned_output = ["%"]
 
     def check_error_output(self, output):
         """
@@ -69,30 +68,32 @@ class CiscoIOS(NetworkDevice):
                     # Then break the lopp
                     break
 
-
             # Display info message
-            log.info("check_error_output: number of lines in the output: " + str(len(output_lines)))
+            log.info(
+                f"check_error_output: number of lines in the output: {len(output_lines)}"
+            )
 
             # Check all elements in the list of output
             for element in self._send_command_error_in_returned_output:
 
                 # Display info message
-                log.info("check_error_output: element: '" + str(element) + "'")
+                log.info(f"check_error_output: element: '{element}'")
 
                 # Check if the output starts with a string with an error message (like "% Invalid input detected at '^' marker.")
                 for line in output_lines:
 
                     # Display info message
-                    log.info("check_error_output: line: '" + str(line) + "'")
-                    
+                    log.info(f"check_error_output: line: '{line}'")
+
                     # Error message?
                     if line.startswith(element):
 
                         # Yes
 
                         # Display info message
-                        log.info("check_error_output: error in output found : '" + str(element) + "'")
+                        log.info(
+                            f"check_error_output: error in output found : '{element}'"
+                        )
 
                         # Raise an exception
                         raise Exception(output)
-

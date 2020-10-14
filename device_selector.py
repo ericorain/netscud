@@ -45,7 +45,7 @@ def ConnectDevice(**kwargs):
         # Not a supported device
 
         # Display error message
-        raise Exception("ConnectDevice: device type unknown: " + str(device_type))
+        raise Exception(f"ConnectDevice: device type unknown: {device_type}")
 
     # Create a class
     my_class = ALL_DEVICE_TYPE_CLASS[device_type](**kwargs)

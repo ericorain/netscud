@@ -1,12 +1,11 @@
 # Python library import
 from netscud.base_connection import NetworkDevice, log
 
+
 class AlcatelAOS(NetworkDevice):
     """
     Class for Alcatel AOS devices
     """
-
-
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -15,7 +14,10 @@ class AlcatelAOS(NetworkDevice):
         self.list_of_possible_ending_prompts = ["> "]
         self._telnet_connect_login = "login :"
         self._telnet_connect_password = "password :"
-        self._telnet_connect_authentication_fail_prompt = ["login :","Authentication failure"]
+        self._telnet_connect_authentication_fail_prompt = [
+            "login :",
+            "Authentication failure",
+        ]
         self.cmd_disable_paging = ""
         self.cmd_enter_config_mode = ""
         self.cmd_exit_config_mode = ""
@@ -24,11 +26,11 @@ class AlcatelAOS(NetworkDevice):
         self.cmd_get_model = "show chassis"
         self.cmd_get_serial_number = "show chassis"
         self.cmd_get_config = "show configuration snapshot"
-        self.cmd_save_config = ["write memory", # Save data into working configuration
-                                "copy running certified", # AOS 7, AOS 8, save working configuration into certified configuration
-                                "copy working certified" # AOS 6 and lower, save working configuration into certified configuration
+        self.cmd_save_config = [
+            "write memory",  # Save data into working configuration
+            "copy running certified",  # AOS 7, AOS 8, save working configuration into certified configuration
+            "copy working certified",  # AOS 6 and lower, save working configuration into certified configuration
         ]
-
 
     async def get_hostname(self):
         """
@@ -45,7 +47,7 @@ class AlcatelAOS(NetworkDevice):
         output = await self.send_command(self.cmd_get_hostname)
 
         # Display info message
-        log.info("get_hostname: output: '" + str(output) + "'")
+        log.info(f"get_hostname: output: '{output}'")
 
         # By default no hostname
         hostname = ""
@@ -55,7 +57,7 @@ class AlcatelAOS(NetworkDevice):
 
             # Is "Name: " part of the line?
             if "Name: " in line:
-                
+
                 # Yes
 
                 # Extract the hostname of the same line
@@ -65,11 +67,10 @@ class AlcatelAOS(NetworkDevice):
                 break
 
         # Display info message
-        log.info("get_hostname: hostname found: '" + str(hostname) + "'")
+        log.info(f"get_hostname: hostname found: '{hostname}'")
 
         # Return the name of the device
         return hostname
-
 
     async def get_model(self):
         """
@@ -86,7 +87,7 @@ class AlcatelAOS(NetworkDevice):
         output = await self.send_command(self.cmd_get_model)
 
         # Display info message
-        log.info("get_model: output: '" + str(output) + "'")
+        log.info(f"get_model: output: '{output}'")
 
         # By default no model
         model = ""
@@ -96,7 +97,7 @@ class AlcatelAOS(NetworkDevice):
 
             # Is "Model Name:" part of the line?
             if "Model Name:" in line:
-                
+
                 # Yes
 
                 # Extract the hostname of the same line
@@ -106,11 +107,10 @@ class AlcatelAOS(NetworkDevice):
                 break
 
         # Display info message
-        log.info("get_model: model found: '" + str(model) + "'")
+        log.info(f"get_model: model found: '{model}'")
 
         # Return the model of the device
         return model
-
 
     async def get_serial_number(self):
         """
@@ -127,7 +127,7 @@ class AlcatelAOS(NetworkDevice):
         output = await self.send_command(self.cmd_get_serial_number)
 
         # Display info message
-        log.info("get_serial_number: output: '" + str(output) + "'")
+        log.info(f"get_serial_number: output: '{output}'")
 
         # By default no serial number
         serial_number = ""
@@ -137,7 +137,7 @@ class AlcatelAOS(NetworkDevice):
 
             # Is "Serial Number:" part of the line?
             if "Serial Number:" in line:
-                
+
                 # Yes
 
                 # Extract the hostname of the same line
@@ -147,12 +147,10 @@ class AlcatelAOS(NetworkDevice):
                 break
 
         # Display info message
-        log.info("get_serial_number: serial number found: '" + str(serial_number) + "'")
+        log.info(f"get_serial_number: serial number found: '{serial_number}'")
 
         # Return the serial number of the device
         return output
-
-
 
     async def get_version(self):
         """
@@ -171,15 +169,14 @@ class AlcatelAOS(NetworkDevice):
         # Run get version on the device
         output = await self.send_command(self.cmd_get_version)
 
-        # Get the version from the output returned 
+        # Get the version from the output returned
         version = output.splitlines()[3].split()[1]
 
         # Display info message
-        log.info("get_version: version: " + version)
+        log.info(f"get_version: version: {version}")
 
         # Return the version of the software of the device
         return version
-
 
     async def save_config(self):
         """
@@ -228,7 +225,9 @@ class AlcatelAOS(NetworkDevice):
             # Then try to save ce configuration with another command
 
             # Display info message
-            log.warning("save_config: '" + self.cmd_save_config[1] + "' command not supported. Trying another 'copy' command: '" + self.cmd_save_config[2] + "'")
+            log.warning(
+                f"save_config: '{self.cmd_save_config[1]}' command not supported. Trying another 'copy' command: '{self.cmd_save_config[2]}'"
+            )
 
             # Add carriage return to the output
             output += "\n"
@@ -238,7 +237,7 @@ class AlcatelAOS(NetworkDevice):
 
             # AOS 6 and lower, save working configuration into certified configuration
             output += await self.send_command(cmd)
-        
+
         else:
 
             # No
@@ -246,14 +245,11 @@ class AlcatelAOS(NetworkDevice):
             # So result can be saved into the output
             output += data
 
-
         # Time out restored
         self.timeout -= 60
 
-
         # Return the commands of the configuration saving process
         return output
-
 
     async def send_config_set(self, cmds=None):
         """
@@ -281,7 +277,7 @@ class AlcatelAOS(NetworkDevice):
             output += carriage_return
 
             # Send a command
-            output+= await self.send_command(cmd)
+            output += await self.send_command(cmd)
 
             # Set carriage return for next commands
             carriage_return = "\n"

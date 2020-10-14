@@ -270,7 +270,7 @@ class NetworkDevice:
         prompt = text.split("\n")[-1]
 
         # Display info message
-        log.info("find_prompt: prompt: '" + str(prompt) + "'")
+        log.info(f"find_prompt: prompt: '{prompt}'")
 
         # Get the possible prompts for future recognition
         self.possible_prompts = self.get_possible_prompts(prompt)
@@ -316,7 +316,7 @@ class NetworkDevice:
         # Prompt should be from "switch#" to "switch"
 
         # Display info message
-        log.info("get_possible_prompts: prompt found: '" + my_prompt + "'")
+        log.info(f"get_possible_prompts: prompt found: '{my_prompt}'")
 
         # Now create all the possible prompts for that device
         for ending in list_of_possible_ending_prompts:
@@ -325,9 +325,7 @@ class NetworkDevice:
             list_of_prompts.append(my_prompt + ending)
 
         # Display info message
-        log.info(
-            "get_possible_prompts: list of possible prompts: " + str(list_of_prompts)
-        )
+        log.info(f"get_possible_prompts: list of possible prompts: {list_of_prompts}")
 
         # Return the list of prompts
         return list_of_prompts
@@ -350,7 +348,7 @@ class NetworkDevice:
         for prompt in self.possible_prompts:
 
             # Display info message
-            log.info("check_if_prompt_is_found: prompt: '" + str(prompt) + "'")
+            log.info(f"check_if_prompt_is_found: prompt: '{prompt}'")
 
             # Is this prompt present in the text?
             if prompt in text:
@@ -359,9 +357,7 @@ class NetworkDevice:
                 prompt_found = True
 
                 # Display info message
-                log.info(
-                    "check_if_prompt_is_found: prompt found: '" + str(prompt) + "'"
-                )
+                log.info(f"check_if_prompt_is_found: prompt found: '{prompt}'")
 
                 # Leave the for loop
                 break
@@ -387,10 +383,10 @@ class NetworkDevice:
         """
 
         # Display info message
-        log.info("remove_command_in_output: cmd = '" + str(cmd) + "'")
+        log.info(f"remove_command_in_output: cmd = '{cmd}'")
 
         # Display info message
-        log.info("remove_command_in_output: cmd (hex) = '" + cmd.encode().hex() + "'")
+        log.info(f"remove_command_in_output: cmd (hex) = '{cmd.encode().hex()}'")
 
         # Remove the command from the beginning of the output
         output = text.lstrip(cmd)
@@ -438,7 +434,7 @@ class NetworkDevice:
         for prompt in self.possible_prompts:
 
             # Display info message
-            log.info("remove_ending_prompt_in_output: prompt: '" + str(prompt) + "'")
+            log.info(f"remove_ending_prompt_in_output: prompt: '{prompt}'")
 
             # Prompt found in the text?
             if prompt in text:
@@ -457,7 +453,7 @@ class NetworkDevice:
         # output = text.rstrip("\r\n" + self.prompt)
 
         # Display info message
-        log.info("remove_ending_prompt_in_output: text without prompt:\n'" + text + "'")
+        log.info(f"remove_ending_prompt_in_output: text without prompt:\n'{text}'")
 
         # Return the text without prompt at the end
         return text
@@ -484,10 +480,10 @@ class NetworkDevice:
             for element in self._send_command_error_in_returned_output:
 
                 # Display info message
-                log.info("check_error_output: element: " + str(element))
+                log.info(f"check_error_output: element: {element}")
 
                 # Display info message
-                log.info("check_error_output: output[0]: " + output[0])
+                log.info(f"check_error_output: output[0]: {output[0]}")
 
                 # Check if the output starts with a string with an error message (like "% Invalid input detected at '^' marker.")
 
@@ -545,7 +541,7 @@ class NetworkDevice:
                 # Unsupported protocol
 
                 # Raise an exception
-                raise Exception("connect: unsupported protocol: " + str(self._protocol))
+                raise Exception(f"connect: unsupported protocol: {self._protocol}")
 
         except Exception:
 
@@ -583,13 +579,7 @@ class NetworkDevice:
             # Timeout
 
             # Display error message
-            log.error(
-                "connectSSH: connection failed: "
-                + str(self.ip)
-                + " timeout: '"
-                + str(error)
-                + "'"
-            )
+            log.error(f"connectSSH: connection failed: {self.ip} timeout: '{error}'")
 
             # Exception propagation
             raise asyncio.exceptions.TimeoutError(
@@ -601,13 +591,7 @@ class NetworkDevice:
             # Connection failed
 
             # Display error message
-            log.error(
-                "connectSSH: connection failed: "
-                + str(self.ip)
-                + " '"
-                + str(error)
-                + "'"
-            )
+            log.error(f"connectSSH: connection failed: {self.ip} '{error}'")
 
             # Exception propagation
             raise
@@ -638,7 +622,7 @@ class NetworkDevice:
                 )
 
                 # Display info message
-                log.info("connectSSH: data: '" + str(data) + "'")
+                log.info(f"connectSSH: data: '{data}'")
 
                 # Check if an initial prompt is found
                 for prompt in self._connect_first_ending_prompt:
@@ -649,11 +633,7 @@ class NetworkDevice:
                         # Yes
 
                         # Display info message
-                        log.info(
-                            "connectSSH: first ending prompt found: '"
-                            + str(prompt)
-                            + "'"
-                        )
+                        log.info(f"connectSSH: first ending prompt found: '{prompt}'")
 
                         # A ending prompt has been found
                         prompt_not_found = False
@@ -667,11 +647,7 @@ class NetworkDevice:
 
             # Display error message
             log.error(
-                "connectSSH: timeout while reading the prompt: "
-                + str(self.ip)
-                + " '"
-                + str(error)
-                + "'"
+                f"connectSSH: timeout while reading the prompt: {self.ip} '{error}'"
             )
 
             # Exception propagation
@@ -681,7 +657,7 @@ class NetworkDevice:
         self.prompt = self.find_prompt(str(data))
 
         # Display info message
-        log.info("connectSSH: prompt found: '" + str(self.prompt) + "'")
+        log.info(f"connectSSH: prompt found: '{self.prompt}'")
 
         # Disable paging command available?
         if self.cmd_disable_paging:
@@ -708,11 +684,7 @@ class NetworkDevice:
             # Preparation to the connection failed
 
             # Display error message
-            log.error(
-                "connectTelnet: preparation to the connection failed: '"
-                + str(error)
-                + "'"
-            )
+            log.error(f"connectTelnet: preparation to the connection failed: '{error}'")
 
             # Exception propagation
             raise
@@ -764,13 +736,13 @@ class NetworkDevice:
             )
 
             # Display info message
-            log.info("connectTelnet: byte_data: " + str(byte_data))
+            log.info(f"connectTelnet: byte_data: {byte_data}")
 
             # Temporary convertion in string. This string has the following form: "b'....'"
             output = str(byte_data)
 
             # Display info message
-            log.info("connectTelnet: output: " + str(output))
+            log.info(f"connectTelnet: output: {output}")
 
             # Prompt for the username found?
             if prompt in output:
@@ -792,7 +764,7 @@ class NetworkDevice:
                 break
 
         # Display info message
-        log.info("connectTelnet: login prompt: '" + str(output) + "'")
+        log.info(f"connectTelnet: login prompt: '{output}'")
 
         # Login to use?
         if use_login:
@@ -842,7 +814,7 @@ class NetworkDevice:
         self.prompt = self.find_prompt(str(output))
 
         # Display info message
-        log.info("connectTelnet: prompt found: '" + str(self.prompt) + "'")
+        log.info(f"connectTelnet: prompt found: '{self.prompt}'")
 
         # Password enable?
         if self.enable_mode:
@@ -923,7 +895,7 @@ class NetworkDevice:
             # Unsupported protocol
 
             # Raise an exception
-            raise Exception("Unsupported protocol: " + str(self._protocol))
+            raise Exception(f"Unsupported protocol: {self._protocol}")
 
     async def disconnectSSH(self):
         """
@@ -1007,9 +979,7 @@ class NetworkDevice:
             # Unsupported protocol
 
             # Raise an exception
-            raise Exception(
-                "send_command: unsupported protocol: " + str(self._protocol)
-            )
+            raise Exception(f"send_command: unsupported protocol: {self._protocol}")
 
         # Return the result of the command
         return output
@@ -1035,7 +1005,7 @@ class NetworkDevice:
         cmd = cmd + "\n"
 
         # Debug info message
-        log.info("send_commandSSH: cmd = '" + str(cmd) + "'")
+        log.info(f"send_commandSSH: cmd = '{cmd}'")
 
         # Sending command
         self.stdinx.write(cmd)
@@ -1055,7 +1025,7 @@ class NetworkDevice:
             )
 
             # Debug info message
-            log.info("send_commandSSH: output: '" + str(output) + "'")
+            log.info(f"send_commandSSH: output: '{output}'")
 
             # Is a patten used?
             if pattern:
@@ -1079,11 +1049,7 @@ class NetworkDevice:
 
         # Debug info message
         log.info(
-            "send_commandSSH: raw output: '"
-            + str(output)
-            + "'\nsend_commandSSH: raw output (hex): '"
-            + output.encode().hex()
-            + "'"
+            f"send_commandSSH: raw output: '{output}'\nsend_commandSSH: raw output (hex): '{output.encode().hex()}'"
         )
 
         # Remove the command sent from the result of the command
@@ -1095,11 +1061,7 @@ class NetworkDevice:
 
         # Debug info message
         log.info(
-            "send_commandSSH: cleaned output: '"
-            + str(output)
-            + "'\nsend_commandSSH: cleaned output (hex): '"
-            + output.encode().hex()
-            + "'"
+            f"send_commandSSH: cleaned output: '{output}'\nsend_commandSSH: cleaned output (hex): '{output.encode().hex()}'"
         )
 
         # Check if there is an error in the output string (like "% Unrecognized command")
@@ -1149,13 +1111,13 @@ class NetworkDevice:
                 )
 
                 # Display info message
-                log.info("send_commandTelnet: byte_data: '" + str(byte_data) + "'")
+                log.info(f"send_commandTelnet: byte_data: '{byte_data}'")
 
                 # Temporary convertion in string. This string has the following form: "b'....'"
                 output = str(byte_data)
 
                 # Display info message
-                log.info("send_commandTelnet: output: '" + str(output) + "'")
+                log.info(f"send_commandTelnet: output: '{output}'")
 
                 # Is a patten used?
                 if pattern:
@@ -1193,7 +1155,7 @@ class NetworkDevice:
             # Error during when reading prompt
 
             # Display error message
-            log.error("send_commandTelnet: error: " + str(error))
+            log.error(f"send_commandTelnet: error: {error}")
 
             # Exception propagation
             raise
@@ -1203,11 +1165,7 @@ class NetworkDevice:
 
         # Debug info message
         log.info(
-            "send_commandTelnet: raw output: '"
-            + str(output)
-            + "'\nsend_commandTelnet: raw output (hex): '"
-            + output.encode().hex()
-            + "'"
+            f"send_commandTelnet: raw output: '{output}'\nsend_commandTelnet: raw output (hex): '{output.encode().hex()}'"
         )
 
         # Remove the command sent from the result of the command
@@ -1219,11 +1177,7 @@ class NetworkDevice:
 
         # Debug info message
         log.info(
-            "send_commandTelnet: cleaned output: '"
-            + str(output)
-            + "'\nsend_commandTelnet: cleaned output (hex): '"
-            + output.encode().hex()
-            + "'"
+            f"send_commandTelnet: cleaned output: '{output}'\nsend_commandTelnet: cleaned output (hex): '{output.encode().hex()}'"
         )
 
         # Check if there is an error in the output string (like "% Unrecognized command")
@@ -1287,9 +1241,7 @@ class NetworkDevice:
 
                 # Display info message
                 log.info(
-                    "telnet_send_command_with_unexpected_pattern: byte_data: '"
-                    + str(byte_data)
-                    + "'"
+                    f"telnet_send_command_with_unexpected_pattern: byte_data: '{byte_data}'"
                 )
 
                 # Temporary convertion in string. This string has the following form: "b'....'"
@@ -1297,9 +1249,7 @@ class NetworkDevice:
 
                 # Display info message
                 log.info(
-                    "telnet_send_command_with_unexpected_pattern: output: '"
-                    + str(output)
-                    + "'"
+                    f"telnet_send_command_with_unexpected_pattern: output: '{output}'"
                 )
 
                 # Is a pattern used?
@@ -1310,9 +1260,7 @@ class NetworkDevice:
 
                         # Display info message
                         log.info(
-                            "telnet_send_command_with_unexpected_pattern: checking prompt: '"
-                            + str(prompt)
-                            + "'"
+                            f"telnet_send_command_with_unexpected_pattern: checking prompt: '{prompt}'"
                         )
 
                         # A pattern found?
@@ -1325,9 +1273,7 @@ class NetworkDevice:
 
                             # Display info message
                             log.info(
-                                "telnet_send_command_with_unexpected_pattern: prompt found: '"
-                                + str(prompt)
-                                + "'"
+                                f"telnet_send_command_with_unexpected_pattern: prompt found: '{prompt}'"
                             )
 
                             # Leave the loop
@@ -1341,9 +1287,7 @@ class NetworkDevice:
 
                         # Display info message
                         log.info(
-                            "telnet_send_command_with_unexpected_pattern: checking unexpected prompt: '"
-                            + str(bad_prompt)
-                            + "'"
+                            f"telnet_send_command_with_unexpected_pattern: checking unexpected prompt: '{bad_prompt}'"
                         )
 
                         # An error_pattern pattern found?
@@ -1388,8 +1332,7 @@ class NetworkDevice:
 
             # Display error message
             log.error(
-                "telnet_send_command_with_unexpected_pattern: reading prompt: error: "
-                + str(error)
+                f"telnet_send_command_with_unexpected_pattern: reading prompt: error: {error}"
             )
 
             # Exception propagation
@@ -1400,11 +1343,7 @@ class NetworkDevice:
 
         # Debug info message
         log.info(
-            "telnet_send_command_with_unexpected_pattern: raw output: '"
-            + str(output)
-            + "'\ntelnet_send_command_with_unexpected_pattern: raw output (hex): '"
-            + output.encode().hex()
-            + "'"
+            f"telnet_send_command_with_unexpected_pattern: raw output: '{output}'\ntelnet_send_command_with_unexpected_pattern: raw output (hex): '{output.encode().hex()}'"
         )
 
         # Remove the command sent from the result of the command
@@ -1416,11 +1355,7 @@ class NetworkDevice:
 
         # Debug info message
         log.info(
-            "telnet_send_command_with_unexpected_pattern: cleaned output: '"
-            + str(output)
-            + "'\ntelnet_send_command_with_unexpected_pattern: cleaned output (hex): '"
-            + output.encode().hex()
-            + "'"
+            f"telnet_send_command_with_unexpected_pattern: cleaned output: '{output}'\ntelnet_send_command_with_unexpected_pattern: cleaned output (hex): '{output.encode().hex()}'"
         )
 
         # Return the result of the command
@@ -1469,9 +1404,7 @@ class NetworkDevice:
             # Unsupported protocol
 
             # Raise an exception
-            raise Exception(
-                "send_config_set: unsupported protocol: " + str(self._protocol)
-            )
+            raise Exception(f"send_config_set: unsupported protocol: {self._protocol}")
 
         # Return the result of the commands
         return output
@@ -1536,7 +1469,7 @@ class NetworkDevice:
         cmd = cmd + "\n"
 
         # Display info message
-        log.info("send_config_setSSH: cmd = '" + str(cmd) + "'")
+        log.info(f"send_config_setSSH: cmd = '{cmd}'")
 
         # Sending command
         self.stdinx.write(cmd)
@@ -1552,7 +1485,7 @@ class NetworkDevice:
             )
 
             # Display info message
-            log.info("send_config_setSSH: output: '" + str(output) + "'")
+            log.info(f"send_config_setSSH: output: '{output}'")
 
             # Check if prompt is found
             if self.check_if_prompt_is_found(output):
@@ -1564,11 +1497,7 @@ class NetworkDevice:
 
         # Debug info message
         log.info(
-            "send_config_setSSH: raw output: '"
-            + str(output)
-            + "'\nsend_config_setSSH: raw output (hex): '"
-            + output.encode().hex()
-            + "'"
+            f"send_config_setSSH: raw output: '{output}'\nsend_config_setSSH: raw output (hex): '{output.encode().hex()}'"
         )
 
         # Add the output to the returned output
@@ -1583,11 +1512,7 @@ class NetworkDevice:
 
         # Display info message
         log.info(
-            "send_config_setSSH: cleaned output: '"
-            + str(output)
-            + "'\nsend_config_setSSH: cleaned output (hex): '"
-            + output.encode().hex()
-            + "'"
+            f"send_config_setSSH: cleaned output: '{output}'\nsend_config_setSSH: cleaned output (hex): '{output.encode().hex()}'"
         )
 
         # Check if there is an error in the output string (like "% Unrecognized command")
@@ -1611,7 +1536,7 @@ class NetworkDevice:
             cmd = cmd + "\n"
 
             # Display info message
-            log.info("send_config_setSSH: cmd = '" + str(cmd) + "'")
+            log.info(f"send_config_setSSH: cmd = '{cmd}'")
 
             # Sending command
             self.stdinx.write(cmd)
@@ -1627,7 +1552,7 @@ class NetworkDevice:
                 )
 
                 # Display info message
-                log.info("send_config_setSSH: output: '" + str(output) + "'")
+                log.info(f"send_config_setSSH: output: '{output}'")
 
                 # Check if prompt is found
                 if self.check_if_prompt_is_found(output):
@@ -1639,11 +1564,7 @@ class NetworkDevice:
 
             # Debug info message
             log.info(
-                "send_config_setSSH: raw output: '"
-                + str(output)
-                + "'\nsend_config_setSSH: raw output (hex): '"
-                + output.encode().hex()
-                + "'"
+                f"send_config_setSSH: raw output: '{output}'\nsend_config_setSSH: raw output (hex): '{output.encode().hex()}'"
             )
 
             # Add the output to the returned output
@@ -1658,11 +1579,7 @@ class NetworkDevice:
 
             # Display info message
             log.info(
-                "send_config_setSSH: cleaned output: '"
-                + str(output)
-                + "'\nsend_config_setSSH: cleaned output (hex): '"
-                + output.encode().hex()
-                + "'"
+                f"send_config_setSSH: cleaned output: '{output}'\nsend_config_setSSH: cleaned output (hex): '{output.encode().hex()}'"
             )
 
             # Check if there is an error in the output string (like "% Unrecognized command")
@@ -1686,7 +1603,7 @@ class NetworkDevice:
         cmd = cmd + "\n"
 
         # Display info message
-        log.info("send_config_setSSH: cmd = '" + str(cmd) + "'")
+        log.info(f"send_config_setSSH: cmd = '{cmd}'")
 
         # Sending command
         self.stdinx.write(cmd)
@@ -1702,7 +1619,7 @@ class NetworkDevice:
             )
 
             # Display info message
-            log.info("send_config_setSSH: output: '" + str(output) + "'")
+            log.info(f"send_config_setSSH: output: '{output}'")
 
             # Check if prompt is found
             if self.check_if_prompt_is_found(output):
@@ -1714,11 +1631,7 @@ class NetworkDevice:
 
         # Debug info message
         log.info(
-            "send_config_setSSH: raw output: '"
-            + str(output)
-            + "'\nsend_config_setSSH: raw output (hex): '"
-            + output.encode().hex()
-            + "'"
+            f"send_config_setSSH: raw output: '{output}'\nsend_config_setSSH: raw output (hex): '{output.encode().hex()}'"
         )
 
         # Add the output to the returned output
@@ -1733,11 +1646,7 @@ class NetworkDevice:
 
         # Display info message
         log.info(
-            "send_config_setSSH: cleaned output: '"
-            + str(output)
-            + "'\nsend_config_setSSH: cleaned output (hex): '"
-            + output.encode().hex()
-            + "'"
+            f"send_config_setSSH: cleaned output: '{output}'\nsend_config_setSSH: cleaned output (hex): '{output.encode().hex()}'"
         )
 
         # Check if there is an error in the output string (like "% Unrecognized command")
@@ -1807,7 +1716,7 @@ class NetworkDevice:
         cmd = cmd + "\n"
 
         # Display info message
-        log.info("send_config_setTelnet: cmd = '" + str(cmd) + "'")
+        log.info(f"send_config_setTelnet: cmd = '{cmd}'")
 
         # Sending command
         self._writer.write(cmd.encode())
@@ -1835,7 +1744,7 @@ class NetworkDevice:
                 output = str(byte_data)
 
                 # Display info message
-                log.info("send_config_setTelnet: output: '" + str(output) + "'")
+                log.info(f"send_config_setTelnet: output: '{output}'")
 
                 # Check if prompt is found
                 if self.check_if_prompt_is_found(output):
@@ -1860,7 +1769,7 @@ class NetworkDevice:
             # Error during when reading prompt
 
             # Display error message
-            log.error("send_config_setTelnet: error: " + str(error))
+            log.error(f"send_config_setTelnet: error: {error}")
 
             # Exception propagation
             raise
@@ -1870,11 +1779,7 @@ class NetworkDevice:
 
         # Debug info message
         log.info(
-            "send_config_setTelnet: raw output: '"
-            + str(output)
-            + "'\nsend_config_setTelnet: raw output (hex): '"
-            + output.encode().hex()
-            + "'"
+            f"send_config_setTelnet: raw output: '{output}'\nsend_config_setTelnet: raw output (hex): '{output.encode().hex()}'"
         )
 
         # Add the output to the returned output
@@ -1889,11 +1794,7 @@ class NetworkDevice:
 
         # Display info message
         log.info(
-            "send_config_setTelnet: cleaned output: '"
-            + str(output)
-            + "'\nsend_config_setTelnet: cleaned output (hex): '"
-            + output.encode().hex()
-            + "'"
+            f"send_config_setTelnet: cleaned output: '{output}'\nsend_config_setTelnet: cleaned output (hex): '{output.encode().hex()}'"
         )
 
         # Check if there is an error in the output string (like "% Unrecognized command")
@@ -1917,7 +1818,7 @@ class NetworkDevice:
             cmd = cmd + "\n"
 
             # Display info message
-            log.info("send_config_setTelnet: cmd = '" + str(cmd) + "'")
+            log.info(f"send_config_setTelnet: cmd = '{cmd}'")
 
             # Sending command
             self._writer.write(cmd.encode())
@@ -1945,7 +1846,7 @@ class NetworkDevice:
                     output = str(byte_data)
 
                     # Display info message
-                    log.info("send_config_setTelnet: output: '" + str(output) + "'")
+                    log.info(f"send_config_setTelnet: output: '{output}'")
 
                     # Check if prompt is found
                     if self.check_if_prompt_is_found(output):
@@ -1970,7 +1871,7 @@ class NetworkDevice:
                 # Error during when reading prompt
 
                 # Display error message
-                log.error("send_config_setTelnet: error: " + str(error))
+                log.error(f"send_config_setTelnet: error: {error}")
 
                 # Exception propagation
                 raise
@@ -1980,11 +1881,7 @@ class NetworkDevice:
 
             # Debug info message
             log.info(
-                "send_config_setTelnet: raw output: '"
-                + str(output)
-                + "'\nsend_config_setTelnet: raw output (hex): '"
-                + output.encode().hex()
-                + "'"
+                f"send_config_setTelnet: raw output: '{output}'\nsend_config_setTelnet: raw output (hex): '{output.encode().hex()}'"
             )
 
             # Add the output to the returned output
@@ -1999,11 +1896,7 @@ class NetworkDevice:
 
             # Display info message
             log.info(
-                "send_config_setTelnet: cleaned output: '"
-                + str(output)
-                + "'\nsend_config_setTelnet: cleaned output (hex): '"
-                + output.encode().hex()
-                + "'"
+                f"send_config_setTelnet: cleaned output: '{output}'\nsend_config_setTelnet: cleaned output (hex): '{output.encode().hex()}'"
             )
 
             # Check if there is an error in the output string (like "% Unrecognized command")
@@ -2027,7 +1920,7 @@ class NetworkDevice:
         cmd = cmd + "\n"
 
         # Display info message
-        log.info("send_config_setTelnet: cmd = '" + str(cmd) + "'")
+        log.info(f"send_config_setTelnet: cmd = '{cmd}'")
 
         # Sending command
         self._writer.write(cmd.encode())
@@ -2058,7 +1951,7 @@ class NetworkDevice:
                 output = str(byte_data)
 
                 # Display info message
-                log.info("send_config_setTelnet: output: '" + str(output) + "'")
+                log.info(f"send_config_setTelnet: output: '{output}'")
 
                 await asyncio.sleep(0.5)
 
@@ -2088,7 +1981,7 @@ class NetworkDevice:
             # Error during when reading prompt
 
             # Display error message
-            log.error("send_config_setTelnet: error: " + str(error))
+            log.error(f"send_config_setTelnet: error: {error}")
 
             # Exception propagation
             raise
@@ -2098,11 +1991,7 @@ class NetworkDevice:
 
         # Debug info message
         log.info(
-            "send_config_setTelnet: raw output: '"
-            + str(output)
-            + "'\nsend_config_setTelnet: raw output (hex): '"
-            + output.encode().hex()
-            + "'"
+            f"send_config_setTelnet: raw output: '{output}'\nsend_config_setTelnet: raw output (hex): '{output.encode().hex()}'"
         )
 
         # Add the output to the returned output
@@ -2117,11 +2006,7 @@ class NetworkDevice:
 
         # Display info message
         log.info(
-            "send_config_setTelnet: cleaned output: '"
-            + str(output)
-            + "'\nsend_config_setTelnet: cleaned output (hex): '"
-            + output.encode().hex()
-            + "'"
+            f"send_config_setTelnet: cleaned output: '{output}'\nsend_config_setTelnet: cleaned output (hex): '{output.encode().hex()}'"
         )
 
         # Check if there is an error in the output string (like "% Unrecognized command")
@@ -2152,7 +2037,7 @@ class NetworkDevice:
         version = output.split("Version ")[1].split(",")[0]
 
         # Display info message
-        log.info("get_version: version: " + version)
+        log.info(f"get_version: version: {version}")
 
         # Return the version of the software of the device
         return version
@@ -2172,13 +2057,13 @@ class NetworkDevice:
         output = await self.send_command(self.cmd_get_hostname)
 
         # Display info message
-        log.info("get_hostname: output: '" + str(output) + "'")
+        log.info(f"get_hostname: output: '{output}'")
 
         # Remove the useless information in the returned string
         output = output.split()[0]
 
         # Display info message
-        log.info("get_hostname: hostname found: '" + str(output) + "'")
+        log.info(f"get_hostname: hostname found: '{output}'")
 
         # Return the name of the device
         return output
@@ -2198,13 +2083,13 @@ class NetworkDevice:
         output = await self.send_command(self.cmd_get_model)
 
         # Display info message
-        log.info("get_model: output: '" + str(output) + "'")
+        log.info(f"get_model: output: '{output}'")
 
         # Remove the useless information in the returned string
         output = output.split('"')[3]
 
         # Display info message
-        log.info("get_model: model found: '" + str(output) + "'")
+        log.info(f"get_model: model found: '{output}'")
 
         # Return the model of the device
         return output
@@ -2224,13 +2109,13 @@ class NetworkDevice:
         output = await self.send_command(self.cmd_get_serial_number)
 
         # Display info message
-        log.info("get_serial_number: output: '" + str(output) + "'")
+        log.info(f"get_serial_number: output: '{output}'")
 
         # Remove the useless information in the returned string
         output = output.splitlines()[0].split()[-1]
 
         # Display info message
-        log.info("get_hostname: hostname found: '" + str(output) + "'")
+        log.info(f"get_hostname: hostname found: '{output}'")
 
         # Return the serial number of the device
         return output
