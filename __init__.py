@@ -14,4 +14,5 @@ __supported_devices__ = [
     "alcatel_aos",
     "cisco_ios",
     "cisco_s300",
+    "mikrotik_routeros",
 ]

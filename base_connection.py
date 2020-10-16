@@ -6,8 +6,8 @@ log = logging.getLogger(__package__)
 
 # Debug level
 # logging.basicConfig(level=logging.WARNING)
-# logging.basicConfig(level=logging.INFO)
-# asyncssh.set_debug_level(2)
+logging.basicConfig(level=logging.INFO)
+asyncssh.set_debug_level(2)
 
 
 # Declaration of constant values
@@ -566,7 +566,10 @@ class NetworkDevice:
             username=self.username,
             password=self.password,
             known_hosts=None,
-            encryption_algs="*",  # Parameter that includes all encryption algorithms (even the old ones disabled by default)
+            # encryption_algs="*",  # Parameter that includes all encryption algorithms (even the old ones disabled by default)
+            encryption_algs=[
+                algs.decode("utf-8") for algs in asyncssh.encryption._enc_algs
+            ],  # Parameter that includes all encryption algorithms (even the old ones disabled by default)
         )
 
         # Trying to connect to the device
@@ -616,13 +619,15 @@ class NetworkDevice:
             # Read data
             while prompt_not_found:
 
+                print("beginning of the loop")
+
                 # Read the prompt
                 data += await asyncio.wait_for(
-                    self.stdoutx.read(MAX_BUFFER_DATA), timeout=self.timeout
+                    self.stdoutx.read(MAX_BUFFER_DATA * 4), timeout=self.timeout
                 )
 
                 # Display info message
-                log.info(f"connectSSH: data: '{data}'")
+                log.info(f"connectSSH: data: '{str(data)}'")
 
                 # Check if an initial prompt is found
                 for prompt in self._connect_first_ending_prompt:
@@ -641,6 +646,8 @@ class NetworkDevice:
                         # Leave the loop
                         break
 
+                print("end of loop")
+
         except Exception as error:
 
             # Fail while reading the prompt
@@ -652,6 +659,9 @@ class NetworkDevice:
 
             # Exception propagation
             raise
+
+        # Display info message
+        log.info(f"connectSSH: end of prompt loop")
 
         # Find prompt
         self.prompt = self.find_prompt(str(data))
