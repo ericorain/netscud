@@ -499,6 +499,81 @@ class NetworkDevice:
                     # Raise an exception
                     raise Exception(output)
 
+    def remove_ansi_escape_sequence(self, input_string):
+
+        # By default no string returned
+        output = ""
+
+        # By default no escape sequence found
+        esc_found = 0
+
+        # Read char by char a string
+        for i in a:
+
+            # Display char
+            print(f"{str(i).encode('ascii')}")
+
+            # No escape previously found?
+            if esc_found == 0:
+
+                # No escape sequence currently found
+
+                # Escape?
+                if i == "\x1b":
+
+                    # Yes
+                    print("Esc!")
+
+                    # Escape found
+                    esc_found = 1
+
+                else:
+
+                    # No
+
+                    # Then the current char can be saved
+                    output += i
+
+            # Escape previously found?
+            elif esc_found == 1:
+
+                # Yes
+
+                # Then check if this is a CSI sequence
+                if i == "[":
+
+                    # Beginning of CSI sequence
+                    print("CSI sequence")
+
+                    # CSI sequence
+                    esc_found = 2
+
+                else:
+
+                    # Another Escape sequence
+
+                    # Keep the escape sequence in the string
+                    output += "\x1b" + i
+
+                    # No escape sequence next
+                    esc_found = 0
+
+            else:
+
+                # Char between 'a' and 'z' or 'A' and 'Z'?
+                if (i >= "a" and i <= "z") or (i >= "A" and i <= "Z"):
+
+                    # Yes
+
+                    # Then it is the end of CSI escape sequence
+                    print("End of escape sequence")
+
+                    # No escape sequence next
+                    esc_found = 0
+
+        # Return a string without ANSI escape sequence
+        return output
+
     async def disable_paging(self):
         """
         Async method disabling paging on a device
@@ -627,7 +702,11 @@ class NetworkDevice:
 
                 # Read the prompt
                 data += await asyncio.wait_for(
+<<<<<<< HEAD
                     self.stdoutx.read(20 + MAX_BUFFER_DATA * 0), timeout=self.timeout
+=======
+                    self.stdoutx.read(MAX_BUFFER_DATA), timeout=self.timeout
+>>>>>>> 1e5f57b149c52ba122621d5301d246d6f7707830
                 )
 
                 # Display info message
