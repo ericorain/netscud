@@ -495,8 +495,7 @@ class NetworkDevice:
                     # Raise an exception
                     raise Exception(output)
 
-
-    def remove_ansi_escape_sequence(input_string):
+    def remove_ansi_escape_sequence(self, input_string):
 
         # By default no string returned
         output = ""
