@@ -509,7 +509,18 @@ class NetworkDevice:
                     # Raise an exception
                     raise Exception(output)
 
-    def remove_ansi_escape_sequence(self, input_string):
+    def remove_ansi_escape_sequence(self, text):
+
+        """
+        Method removing ANSI escape sequence from a string
+        Just CSI sequences are removed
+
+        :param text: the text with a prompt at the beginning
+        :type text: str
+
+        :return: the output string without the ending prompt
+        :rtype: str
+        """
 
         # By default no string returned
         output = ""
@@ -518,7 +529,7 @@ class NetworkDevice:
         esc_found = 0
 
         # Read char by char a string
-        for i in input_string:
+        for i in text:
 
             # Display char
             # log.info(f"{str(i).encode('ascii')}")
@@ -1574,7 +1585,7 @@ class NetworkDevice:
 
             # Display error message
             log.error(
-                "send_config_setSSH: parameter cmds used in send_config_set is neither a string or a list"
+                "send_config_setSSH: parameter cmds used in send_config_set is neither a string nor a list"
             )
 
             # Leave the method
@@ -2143,6 +2154,12 @@ class NetworkDevice:
 
         # Return the result of the commands
         return returned_output
+
+    #########################################################
+    #
+    # List of API
+    #
+    #########################################################
 
     async def get_version(self):
         """

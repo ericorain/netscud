@@ -270,6 +270,27 @@ class AlcatelAOS(NetworkDevice):
         # Optional carriage return
         carriage_return = ""
 
+        # Check if cmds is a string
+        if isinstance(cmds, str):
+
+            # A string
+
+            # Convert the string into a list
+            cmds = [cmds]
+
+            # A list?
+        elif not isinstance(cmds, list):
+
+            # Not a list (and not a string)
+
+            # Display error message
+            log.error(
+                "send_config_set: parameter cmds used in send_config_set is neither a string nor a list"
+            )
+
+            # Leave the method
+            return output
+
         # Run each command
         for cmd in cmds:
 
