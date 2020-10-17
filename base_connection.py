@@ -269,6 +269,10 @@ class NetworkDevice:
         # Get last line of the data
         prompt = text.split("\n")[-1]
 
+        # Remove possible \r in the data
+        # prompt = prompt.replace("\r", "")
+        prompt = text.split("\r")[-1]
+
         # Display info message
         log.info(f"find_prompt: prompt: '{prompt}'")
 
@@ -623,11 +627,13 @@ class NetworkDevice:
 
                 # Read the prompt
                 data += await asyncio.wait_for(
-                    self.stdoutx.read(MAX_BUFFER_DATA * 4), timeout=self.timeout
+                    self.stdoutx.read(20 + MAX_BUFFER_DATA * 0), timeout=self.timeout
                 )
 
                 # Display info message
                 log.info(f"connectSSH: data: '{str(data)}'")
+
+                log.info(f"connectSSH: data: hex:'{data.encode('utf-8').hex()}'")
 
                 # Check if an initial prompt is found
                 for prompt in self._connect_first_ending_prompt:
