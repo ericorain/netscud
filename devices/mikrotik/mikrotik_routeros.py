@@ -13,7 +13,7 @@ class MikrotikRouterOS(NetworkDevice):
         # Remove useless escape data using the user login
         self.username = self.username + "+ct"
 
-        self._connect_first_ending_prompt = ["> "]
+        self._connect_first_ending_prompt = ["> \x1b[K"]
         self.list_of_possible_ending_prompts = [
             "> ",
         ]

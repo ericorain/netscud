@@ -322,6 +322,9 @@ class NetworkDevice:
         # Display info message
         log.info(f"get_possible_prompts: prompt found: '{my_prompt}'")
 
+        # Display info message
+        log.info(f"get_possible_prompts: prompt found size: '{len(my_prompt)}'")
+
         # Now create all the possible prompts for that device
         for ending in list_of_possible_ending_prompts:
 
@@ -393,7 +396,11 @@ class NetworkDevice:
         log.info(f"remove_command_in_output: cmd (hex) = '{cmd.encode().hex()}'")
 
         # Remove the command from the beginning of the output
-        output = text.lstrip(cmd)
+        # output = text.lstrip(cmd + "\n")
+        output = text.split(cmd + "\n")[-1]
+
+        # Display info message
+        log.info(f"remove_command_in_output: output = '{output}'")
 
         # Return the string without the command
         return output
@@ -415,6 +422,9 @@ class NetworkDevice:
 
         # Remove the carriage return at the beginning of the string
         output = text.lstrip("\r\n\r")
+
+        # Display info message
+        log.info(f"remove_starting_carriage_return_in_output: output = '{output}'")
 
         # Return the string without the starting carriage return
         return output
@@ -508,10 +518,10 @@ class NetworkDevice:
         esc_found = 0
 
         # Read char by char a string
-        for i in a:
+        for i in input_string:
 
             # Display char
-            print(f"{str(i).encode('ascii')}")
+            # log.info(f"{str(i).encode('ascii')}")
 
             # No escape previously found?
             if esc_found == 0:
@@ -522,7 +532,7 @@ class NetworkDevice:
                 if i == "\x1b":
 
                     # Yes
-                    print("Esc!")
+                    log.info("Esc!")
 
                     # Escape found
                     esc_found = 1
@@ -543,7 +553,7 @@ class NetworkDevice:
                 if i == "[":
 
                     # Beginning of CSI sequence
-                    print("CSI sequence")
+                    log.info("CSI sequence")
 
                     # CSI sequence
                     esc_found = 2
@@ -566,7 +576,7 @@ class NetworkDevice:
                     # Yes
 
                     # Then it is the end of CSI escape sequence
-                    print("End of escape sequence")
+                    log.info("End of escape sequence")
 
                     # No escape sequence next
                     esc_found = 0
@@ -700,18 +710,17 @@ class NetworkDevice:
 
                 print("beginning of the loop")
 
+                # await asyncio.sleep(2)
+
                 # Read the prompt
                 data += await asyncio.wait_for(
-<<<<<<< HEAD
-                    self.stdoutx.read(20 + MAX_BUFFER_DATA * 0), timeout=self.timeout
-=======
                     self.stdoutx.read(MAX_BUFFER_DATA), timeout=self.timeout
->>>>>>> 1e5f57b149c52ba122621d5301d246d6f7707830
                 )
 
                 # Display info message
                 log.info(f"connectSSH: data: '{str(data)}'")
 
+                # Display info message
                 log.info(f"connectSSH: data: hex:'{data.encode('utf-8').hex()}'")
 
                 # Check if an initial prompt is found
@@ -748,11 +757,17 @@ class NetworkDevice:
         # Display info message
         log.info(f"connectSSH: end of prompt loop")
 
+        # Remove possible escape sequence
+        data = self.remove_ansi_escape_sequence(data)
+
         # Find prompt
         self.prompt = self.find_prompt(str(data))
 
         # Display info message
         log.info(f"connectSSH: prompt found: '{self.prompt}'")
+
+        # Display info message
+        log.info(f"connectSSH: prompt found size: '{len(self.prompt)}'")
 
         # Disable paging command available?
         if self.cmd_disable_paging:
@@ -1097,13 +1112,14 @@ class NetworkDevice:
         log.info("send_commandSSH")
 
         # Add carriage return at the end of the command (mandatory to send the command)
-        cmd = cmd + "\n"
+        # cmd = cmd + "\n"
+        # cmd = cmd + "\r\n"
 
         # Debug info message
         log.info(f"send_commandSSH: cmd = '{cmd}'")
 
         # Sending command
-        self.stdinx.write(cmd)
+        self.stdinx.write(cmd + "\r\n")
 
         # Display message
         log.info("send_commandSSH: command sent")
@@ -1114,10 +1130,26 @@ class NetworkDevice:
         # Reading data
         while True:
 
+            # await asyncio.sleep(1)
+
             # Read the data received
             output += await asyncio.wait_for(
                 self.stdoutx.read(MAX_BUFFER_DATA), timeout=self.timeout
             )
+
+            # Debug info message
+            # log.info(f"send_commandSSH: output hex: '{str(output).encode("utf-8").hex()}'")
+
+            output = self.remove_ansi_escape_sequence(output)
+
+            # Remove possible "\r"
+            output = output.replace("\r", "")
+
+            data = ""
+            for i in output:
+                data += i.encode("utf-8").hex()
+
+            print(data)
 
             # Debug info message
             log.info(f"send_commandSSH: output: '{output}'")
@@ -1134,6 +1166,7 @@ class NetworkDevice:
                     break
 
             else:
+
                 # Check if prompt is found
                 if self.check_if_prompt_is_found(output):
 
