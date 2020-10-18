@@ -1092,7 +1092,7 @@ class NetworkDevice:
             # Yes
 
             # Then disconnect using SSH
-            output = await self.send_commandSSH(cmd, pattern, timeout)
+            output = await self.send_commandSSH(cmd, pattern=pattern, timeout=timeout)
 
         # Telnet?
         elif self._protocol == "telnet":
@@ -1100,7 +1100,9 @@ class NetworkDevice:
             # Yes
 
             # Then disconnect using Telnet
-            output = await self.send_commandTelnet(cmd, pattern, timeout)
+            output = await self.send_commandTelnet(
+                cmd, pattern=pattern, timeout=timeout
+            )
 
         else:
 
@@ -1159,7 +1161,7 @@ class NetworkDevice:
 
             # Read the data received
             output += await asyncio.wait_for(
-                self.stdoutx.read(MAX_BUFFER_DATA), timeout=self.timeout
+                self.stdoutx.read(MAX_BUFFER_DATA), timeout=timeout
             )
 
             # Debug info message
@@ -2317,9 +2319,12 @@ class NetworkDevice:
         # Return the serial number of the device
         return output
 
-    async def get_config(self):
+    async def get_config(self, timeout=None):
         """
         Asyn method used to get the configuration of the device
+
+        :param timeout: optional, a timeout for the command sent. Default value is self.timeout
+        :type timeout: str
 
         :return: Configuration of the device
         :rtype: str
@@ -2328,8 +2333,12 @@ class NetworkDevice:
         # Display info message
         log.info("get_config")
 
+        # Default value of timeout variable
+        if timeout is None:
+            timeout = self.timeout
+
         # Get config
-        output = await self.send_command(self.cmd_get_config)
+        output = await self.send_command(self.cmd_get_config, timeout=timeout)
 
         # Return de configuration of the device
         return output
