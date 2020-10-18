@@ -1062,7 +1062,7 @@ class NetworkDevice:
             # No more connection to disconnect
             self._writer = None
 
-    async def send_command(self, cmd, pattern=None):
+    async def send_command(self, cmd, pattern=None, timeout=None):
         """
         Async method used to send data to a device
 
@@ -1070,7 +1070,10 @@ class NetworkDevice:
         :type cmd: str
 
         :param pattern: optional, a pattern replacing the prompt when the prompt is not expected
-        :type cmd: str
+        :type pattern: str
+
+        :param timeout: optional, a timeout for the command sent. Default value is self.timeout
+        :type timeout: str
 
         :return: the output of command
         :rtype: str
@@ -1079,13 +1082,17 @@ class NetworkDevice:
         # Debug info message
         log.info("send_command")
 
+        # Default value of timeout variable
+        if timeout is None:
+            timeout = self.timeout
+
         # SSH?
         if self._protocol == "ssh":
 
             # Yes
 
             # Then disconnect using SSH
-            output = await self.send_commandSSH(cmd, pattern)
+            output = await self.send_commandSSH(cmd, pattern, timeout)
 
         # Telnet?
         elif self._protocol == "telnet":
@@ -1093,7 +1100,7 @@ class NetworkDevice:
             # Yes
 
             # Then disconnect using Telnet
-            output = await self.send_commandTelnet(cmd, pattern)
+            output = await self.send_commandTelnet(cmd, pattern, timeout)
 
         else:
 
@@ -1105,7 +1112,7 @@ class NetworkDevice:
         # Return the result of the command
         return output
 
-    async def send_commandSSH(self, cmd, pattern=None):
+    async def send_commandSSH(self, cmd, pattern=None, timeout=None):
         """
         Async method used to send data to a device
 
@@ -1115,12 +1122,19 @@ class NetworkDevice:
         :param pattern: optional, a pattern replacing the prompt when the prompt is not expected
         :type pattern: str
 
+        :param timeout: optional, a timeout for the command sent. Default value is self.timeout
+        :type timeout: str
+
         :return: the output of command
         :rtype: str
         """
 
         # Debug info message
         log.info("send_commandSSH")
+
+        # Default value of timeout variable
+        if timeout is None:
+            timeout = self.timeout
 
         # Add carriage return at the end of the command (mandatory to send the command)
         # cmd = cmd + "\n"
@@ -1210,7 +1224,7 @@ class NetworkDevice:
         # Return the result of the command
         return output
 
-    async def send_commandTelnet(self, cmd, pattern=None):
+    async def send_commandTelnet(self, cmd, pattern=None, timeout=None):
         """
         Async method used to send data to a device
 
@@ -1220,12 +1234,19 @@ class NetworkDevice:
         :param pattern: optional, a pattern replacing the prompt when the prompt is not expected
         :type pattern: str
 
+        :param timeout: optional, a timeout for the command sent. Default value is self.timeout
+        :type timeout: str
+
         :return: the output of command
         :rtype: str
         """
 
         # Debug info message
         log.info("send_commandTelnet")
+
+        # Default value of timeout variable
+        if timeout is None:
+            timeout = self.timeout
 
         # Add carriage return at the end of the command (mandatory to send the command)
         cmd = cmd + "\n"
@@ -1246,7 +1267,7 @@ class NetworkDevice:
 
                 # Read returned prompt
                 byte_data += await asyncio.wait_for(
-                    self._reader.read(MAX_BUFFER_DATA), timeout=self.timeout
+                    self._reader.read(MAX_BUFFER_DATA), timeout=timeout
                 )
 
                 # Display info message
@@ -1327,7 +1348,7 @@ class NetworkDevice:
         return output
 
     async def telnet_send_command_with_unexpected_pattern(
-        self, cmd, pattern, error_pattern=None
+        self, cmd, pattern, error_pattern=None, timeout=None
     ):
         """
         Async method used to send command for Telnet connection to a device with possible unexpected patterns
@@ -1343,6 +1364,9 @@ class NetworkDevice:
             to define a custom or unexpected prompt a the end of a string
         :type pattern: str
 
+        :param timeout: optional, a timeout for the command sent. Default value is self.timeout
+        :type timeout: str
+
         :param error_pattern: optional, a list of failed prompts found when the login and password are not correct
         :type error_pattern: str
 
@@ -1352,6 +1376,10 @@ class NetworkDevice:
 
         # Debug info message
         log.info("telnet_send_command_with_unexpected_pattern")
+
+        # Default value of timeout variable
+        if timeout is None:
+            timeout = self.timeout
 
         # Add carriage return at the end of the command (mandatory to send the command)
         cmd = cmd + "\n"
@@ -1375,7 +1403,7 @@ class NetworkDevice:
 
                 # Read returned prompt
                 byte_data += await asyncio.wait_for(
-                    self._reader.read(MAX_BUFFER_DATA), timeout=self.timeout
+                    self._reader.read(MAX_BUFFER_DATA), timeout=timeout
                 )
 
                 # Display info message
@@ -1500,11 +1528,11 @@ class NetworkDevice:
         # Return the result of the command
         return output
 
-    async def send_config_set(self, cmds=None):
+    async def send_config_set(self, cmds=None, timeout=None):
         """
         Async method used to send command in config mode
 
-        The commands send can be either a string a a list of strings. There are
+        The commands send can be either a string a list of strings. There are
         3 steps:
         - Entering configuration mode
         - Sending the commands
@@ -1513,11 +1541,19 @@ class NetworkDevice:
         :param cmds: The commands to the device
         :type cmds: str or list
 
+        :param timeout: optional, a timeout for the command sent. Default value is self.timeout
+        :type timeout: str
+
         :return: the results of the commands sent
+        :rtype: list of str
         """
 
         # Display info message
         log.info("send_config_set")
+
+        # Default value of timeout variable
+        if timeout is None:
+            timeout = self.timeout
 
         # Debug info message
         log.info("send_command")
@@ -1528,7 +1564,7 @@ class NetworkDevice:
             # Yes
 
             # Then disconnect using SSH
-            output = await self.send_config_setSSH(cmds)
+            output = await self.send_config_setSSH(cmds, timeout)
 
         # Telnet?
         elif self._protocol == "telnet":
@@ -1536,7 +1572,7 @@ class NetworkDevice:
             # Yes
 
             # Then disconnect using Telnet
-            output = await self.send_config_setTelnet(cmds)
+            output = await self.send_config_setTelnet(cmds, timeout)
 
         else:
 
@@ -1548,11 +1584,11 @@ class NetworkDevice:
         # Return the result of the commands
         return output
 
-    async def send_config_setSSH(self, cmds=None):
+    async def send_config_setSSH(self, cmds=None, timeout=None):
         """
         Async method used to send command in config mode
 
-        The commands send can be either a string a a list of strings. There are
+        The commands send can be either a string a list of strings. There are
         3 steps:
         - Entering configuration mode
         - Sending the commands
@@ -1561,11 +1597,19 @@ class NetworkDevice:
         :param cmds: The commands to the device
         :type cmds: str or list
 
+        :param timeout: optional, a timeout for the command sent. Default value is self.timeout
+        :type timeout: str
+
         :return: the results of the commands sent
+        :rtype: list of str
         """
 
         # Display info message
         log.info("send_config_setSSH")
+
+        # Default value of timeout variable
+        if timeout is None:
+            timeout = self.timeout
 
         # Clear returned output
         returned_output = ""
@@ -1620,7 +1664,7 @@ class NetworkDevice:
 
             # Read the data received
             output += await asyncio.wait_for(
-                self.stdoutx.read(MAX_BUFFER_DATA), timeout=self.timeout
+                self.stdoutx.read(MAX_BUFFER_DATA), timeout=timeout
             )
 
             # Display info message
@@ -1687,7 +1731,7 @@ class NetworkDevice:
 
                 # Read the data received
                 output += await asyncio.wait_for(
-                    self.stdoutx.read(MAX_BUFFER_DATA), timeout=self.timeout
+                    self.stdoutx.read(MAX_BUFFER_DATA), timeout=timeout
                 )
 
                 # Display info message
@@ -1754,7 +1798,7 @@ class NetworkDevice:
 
             # Read the data received
             output += await asyncio.wait_for(
-                self.stdoutx.read(MAX_BUFFER_DATA), timeout=self.timeout
+                self.stdoutx.read(MAX_BUFFER_DATA), timeout=timeout
             )
 
             # Display info message
@@ -1795,11 +1839,11 @@ class NetworkDevice:
         # Return the result of the commands
         return returned_output
 
-    async def send_config_setTelnet(self, cmds=None):
+    async def send_config_setTelnet(self, cmds=None, timeout=None):
         """
         Async method used to send command in config mode
 
-        The commands send can be either a string a a list of strings. There are
+        The commands send can be either a string a list of strings. There are
         3 steps:
         - Entering configuration mode
         - Sending the commands
@@ -1808,11 +1852,19 @@ class NetworkDevice:
         :param cmds: The commands to the device
         :type cmds: str or list
 
+        :param timeout: optional, a timeout for the command sent. Default value is self.timeout
+        :type timeout: str
+
         :return: the results of the commands sent
+        :rtype: list of str
         """
 
         # Display info message
         log.info("send_config_setTelnet")
+
+        # Default value of timeout variable
+        if timeout is None:
+            timeout = self.timeout
 
         # Clear returned output
         returned_output = ""
@@ -1876,7 +1928,7 @@ class NetworkDevice:
 
                 # Read the data received
                 byte_data += await asyncio.wait_for(
-                    self._reader.read(MAX_BUFFER_DATA), timeout=self.timeout
+                    self._reader.read(MAX_BUFFER_DATA), timeout=timeout
                 )
 
                 # Temporary convertion in string. This string has the following form: "b'....'"
@@ -1978,7 +2030,7 @@ class NetworkDevice:
 
                     # Read the data received
                     byte_data += await asyncio.wait_for(
-                        self._reader.read(MAX_BUFFER_DATA), timeout=self.timeout
+                        self._reader.read(MAX_BUFFER_DATA), timeout=timeout
                     )
 
                     # Temporary convertion in string. This string has the following form: "b'....'"
@@ -2083,7 +2135,7 @@ class NetworkDevice:
 
                 # Read the data received
                 byte_data += await asyncio.wait_for(
-                    self._reader.read(MAX_BUFFER_DATA), timeout=self.timeout
+                    self._reader.read(MAX_BUFFER_DATA), timeout=timeout
                 )
 
                 # Temporary convertion in string. This string has the following form: "b'....'"

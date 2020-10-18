@@ -30,7 +30,7 @@ class MikrotikRouterOS(NetworkDevice):
         # No command to save the config. So it is always saved after "Enter"
         self.cmd_save_config = ""
 
-    async def send_config_set(self, cmds=None):
+    async def send_config_set(self, cmds=None, timeout=None):
         """
         Async method used to send command in config mode
 
@@ -40,8 +40,19 @@ class MikrotikRouterOS(NetworkDevice):
         :param cmds: The commands to the device
         :type cmds: str or list
 
+        :param timeout: optional, a timeout for the command sent. Default value is self.timeout
+        :type timeout: str
+
         :return: the results of the commands sent
+        :rtype: list of str
         """
+
+        # Display info message
+        log.info("send_config_set")
+
+        # Default value of timeout variable
+        if timeout is None:
+            timeout = self.timeout
 
         # By default there is no output
         output = ""
