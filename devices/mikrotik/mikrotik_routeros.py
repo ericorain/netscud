@@ -271,8 +271,16 @@ class MikrotikRouterOS(NetworkDevice):
         # Read each line
         for line in lines:
 
-            # Get the type of MAC address (dynamic or static)
-            if line[5].lower() == "d":
+            # If the MAC address is dynamic AND local then it is self (its own MAC address)
+
+            # Get the type of MAC address (dynamic, static or self)
+            if line[6].lower() == "l":
+
+                # Self MAC address
+                mac_type = "self"
+
+            # Get the type of MAC address (dynamic, static or self)
+            elif line[5].lower() == "d":
 
                 # Dynamic MAC address
                 mac_type = "dynamic"
