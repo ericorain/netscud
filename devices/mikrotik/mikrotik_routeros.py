@@ -28,6 +28,7 @@ class MikrotikRouterOS(NetworkDevice):
         self.cmd_get_serial_number = "system routerboard print without-paging"
         self.cmd_get_config = "export"
         self.cmd_get_mac_address_table = "interface bridge host print without-paging"
+        self.cmd_get_arp = "ip arp print without-paging terse"
         # No command to save the config. So it is always saved after "Enter"
         self.cmd_save_config = ""
 
@@ -259,10 +260,10 @@ class MikrotikRouterOS(NetworkDevice):
         # Display info message
         log.info("get_mac_address_table")
 
-        # By refault nothing is returned
+        # By default nothing is returned
         returned_output = []
 
-        # Get config
+        # Send a command
         output = await self.send_command(self.cmd_get_mac_address_table)
 
         # Convert string to list of string and remove the 2 first lines
@@ -309,5 +310,53 @@ class MikrotikRouterOS(NetworkDevice):
             # Add the MAC information to the list
             returned_output.append(mac_dict)
 
-        # Return de configuration of the device
+        # Return data
+        return returned_output
+
+    async def get_arp(self):
+        """
+        Asyn method used to get the ARP table of the device
+
+        :return: Configuration of the device
+        :rtype: list of dict
+        """
+
+        # Display info message
+        log.info("get_arp")
+
+        # By default nothing is returned
+        returned_output = []
+
+        # Send a command
+        output = await self.send_command(self.cmd_get_arp)
+
+        # Display info message
+        log.info(f"get_arp:\n'{output}'")
+
+        # Convert a string into a list of strings
+        lines = output.splitlines()
+
+        # Read each line
+        for line in lines:
+
+            # Get IP address
+            address = line.split(" address=")[-1].split()[0]
+
+            # Get MAC address
+            mac_address = line.split(" mac-address=")[-1].split()[0]
+
+            # Get interface
+            interface = line.split(" interface=")[-1].split()[0]
+
+            # Create a dictionary
+            returned_dict = {
+                "address": address,
+                "mac_address": mac_address,
+                "interface": interface,
+            }
+
+            # Add the information to the list
+            returned_output.append(returned_dict)
+
+        # Return data
         return returned_output

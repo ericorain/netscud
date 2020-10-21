@@ -2304,7 +2304,7 @@ class NetworkDevice:
         # Display info message
         log.info("get_serial_number")
 
-        # Get model
+        # Get serial number
         output = await self.send_command(self.cmd_get_serial_number)
 
         # Display info message
