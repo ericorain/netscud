@@ -28,7 +28,8 @@ class MikrotikRouterOS(NetworkDevice):
         self.cmd_get_serial_number = "system routerboard print without-paging"
         self.cmd_get_config = "export"
         self.cmd_get_mac_address_table = "interface bridge host print without-paging"
-        self.cmd_get_arp = "ip arp print without-paging terse"
+        self.cmd_get_arp = "ip arp print terse without-paging"
+        self.cmd_get_lldp_neighbors = "ip neighbor print terse without-paging"
         # No command to save the config. So it is always saved after "Enter"
         self.cmd_save_config = ""
 
@@ -313,7 +314,7 @@ class MikrotikRouterOS(NetworkDevice):
         # Return data
         return returned_output
 
-    async def get_arp(self):
+    async def get_arp_table(self):
         """
         Asyn method used to get the ARP table of the device
 
@@ -322,7 +323,7 @@ class MikrotikRouterOS(NetworkDevice):
         """
 
         # Display info message
-        log.info("get_arp")
+        log.info("get_arp_table")
 
         # By default nothing is returned
         returned_output = []
@@ -357,6 +358,102 @@ class MikrotikRouterOS(NetworkDevice):
 
             # Add the information to the list
             returned_output.append(returned_dict)
+
+        # Return data
+        return returned_output
+
+    async def get_lldp_neighbors(self):
+        """
+        Asyn method used to get the LLDP information from the device
+
+        The problem with LLDP implementation on RouterOS is that the command
+        used to get LLDP information can return data even though there is no
+        LLDP service running on neighbour device. Interface and MAC addresses
+        could be filled of data without LLDP neighbour device. Data will be
+        considered as LLDP information is more than Interface and MAC
+        addresses are found.
+
+        :return: Configuration of the device
+        :rtype: list of dict
+        """
+
+        # Display info message
+        log.info("get_lldp_neighbors")
+
+        # By default nothing is returned
+        returned_output = []
+
+        # Send a command
+        output = await self.send_command(self.cmd_get_lldp_neighbors)
+
+        # Display info message
+        log.info(f"get_lldp_neighbors:\n'{output}'")
+
+        # Convert a string into a list of strings
+        lines = output.splitlines()
+
+        # Read each line
+        for line in lines:
+
+            # Initialize potential LLDP data with default values
+            chassis_id = ""
+            port_id = ""
+            ttl = None
+            port_description = ""
+            system_name = ""
+            system_description = ""
+            system_capabilities = []
+            management_address = ""
+
+            # Get Chassis ID - TLV type 1
+            if " mac-address=" in line:
+                chassis_id = line.split(" mac-address=")[-1].split()[0]
+
+            # Get Port ID - TLV type 2
+            if " interface-name=" in line:
+                port_id = line.split(" interface-name=")[-1].split()[0]
+
+            # Get Time To Live - TLV type 3
+            # Not available on RouterOS. "age" parameter is not LLDP TTL
+
+            # Get Port description - TLV type 4
+            # Not available on RouterOS.
+
+            # Get System name - TLV type 5
+            if "  identity=" in line:
+                port_description = (
+                    line.splitlines()[2].split(" identity=")[-1].split()[0]
+                )
+
+            # Get System description - TLV type 6
+            if "  system-description=" in line:
+                port_description = (
+                    line.splitlines()[2].split(" system-description=")[-1].split()[0]
+                )
+
+            #     # Get IP address
+            #     address = line.split(" address=")[-1].split()[0]
+
+            #     # Get MAC address
+            #     mac_address = line.split(" mac-address=")[-1].split()[0]
+
+            #     # Get interface
+            #     interface = line.split(" interface=")[-1].split()[0]
+
+            # Create a dictionary
+            returned_dict = {
+                "chassis_id": chassis_id,
+                "port_id": port_id,
+                "ttl": ttl,
+                "port_description": port_description,
+                "system_name": system_name,
+                "system_description	": system_description,
+                "system_capabilities": system_capabilities,
+                "management_address": management_address,
+            }
+
+        #     # Add the information to the list
+        #     returned_output.append(returned_dict)
 
         # Return data
         return returned_output
