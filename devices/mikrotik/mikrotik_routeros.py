@@ -368,20 +368,20 @@ class MikrotikRouterOS(NetworkDevice):
 
         The problem with LLDP implementation on RouterOS is that the command
         used to get LLDP information can return data even though there is no
-        LLDP service running on neighbour device. Interface and MAC addresses
-        could be filled of data without LLDP neighbour device. Data will be
-        considered as LLDP information is more than Interface and MAC
-        addresses are found.
+        LLDP service running on neighbour device. Thus Interface and MAC
+        addresses fields could be filled of data without LLDP neighbour
+        device. Data will be considered as LLDP information is there are
+        other fields than Interface and MAC addresses are found.
 
         :return: Configuration of the device
-        :rtype: list of dict
+        :rtype: dict of list of dict
         """
 
         # Display info message
         log.info("get_lldp_neighbors")
 
         # By default nothing is returned
-        returned_output = []
+        returned_output = {}
 
         # Send a command
         output = await self.send_command(self.cmd_get_lldp_neighbors)
@@ -395,6 +395,9 @@ class MikrotikRouterOS(NetworkDevice):
         # Read each line
         for line in lines:
 
+            # Default value for local interface (no interface)
+            local_interface = None
+
             # Initialize potential LLDP data with default values
             chassis_id = ""
             port_id = ""
@@ -405,55 +408,123 @@ class MikrotikRouterOS(NetworkDevice):
             system_capabilities = []
             management_address = ""
 
+            # Get local interface
+            if " interface=" in line:
+                local_interface = line.split(" interface=")[-1].split()[0].split(",")[0]
+
+                # Display info message
+                log.info(f"get_lldp_neighbors: local_interface : {local_interface}")
+
             # Get Chassis ID - TLV type 1
             if " mac-address=" in line:
                 chassis_id = line.split(" mac-address=")[-1].split()[0]
 
+                # Display info message
+                log.info(f"get_lldp_neighbors: chassis_id : {chassis_id}")
+
             # Get Port ID - TLV type 2
             if " interface-name=" in line:
-                port_id = line.split(" interface-name=")[-1].split()[0]
+                port_id = (
+                    line.split(" interface-name=")[-1].split("=")[0].rsplit(" ", 1)[0]
+                )
+
+                # Display info message
+                log.info(f"get_lldp_neighbors: port_id : {port_id}")
 
             # Get Time To Live - TLV type 3
-            # Not available on RouterOS. "age" parameter is not LLDP TTL
+            # Not available on RouterOS. "age" parameter is a decreasing counter
 
             # Get Port description - TLV type 4
             # Not available on RouterOS.
 
             # Get System name - TLV type 5
-            if "  identity=" in line:
-                port_description = (
-                    line.splitlines()[2].split(" identity=")[-1].split()[0]
-                )
+            if " identity=" in line:
+                system_name = line.split(" identity=")[-1].split()[0]
+
+                # Check if return value is a string "" (just double quotes which means empty data)
+                if system_name == '""':
+
+                    # Yes, empty string
+                    system_name = ""
+
+                # Display info message
+                log.info(f"get_lldp_neighbors: system_name : {system_name}")
 
             # Get System description - TLV type 6
-            if "  system-description=" in line:
-                port_description = (
-                    line.splitlines()[2].split(" system-description=")[-1].split()[0]
+            if " system-description=" in line:
+                system_description = (
+                    line.split(" system-description=")[-1]
+                    .split("=")[0]
+                    .rsplit(" ", 1)[0]
                 )
 
-            #     # Get IP address
-            #     address = line.split(" address=")[-1].split()[0]
+                # Display info message
+                log.info(
+                    f"get_lldp_neighbors: system_description : {system_description}"
+                )
 
-            #     # Get MAC address
-            #     mac_address = line.split(" mac-address=")[-1].split()[0]
+            # Get System capabilities - TLV type 7
+            if " system-caps=" in line:
 
-            #     # Get interface
-            #     interface = line.split(" interface=")[-1].split()[0]
+                # First get the capablities as a string separated by commas
+                # e.g.: 'bridge,wlan-ap,router,station-only'
+                string_capability = line.split(" system-caps=")[-1].split()[0]
 
-            # Create a dictionary
-            returned_dict = {
-                "chassis_id": chassis_id,
-                "port_id": port_id,
-                "ttl": ttl,
-                "port_description": port_description,
-                "system_name": system_name,
-                "system_description	": system_description,
-                "system_capabilities": system_capabilities,
-                "management_address": management_address,
-            }
+                # Then convert them into a list of characters
+                # Code	Capability
+                # B	    Bridge (Switch)
+                # C	    DOCSIS Cable Device
+                # O	    Other
+                # P	    Repeater
+                # R	    Router
+                # S	    Station
+                # T	    Telephone
+                # W	    WLAN Access Point
 
-        #     # Add the information to the list
-        #     returned_output.append(returned_dict)
+                # Read each capability
+                for capability in string_capability.split(","):
+
+                    # Check if string is not null
+                    if len(capability) > 0:
+
+                        # Get the first letter of the capability, convert this character in uppercase
+                        # and add it to a list
+                        system_capabilities.append(capability[0].upper())
+
+                # Display info message
+                log.info(
+                    f"get_lldp_neighbors: system_capabilities : {system_capabilities}"
+                )
+
+            # Get Management address - TLV type 8
+            if " address=" in line:
+                management_address = line.split(" address=")[-1].split()[0]
+
+            # LLDP TLV Type 9 to 127 are currently not supported by this method
+
+            # Check if data can be considered as LLDP
+            if local_interface and (
+                port_id or system_name or system_description or management_address
+            ):
+
+                # Probably LLDP
+
+                # Create a dictionary
+                returned_dict = {
+                    "chassis_id": chassis_id,
+                    "port_id": port_id,
+                    "ttl": ttl,
+                    "port_description": port_description,
+                    "system_name": system_name,
+                    "system_description": system_description,
+                    "system_capabilities": system_capabilities,
+                    "management_address": management_address,
+                }
+
+                # Add the information to the dict
+                returned_output[local_interface] = returned_output.get(
+                    local_interface, []
+                ) + [returned_dict]
 
         # Return data
         return returned_output
