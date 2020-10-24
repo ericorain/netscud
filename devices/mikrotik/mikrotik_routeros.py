@@ -30,6 +30,10 @@ class MikrotikRouterOS(NetworkDevice):
         self.cmd_get_mac_address_table = "interface bridge host print without-paging"
         self.cmd_get_arp = "ip arp print terse without-paging"
         self.cmd_get_lldp_neighbors = "ip neighbor print terse without-paging"
+        self.cmd_get_interfaces = [
+            "interface ethernet print terse without-paging",
+            "interface ethernet print stats-detail without-paging",
+        ]
         # No command to save the config. So it is always saved after "Enter"
         self.cmd_save_config = ""
 
@@ -413,14 +417,14 @@ class MikrotikRouterOS(NetworkDevice):
                 local_interface = line.split(" interface=")[-1].split()[0].split(",")[0]
 
                 # Display info message
-                log.info(f"get_lldp_neighbors: local_interface : {local_interface}")
+                log.info(f"get_lldp_neighbors: local_interface: {local_interface}")
 
             # Get Chassis ID - TLV type 1
             if " mac-address=" in line:
                 chassis_id = line.split(" mac-address=")[-1].split()[0]
 
                 # Display info message
-                log.info(f"get_lldp_neighbors: chassis_id : {chassis_id}")
+                log.info(f"get_lldp_neighbors: chassis_id: {chassis_id}")
 
             # Get Port ID - TLV type 2
             if " interface-name=" in line:
@@ -429,7 +433,7 @@ class MikrotikRouterOS(NetworkDevice):
                 )
 
                 # Display info message
-                log.info(f"get_lldp_neighbors: port_id : {port_id}")
+                log.info(f"get_lldp_neighbors: port_id: {port_id}")
 
             # Get Time To Live - TLV type 3
             # Not available on RouterOS. "age" parameter is a decreasing counter
@@ -448,7 +452,7 @@ class MikrotikRouterOS(NetworkDevice):
                     system_name = ""
 
                 # Display info message
-                log.info(f"get_lldp_neighbors: system_name : {system_name}")
+                log.info(f"get_lldp_neighbors: system_name: {system_name}")
 
             # Get System description - TLV type 6
             if " system-description=" in line:
@@ -460,7 +464,7 @@ class MikrotikRouterOS(NetworkDevice):
 
                 # Display info message
                 log.info(
-                    f"get_lldp_neighbors: system_description : {system_description}"
+                    f"get_lldp_neighbors: system_description: {system_description}"
                 )
 
             # Get System capabilities - TLV type 7
@@ -493,7 +497,7 @@ class MikrotikRouterOS(NetworkDevice):
 
                 # Display info message
                 log.info(
-                    f"get_lldp_neighbors: system_capabilities : {system_capabilities}"
+                    f"get_lldp_neighbors: system_capabilities: {system_capabilities}"
                 )
 
             # Get Management address - TLV type 8
@@ -525,6 +529,133 @@ class MikrotikRouterOS(NetworkDevice):
                 returned_output[local_interface] = returned_output.get(
                     local_interface, []
                 ) + [returned_dict]
+
+        # Return data
+        return returned_output
+
+    async def get_interfaces(self):
+        """
+        Asyn method used to get the interfaces information from the device
+
+        2 commands are used to collect interface data: one for status and
+        one for statistics
+
+        :return: Configuration of the device
+        :rtype: dict of dict
+        """
+
+        # Display info message
+        log.info("get_interfaces")
+
+        # By default nothing is returned
+        returned_output = {}
+
+        # Send a command
+        output = await self.send_command(self.cmd_get_interfaces[0])
+
+        # Display info message
+        log.info(f"get_interfaces:\n'{output}'")
+
+        # Convert a string into a list of strings
+        lines = output.splitlines()
+
+        # Read each line
+        for line in lines:
+
+            # Initialize data with default values
+            interface_name = ""
+            operational = False
+            admin_state = False
+            maximum_frame_size = 0
+            full_duplex = False
+            speed = 0  # speed is in Mbit/s
+            description = ""
+            input_error = 0
+            packet_in = 0
+            packet_out = 0
+
+            # Get interface name
+            if " name=" in line:
+                interface_name = line.split(" name=")[-1].split()[0]
+
+                # Display info message
+                log.info(f"get_interfaces: interface_name: {interface_name}")
+
+            # Get operational and admin_state status
+            data = line[3].upper()
+
+            # operational + admin_state = "up"?
+            if data == "R":
+
+                # Yes
+                operational = True
+                admin_state = True
+
+            # operational = "down" and admin_state = "up"?
+            elif data == " ":
+
+                # Yes
+                admin_state = True
+
+            # operational + admin_state = "down" means data == "X"
+            # No need to compare since default value are already fine
+
+            # Display info message
+            log.info(f"get_interfaces: operational: {operational}, admin_state")
+
+            # Get maximum frame size
+            if " mtu=" in line:
+                maximum_frame_size = int(line.split(" mtu=")[-1].split()[0])
+
+                # Display info message
+                log.info(f"get_interfaces: maximum_frame_size : {maximum_frame_size}")
+
+            # Get full duplex information
+            if " full-duplex=" in line:
+
+                # Check if full-duplex has the value "yes"
+                if line.split(" full-duplex=")[-1].split()[0].lower() == "yes":
+
+                    # Yes
+                    full_duplex = True
+
+                # Display info message
+                log.info(f"get_interfaces: full_duplex : {full_duplex}")
+
+            # Get speed
+            if " speed=" in line:
+                speed = int(line.split(" speed=")[-1].split()[0])
+
+
+interface ethernet monitor 0,1,2,3 once without-paging
+
+                # Display info message
+                log.info(f"get_interfaces: speed : {speed} Mbit/s")
+
+            # Get description
+            if " comment=" in line:
+                description = (
+                    line.split(" comment=")[-1].split("=")[0].rsplit(" ", 1)[0]
+                )
+
+                # Display info message
+                log.info(f"get_interfaces: comment: {description}")
+
+            # Create a dictionary
+            returned_dict = {
+                "operational": operational,
+                "admin_state": admin_state,
+                "maximum_frame_size": maximum_frame_size,
+                "full_duplex": full_duplex,
+                "speed": speed,
+                "description": description,
+                "input_error": input_error,
+                "packet_in": packet_in,
+                "packet_out": packet_out,
+            }
+
+            # Add the information to the dict
+            returned_output[interface_name] = returned_dict
 
         # Return data
         return returned_output
