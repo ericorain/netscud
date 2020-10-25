@@ -30,8 +30,10 @@ class MikrotikRouterOS(NetworkDevice):
         self.cmd_get_mac_address_table = "interface bridge host print without-paging"
         self.cmd_get_arp = "ip arp print terse without-paging"
         self.cmd_get_lldp_neighbors = "ip neighbor print terse without-paging"
+        # Commands for status, stats, errors
         self.cmd_get_interfaces = [
             "interface ethernet print terse without-paging",
+            "foreach i in=([/interface ethernet find]) do={/interface ethernet monitor $i once without-paging}",
             "interface ethernet print stats-detail without-paging",
         ]
         # No command to save the config. So it is always saved after "Enter"
@@ -550,14 +552,48 @@ class MikrotikRouterOS(NetworkDevice):
         # By default nothing is returned
         returned_output = {}
 
+        # Command for the status of the interfaces
+
         # Send a command
-        output = await self.send_command(self.cmd_get_interfaces[0])
+        output_status = await self.send_command(self.cmd_get_interfaces[0])
 
         # Display info message
-        log.info(f"get_interfaces:\n'{output}'")
+        log.info(f"get_interfaces: status command\n'{output_status}'")
 
-        # Convert a string into a list of strings
-        lines = output.splitlines()
+        # Command for the bitrate and the duplex mode of the interfaces
+
+        # Send a command
+        output_bitrate = await self.send_command(self.cmd_get_interfaces[1])
+
+        # Display info message
+        log.info(f"get_interfaces: bitrate command\n'{output_bitrate}'")
+
+        # Command for the stats of the interfaces
+
+        # Send a command
+        output_stats = await self.send_command(self.cmd_get_interfaces[1])
+
+        # Display info message
+        log.info(f"get_interfaces: stats command\n'{output_stats}'")
+
+        # Convert a string into a list of strings (status)
+        lines = output_status.splitlines()
+
+        # Convert a string into a list of block of strings (bitrate)
+        block_of_strings_bitrate = output_bitrate.split("\n\n")
+
+        # Convert a string into a list of block of strings (stats)
+        block_of_strings_stats = output_stats.split("\n\n")
+
+        # # Remove header "Flags: ..." from block_of_strings_stats
+        # if len(block_of_strings_stats) > 0:
+
+        #     # "Flags:" string found at forst line?
+        #     if "Flags:" in block_of_strings_stats[0]:
+        #         # Yes
+
+        #         # That string is removed then
+        #         del block_of_strings_stats[0]
 
         # Read each line
         for line in lines:
@@ -570,6 +606,7 @@ class MikrotikRouterOS(NetworkDevice):
             full_duplex = False
             speed = 0  # speed is in Mbit/s
             description = ""
+            fcs_error = 0
             input_error = 0
             packet_in = 0
             packet_out = 0
@@ -598,7 +635,7 @@ class MikrotikRouterOS(NetworkDevice):
                 admin_state = True
 
             # operational + admin_state = "down" means data == "X"
-            # No need to compare since default value are already fine
+            # No need to compare since default values are already fine
 
             # Display info message
             log.info(f"get_interfaces: operational: {operational}, admin_state")
@@ -610,27 +647,140 @@ class MikrotikRouterOS(NetworkDevice):
                 # Display info message
                 log.info(f"get_interfaces: maximum_frame_size : {maximum_frame_size}")
 
-            # Get full duplex information
-            if " full-duplex=" in line:
+            # Get speed and duplex information
 
-                # Check if full-duplex has the value "yes"
-                if line.split(" full-duplex=")[-1].split()[0].lower() == "yes":
-
-                    # Yes
-                    full_duplex = True
+            for index, data_block in enumerate(block_of_strings_bitrate):
 
                 # Display info message
-                log.info(f"get_interfaces: full_duplex : {full_duplex}")
+                log.info(
+                    f"get_interfaces: get_speed: index: {index} [{len(block_of_strings_bitrate)}]"
+                )
 
-            # Get speed
-            if " speed=" in line:
-                speed = int(line.split(" speed=")[-1].split()[0])
+                # Is the name of interface found in the block of strings?
+                if f"name: {interface_name}" in data_block:
 
+                    # Yes, so this block of strings has information on the interface
 
-interface ethernet monitor 0,1,2,3 once without-paging
+                    # Display info message
+                    log.info(f"get_interfaces: get_speed: index found: {index}")
+
+                    # " rate: " field found in the block of strings? (speed)
+                    if " rate: " in data_block:
+
+                        # Yes
+
+                        # Then extract the string data
+                        rate_string = data_block.split(" rate: ")[-1].split()[0].lower()
+
+                        # Is is mbps?
+                        if "mbps" in rate_string:
+                            # Yes
+
+                            # Then speed is saved
+                            speed = int(float(rate_string.split("mbps")[0]))
+
+                        # Is is gbps?
+                        elif "gbps" in rate_string:
+
+                            # Yes
+
+                            # Then speed is saved in mpbs
+                            speed = int(float(rate_string.split("gbps")[0]) * 1000)
+
+                        # Is is tbps? (not seen on current Mikrotik product; for future use)
+                        elif "tbps" in rate_string:
+                            # Yes
+
+                            # Then speed is saved in mpbs
+                            speed = int(float(rate_string.split("tbps")[0]) * 1000000)
+
+                        # Display info message
+                        log.info(
+                            f"get_interfaces: get_speed: rate found: {rate_string}, rate: {speed} mbps"
+                        )
+
+                    # " full-duplex: yes" field found in the block of strings? (full_duplex)
+                    if " full-duplex: yes" in data_block:
+
+                        # Yes
+
+                        # Display info message
+                        log.info(
+                            f"get_interfaces: get_duplex: {interface_name} is in full duplex mode"
+                        )
+
+                        # Then the insterface is in full duplex mode
+                        full_duplex = True
+
+                    # Remove current interface information from the block of data
+                    # (to speed up the research of data)
+                    del block_of_strings_bitrate[index]
+
+                    # Leave the loop
+                    break
+
+            # Get input erros, FCS errors, input packets anf output packets
+            for index, data_stats in enumerate(block_of_strings_stats):
 
                 # Display info message
-                log.info(f"get_interfaces: speed : {speed} Mbit/s")
+                log.info(
+                    f"get_interfaces: get_stats: index: {index} [{len(block_of_strings_stats)}]"
+                )
+
+                # Is the name of interface found in the block of strings?
+                if f"name: {interface_name}" in data_stats:
+
+                    # Yes, so this block of strings has information on the interface
+
+                    # Display info message
+                    log.info(f"get_interfaces: get_stats: index found: {index}")
+
+                    # " rx-fcs-error=" filed found in the block of strings? (speed)
+                    if " rx-fcs-error=" in data_stats:
+
+                        # Yes
+
+                        # Save the line with the data of FCS errors
+                        line_split = data_stats.split("rx-fcs-error=")[-1].split("=")[0]
+
+                        # By default no string gathered
+                        fcs_string = ""
+
+                        # Check each character till a non-numeric character
+                        for character in line_split:
+
+                            # Display info message
+                            log.info(
+                                f"get_interfaces: get_stats: fcs errors: char = {character}"
+                            )
+
+                            # Is it a numeric characer ("0" to "9")?
+                            if character >= "0" and character <= "9":
+
+                                # Yes
+
+                                # So the character is added to a string
+                                fcs_string += character
+
+                            # Is the character different than " " (which can be used for separator)?
+                            elif character != " ":
+
+                                # Yes, this is not a space
+
+                                # Leave the loop then since this is the beginning of another word
+                                break
+
+                        log.info(
+                            f"get_interfaces: get_stats: fcs errors: fcs_string: {fcs_string}"
+                        )
+
+                        # String not empty?
+                        if fcs_string:
+
+                            # Yes
+
+                            # Then save the result in integer
+                            fcs_error = int(fcs_string)
 
             # Get description
             if " comment=" in line:
@@ -650,6 +800,7 @@ interface ethernet monitor 0,1,2,3 once without-paging
                 "speed": speed,
                 "description": description,
                 "input_error": input_error,
+                "fcs_error": fcs_error,
                 "packet_in": packet_in,
                 "packet_out": packet_out,
             }
