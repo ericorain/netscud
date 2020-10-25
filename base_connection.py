@@ -5,9 +5,9 @@ import asyncio, asyncssh, logging
 log = logging.getLogger(__package__)
 
 # Debug level
-# logging.basicConfig(level=logging.WARNING)
-logging.basicConfig(level=logging.INFO)
-asyncssh.set_debug_level(2)
+logging.basicConfig(level=logging.WARNING)
+# logging.basicConfig(level=logging.INFO)
+# asyncssh.set_debug_level(2)
 
 
 # Declaration of constant values
@@ -719,7 +719,8 @@ class NetworkDevice:
             # Read data
             while prompt_not_found:
 
-                print("beginning of the loop")
+                # Display info message
+                log.info("connectSSH: beginning of the loop")
 
                 # await asyncio.sleep(2)
 
@@ -751,7 +752,8 @@ class NetworkDevice:
                         # Leave the loop
                         break
 
-                print("end of loop")
+                # Display info message
+                log.info("connectSSH: end of loop")
 
         except Exception as error:
 
@@ -1172,11 +1174,11 @@ class NetworkDevice:
             # Remove possible "\r"
             output = output.replace("\r", "")
 
-            data = ""
-            for i in output:
-                data += i.encode("utf-8").hex()
+            # data = ""
+            # for i in output:
+            #     data += i.encode("utf-8").hex()
 
-            print(data)
+            # print(data)
 
             # Debug info message
             log.info(f"send_commandSSH: output: '{output}'")

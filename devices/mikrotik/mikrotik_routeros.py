@@ -30,11 +30,11 @@ class MikrotikRouterOS(NetworkDevice):
         self.cmd_get_mac_address_table = "interface bridge host print without-paging"
         self.cmd_get_arp = "ip arp print terse without-paging"
         self.cmd_get_lldp_neighbors = "ip neighbor print terse without-paging"
-        # Commands for status, stats, errors
+        # Commands for status, duplex/speed, mode
         self.cmd_get_interfaces = [
             "interface ethernet print terse without-paging",
             "foreach i in=([/interface ethernet find]) do={/interface ethernet monitor $i once without-paging}",
-            "interface ethernet print stats-detail without-paging",
+            "interface bridge vlan print terse",
         ]
         # No command to save the config. So it is always saved after "Enter"
         self.cmd_save_config = ""
@@ -539,8 +539,10 @@ class MikrotikRouterOS(NetworkDevice):
         """
         Asyn method used to get the interfaces information from the device
 
-        2 commands are used to collect interface data: one for status and
-        one for statistics
+        some commands are used to collect interface data:
+        - one for status
+        - one for duplex/speed
+        - one for mode (access / trunk)
 
         :return: Configuration of the device
         :rtype: dict of dict
@@ -560,40 +562,50 @@ class MikrotikRouterOS(NetworkDevice):
         # Display info message
         log.info(f"get_interfaces: status command\n'{output_status}'")
 
-        # Command for the bitrate and the duplex mode of the interfaces
+        # Command for the speed and the duplex mode of the interfaces
 
         # Send a command
         output_bitrate = await self.send_command(self.cmd_get_interfaces[1])
 
         # Display info message
-        log.info(f"get_interfaces: bitrate command\n'{output_bitrate}'")
+        log.info(f"get_interfaces: speed duplex command\n'{output_bitrate}'")
 
-        # Command for the stats of the interfaces
+        # Command for the mode of the interfaces (access or trunk)
 
         # Send a command
-        output_stats = await self.send_command(self.cmd_get_interfaces[1])
+        output_mode = await self.send_command(self.cmd_get_interfaces[2])
 
         # Display info message
-        log.info(f"get_interfaces: stats command\n'{output_stats}'")
+        log.info(f"get_interfaces: mode command\n'{output_mode}'")
 
         # Convert a string into a list of strings (status)
         lines = output_status.splitlines()
 
-        # Convert a string into a list of block of strings (bitrate)
+        # Convert a string into a list of block of strings (duplex/speed)
         block_of_strings_bitrate = output_bitrate.split("\n\n")
 
-        # Convert a string into a list of block of strings (stats)
-        block_of_strings_stats = output_stats.split("\n\n")
+        # Convert a string into a list of block of strings (mode)
+        block_of_strings_mode = output_mode.splitlines()
 
-        # # Remove header "Flags: ..." from block_of_strings_stats
-        # if len(block_of_strings_stats) > 0:
+        # By default there is no trunk interface
+        dict_trunk_interface = {}
 
-        #     # "Flags:" string found at forst line?
-        #     if "Flags:" in block_of_strings_stats[0]:
-        #         # Yes
+        # Read all tagged interfaces line by line
+        for line in block_of_strings_mode:
 
-        #         # That string is removed then
-        #         del block_of_strings_stats[0]
+            # Save the string with the name of the interfaces separated with a comma
+            tagged_interfaces = line.split(" tagged=")[-1].split()[0]
+
+            # Check if value is not empty
+            if tagged_interfaces != '""':
+
+                # Not empty
+
+                # Read all trunk interfaces found and separate them
+                for interface_trunk in tagged_interfaces.split(","):
+
+                    # Save the trunk interface
+                    dict_trunk_interface[interface_trunk] = True
 
         # Read each line
         for line in lines:
@@ -605,11 +617,8 @@ class MikrotikRouterOS(NetworkDevice):
             maximum_frame_size = 0
             full_duplex = False
             speed = 0  # speed is in Mbit/s
+            mode = "access"
             description = ""
-            fcs_error = 0
-            input_error = 0
-            packet_in = 0
-            packet_out = 0
 
             # Get interface name
             if " name=" in line:
@@ -641,8 +650,8 @@ class MikrotikRouterOS(NetworkDevice):
             log.info(f"get_interfaces: operational: {operational}, admin_state")
 
             # Get maximum frame size
-            if " mtu=" in line:
-                maximum_frame_size = int(line.split(" mtu=")[-1].split()[0])
+            if " l2mtu=" in line:
+                maximum_frame_size = int(line.split(" l2mtu=")[-1].split()[0])
 
                 # Display info message
                 log.info(f"get_interfaces: maximum_frame_size : {maximum_frame_size}")
@@ -719,68 +728,82 @@ class MikrotikRouterOS(NetworkDevice):
                     # Leave the loop
                     break
 
-            # Get input erros, FCS errors, input packets anf output packets
-            for index, data_stats in enumerate(block_of_strings_stats):
+            # Get interface mode (access or trunk)
+
+            # Check if the interface is one of the trunk interface
+            if interface_name in dict_trunk_interface:
+
+                # Yes
+
+                # Set trunk mode
+                mode = "trunk"
 
                 # Display info message
-                log.info(
-                    f"get_interfaces: get_stats: index: {index} [{len(block_of_strings_stats)}]"
-                )
+                log.info(f"get_interfaces: mode: {mode}")
 
-                # Is the name of interface found in the block of strings?
-                if f"name: {interface_name}" in data_stats:
 
-                    # Yes, so this block of strings has information on the interface
+            # # Get input erros, FCS errors, input packets anf output packets
+            # for index, data_stats in enumerate(block_of_strings_stats):
 
-                    # Display info message
-                    log.info(f"get_interfaces: get_stats: index found: {index}")
+            #     # Display info message
+            #     log.info(
+            #         f"get_interfaces: get_stats: index: {index} [{len(block_of_strings_stats)}]"
+            #     )
 
-                    # " rx-fcs-error=" filed found in the block of strings? (speed)
-                    if " rx-fcs-error=" in data_stats:
+            #     # Is the name of interface found in the block of strings?
+            #     if f"name: {interface_name}" in data_stats:
 
-                        # Yes
+            #         # Yes, so this block of strings has information on the interface
 
-                        # Save the line with the data of FCS errors
-                        line_split = data_stats.split("rx-fcs-error=")[-1].split("=")[0]
+            #         # Display info message
+            #         log.info(f"get_interfaces: get_stats: index found: {index}")
 
-                        # By default no string gathered
-                        fcs_string = ""
+            #         # " rx-fcs-error=" filed found in the block of strings? (speed)
+            #         if " rx-fcs-error=" in data_stats:
 
-                        # Check each character till a non-numeric character
-                        for character in line_split:
+            #             # Yes
 
-                            # Display info message
-                            log.info(
-                                f"get_interfaces: get_stats: fcs errors: char = {character}"
-                            )
+            #             # Save the line with the data of FCS errors
+            #             line_split = data_stats.split("rx-fcs-error=")[-1].split("=")[0]
 
-                            # Is it a numeric characer ("0" to "9")?
-                            if character >= "0" and character <= "9":
+            #             # By default no string gathered
+            #             fcs_string = ""
 
-                                # Yes
+            #             # Check each character till a non-numeric character
+            #             for character in line_split:
 
-                                # So the character is added to a string
-                                fcs_string += character
+            #                 # Display info message
+            #                 log.info(
+            #                     f"get_interfaces: get_stats: fcs errors: char = {character}"
+            #                 )
 
-                            # Is the character different than " " (which can be used for separator)?
-                            elif character != " ":
+            #                 # Is it a numeric characer ("0" to "9")?
+            #                 if character >= "0" and character <= "9":
 
-                                # Yes, this is not a space
+            #                     # Yes
 
-                                # Leave the loop then since this is the beginning of another word
-                                break
+            #                     # So the character is added to a string
+            #                     fcs_string += character
 
-                        log.info(
-                            f"get_interfaces: get_stats: fcs errors: fcs_string: {fcs_string}"
-                        )
+            #                 # Is the character different than " " (which can be used for separator)?
+            #                 elif character != " ":
 
-                        # String not empty?
-                        if fcs_string:
+            #                     # Yes, this is not a space
 
-                            # Yes
+            #                     # Leave the loop then since this is the beginning of another word
+            #                     break
 
-                            # Then save the result in integer
-                            fcs_error = int(fcs_string)
+            #             log.info(
+            #                 f"get_interfaces: get_stats: fcs errors: fcs_string: {fcs_string}"
+            #             )
+
+            #             # String not empty?
+            #             if fcs_string:
+
+            #                 # Yes
+
+            #                 # Then save the result in integer
+            #                 fcs_error = int(fcs_string)
 
             # Get description
             if " comment=" in line:
@@ -798,11 +821,8 @@ class MikrotikRouterOS(NetworkDevice):
                 "maximum_frame_size": maximum_frame_size,
                 "full_duplex": full_duplex,
                 "speed": speed,
+                "mode": mode,
                 "description": description,
-                "input_error": input_error,
-                "fcs_error": fcs_error,
-                "packet_in": packet_in,
-                "packet_out": packet_out,
             }
 
             # Add the information to the dict
