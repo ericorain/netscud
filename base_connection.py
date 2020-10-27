@@ -5,9 +5,9 @@ import asyncio, asyncssh, logging
 log = logging.getLogger(__package__)
 
 # Debug level
-logging.basicConfig(level=logging.WARNING)
-# logging.basicConfig(level=logging.INFO)
-# asyncssh.set_debug_level(2)
+# logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.INFO)
+asyncssh.set_debug_level(2)
 
 
 # Declaration of constant values

@@ -36,6 +36,8 @@ class MikrotikRouterOS(NetworkDevice):
             "foreach i in=([/interface ethernet find]) do={/interface ethernet monitor $i once without-paging}",
             "interface bridge vlan print terse",
         ]
+        self.cmd_get_vlans = "interface bridge vlan print terse without-paging"
+        self.cmd_get_routing_table = "ip route print without-paging terse"
         # No command to save the config. So it is always saved after "Enter"
         self.cmd_save_config = ""
 
@@ -260,7 +262,7 @@ class MikrotikRouterOS(NetworkDevice):
         """
         Asyn method used to get the mac address table of the device
 
-        :return: Configuration of the device
+        :return: MAC address table of the device
         :rtype: list of dict
         """
 
@@ -324,7 +326,7 @@ class MikrotikRouterOS(NetworkDevice):
         """
         Asyn method used to get the ARP table of the device
 
-        :return: Configuration of the device
+        :return: ARP table of the device
         :rtype: list of dict
         """
 
@@ -379,7 +381,7 @@ class MikrotikRouterOS(NetworkDevice):
         device. Data will be considered as LLDP information is there are
         other fields than Interface and MAC addresses are found.
 
-        :return: Configuration of the device
+        :return: LLDP information of the device
         :rtype: dict of list of dict
         """
 
@@ -544,7 +546,7 @@ class MikrotikRouterOS(NetworkDevice):
         - one for duplex/speed
         - one for mode (access / trunk)
 
-        :return: Configuration of the device
+        :return: Interfaces of the device
         :rtype: dict of dict
         """
 
@@ -741,7 +743,6 @@ class MikrotikRouterOS(NetworkDevice):
                 # Display info message
                 log.info(f"get_interfaces: mode: {mode}")
 
-
             # # Get input erros, FCS errors, input packets anf output packets
             # for index, data_stats in enumerate(block_of_strings_stats):
 
@@ -827,6 +828,122 @@ class MikrotikRouterOS(NetworkDevice):
 
             # Add the information to the dict
             returned_output[interface_name] = returned_dict
+
+        # Return data
+        return returned_output
+
+    async def get_vlans(self):
+        """
+        Asyn method used to get the vlans information from the device
+
+        :return: VLANs of the device
+        :rtype: dict
+        """
+
+        # Display info message
+        log.info("get_vlans")
+
+        # By default nothing is returned
+        returned_output = {}
+
+        # Send a command
+        output = await self.send_command(self.cmd_get_vlans)
+
+        # Display info message
+        log.info(f"get_vlans:\n'{output}'")
+
+        # Convert a string into a list of strings
+        lines = output.splitlines()
+
+        # Read each line
+        for line in lines:
+
+            # Initialize data with default values
+            name = ""
+            vlan_id = 0
+            extra = None
+            # extra = {
+            #     "bridge": "",
+            # }
+
+            # Get VLAN name
+            if " comment=" in line:
+                name = line.split(" comment=")[-1].split("=")[0].rsplit(" ", 1)[0]
+
+                # Display info message
+                log.info(f"get_vlans: name: {name}")
+
+            # Get VLAN ID
+            if " vlan-ids=" in line:
+                vlan_id = int(line.split(" vlan-ids=")[-1].split()[0])
+
+                # Display info message
+                log.info(f"get_vlans: vlan_id: {vlan_id}")
+
+            # Get bridge (special Mikrotik)
+            if " bridge=" in line:
+                bridge = line.split(" bridge=")[-1].split("=")[0].rsplit(" ", 1)[0]
+
+                # Display info message
+                log.info(f"get_vlans: bridge: {bridge}")
+
+                # Save bridge information into
+                extra = {
+                    "bridge": bridge,
+                }
+
+            # Create a dictionary
+            returned_dict = {
+                "name": name,
+                "extra": extra,
+            }
+
+            # Add the information to the dict
+            returned_output[vlan_id] = returned_dict
+
+        # Return data
+        return returned_output
+
+    async def get_routing_table(self):
+        """
+        Asyn method used to get the routing table of the device
+
+        :return: Routing table of the device
+        :rtype: dict
+        """
+
+        # Display info message
+        log.info("get_routing_table")
+
+        # By default nothing is returned
+        returned_output = {}
+
+        # Send a command
+        output = await self.send_command(self.cmd_get_routing_table)
+
+        # Display info message
+        log.info(f"get_routing_table:\n'{output}'")
+
+        # Convert a string into a list of strings
+        lines = output.splitlines()
+
+
+
+            # Create a dictionary
+            returned_dict = {
+                "network": network,
+                "network_mask": network_mask,
+                "protocol": protocol,
+                "administrative_distance": administrative_distance,
+                "metric": metric,
+                "gateway": gateway,
+                "active": active,
+                "protocol_attributes": protocol_attributes,
+            }
+
+            # Add the information to the dict
+            returned_output[interface_name] = returned_dict
+
 
         # Return data
         return returned_output
