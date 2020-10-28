@@ -927,12 +927,77 @@ class MikrotikRouterOS(NetworkDevice):
         # Convert a string into a list of strings
         lines = output.splitlines()
 
+        # Read each line
+        for line in lines:
 
+            # Initialize data with default values
+            network = ""
+            address = ""
+            prefix = 0
+            protocol = "unknown"
+            administrative_distance = 0
+            metric = 0
+            gateway = ""
+            active = False
+            protocol_attributes = None
+
+            # Get network, address and prefix
+            if " dst-address=" in line:
+                network = line.split(" dst-address=")[-1].split()[0]
+                address = network.split("/")[0]
+                prefix = int(network.split("/")[1])
+
+            # Get protocol
+
+            # Save char with protocol letter
+            protocol_char = line[5]
+
+            if protocol_char == "C":
+
+                # Connected
+                protocol = "connected"
+
+            elif protocol_char == "S":
+
+                # Static
+                protocol = "static"
+
+            elif protocol_char == "r":
+
+                # RIP
+                protocol = "rip"
+
+            elif protocol_char == "b":
+
+                # BGP
+                protocol = "bgp"
+
+            elif protocol_char == "o":
+
+                # OSPF
+                protocol = "ospf"
+
+            elif protocol_char == "m":
+
+                # MME
+                protocol = "mme"
+
+            # Get administrative distance
+            if " distance=" in line:
+                administrative_distance = int(line.split(" distance=")[-1].split()[0])
+
+            # Get gateway
+            if " gateway=" in line:
+                gateway = line.split(" gateway=")[-1].split()[0]
+
+            # Get active status
+            if line[3] == "A":
+                active = True
 
             # Create a dictionary
             returned_dict = {
-                "network": network,
-                "network_mask": network_mask,
+                "address": address,
+                "prefix": prefix,
                 "protocol": protocol,
                 "administrative_distance": administrative_distance,
                 "metric": metric,
@@ -942,8 +1007,7 @@ class MikrotikRouterOS(NetworkDevice):
             }
 
             # Add the information to the dict
-            returned_output[interface_name] = returned_dict
-
+            returned_output[network] = returned_dict
 
         # Return data
         return returned_output
