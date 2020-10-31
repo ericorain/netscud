@@ -8,7 +8,7 @@ log = logging.getLogger(__package__)
 # logging.basicConfig(level=logging.WARNING)
 # logging.basicConfig(level=logging.INFO)
 logging.basicConfig(level=logging.DEBUG)
-asyncssh.set_debug_level(2)
+# asyncssh.set_debug_level(2)
 
 
 # Declaration of constant values
@@ -723,8 +723,6 @@ class NetworkDevice:
                 # Display info message
                 log.info("connectSSH: beginning of the loop")
 
-                # await asyncio.sleep(2)
-
                 # Read the prompt
                 data += await asyncio.wait_for(
                     self.stdoutx.read(MAX_BUFFER_DATA), timeout=self.timeout
@@ -1173,6 +1171,7 @@ class NetworkDevice:
             # Debug info message
             # log.info(f"send_commandSSH: output hex: '{str(output).encode("utf-8").hex()}'")
 
+            # Remove ANSI escape sequence
             output = self.remove_ansi_escape_sequence(output)
 
             # Remove possible "\r"

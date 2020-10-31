@@ -1,6 +1,6 @@
 # Python library import
 from netscud.base_connection import NetworkDevice, log
-import asyncio
+import asyncio, asyncssh
 
 # Max data to read in read function
 MAX_BUFFER_DATA = 65535
@@ -17,7 +17,9 @@ class MikrotikRouterOS(NetworkDevice):
         # Remove useless escape data using the user login
         self.username = self.username + "+cte"
 
-        self._connect_first_ending_prompt = ["> \x1b[K"]
+        # self._connect_first_ending_prompt = ["> \x1b[K"]
+        self._connect_first_ending_prompt = "\x1b\x5b\x4b"
+        self._connect_second_ending_prompt = "> "
         self.list_of_possible_ending_prompts = [
             "] > ",
         ]
@@ -52,6 +54,155 @@ class MikrotikRouterOS(NetworkDevice):
         self.cmd_get_routing_table = "ip route print without-paging terse"
         # No command to save the config. So it is always saved after "Enter"
         self.cmd_save_config = ""
+
+    async def connectSSH(self):
+        """
+        Async method used for connecting a device using SSH protocol
+
+
+        Mikrotik has a special prompt which is difficult to manage. Here
+        is an example of the SSH prompt of Mikrotik switch:
+
+        "[admin@myswitch] >
+        [admin@myswitch] >
+
+        [admin@myswitch] >                                                            [K
+        [admin@myswitch] >"
+
+        So this method is special to Mikrotik devices.
+        """
+
+        # Display info message
+        log.info("connectSSH")
+
+        # Parameters of the connection
+        generator = asyncssh.connect(
+            self.ip,
+            username=self.username,
+            password=self.password,
+            known_hosts=None,
+            # encryption_algs="*",  # Parameter that includes all encryption algorithms (even the old ones disabled by default)
+            encryption_algs=[
+                algs.decode("utf-8") for algs in asyncssh.encryption._enc_algs
+            ],  # Parameter that includes all encryption algorithms (even the old ones disabled by default)
+        )
+
+        # Trying to connect to the device
+        try:
+
+            self.conn = await asyncio.wait_for(generator, timeout=self.timeout)
+
+        except asyncio.exceptions.TimeoutError as error:
+
+            # Timeout
+
+            # Display error message
+            log.error(f"connectSSH: connection failed: {self.ip} timeout: '{error}'")
+
+            # Exception propagation
+            raise asyncio.exceptions.TimeoutError(
+                "Connection failed: connection timed out."
+            )
+
+        except Exception as error:
+
+            # Connection failed
+
+            # Display error message
+            log.error(f"connectSSH: connection failed: {self.ip} '{error}'")
+
+            # Exception propagation
+            raise
+
+        # Display info message
+        log.info("connectSSH: connection success")
+
+        # Create a session
+        self.stdinx, self.stdoutx, _ = await self.conn.open_session(term_type="netscud")
+
+        # Display info message
+        log.info("connectSSH: open_session success")
+
+        # By default no data has been read
+        data = ""
+
+        # By default no prompt found
+        prompt_not_found = True
+
+        try:
+
+            # Read data
+            while prompt_not_found:
+
+                # Display info message
+                log.info("connectSSH: beginning of the loop")
+
+                # Read the prompt
+                data += await asyncio.wait_for(
+                    self.stdoutx.read(MAX_BUFFER_DATA), timeout=self.timeout
+                )
+
+                # Display info message
+                log.info(f"connectSSH: data: '{str(data)}'")
+
+                # Display info message
+                log.info(f"connectSSH: data: hex:'{data.encode('utf-8').hex()}'")
+
+                # Check if the first part of the expected prompt is found
+                if self._connect_first_ending_prompt in data:
+
+                    # Found
+
+                    # Second (ending) prompt found?
+                    if data.endswith(self._connect_second_ending_prompt):
+
+                        # Yes
+
+                        # Display info message
+                        log.info(f"connectSSH: ending of prompt found")
+
+                        # A ending prompt has been found
+                        prompt_not_found = False
+
+                        # Leave the loop
+                        break
+
+                # Display info message
+                log.info("connectSSH: end of loop")
+
+        except Exception as error:
+
+            # Fail while reading the prompt
+
+            # Display error message
+            log.error(
+                f"connectSSH: timeout while reading the prompt: {self.ip} '{error}'"
+            )
+
+            # Exception propagation
+            raise
+
+        # Display info message
+        log.info(f"connectSSH: end of prompt loop")
+
+        # # Remove possible escape sequence
+        # data = self.remove_ansi_escape_sequence(data)
+
+        # # Find prompt
+        # self.prompt = self.find_prompt(str(data))
+
+        # # Display info message
+        # log.info(f"connectSSH: prompt found: '{self.prompt}'")
+
+        # # Display info message
+        # log.info(f"connectSSH: prompt found size: '{len(self.prompt)}'")
+
+        # # Disable paging command available?
+        # if self.cmd_disable_paging:
+        #     # Yes
+
+        #     # Disable paging
+        #     await self.disable_paging()
 
     async def connectTelnet(self):
         """
@@ -238,6 +389,128 @@ class MikrotikRouterOS(NetworkDevice):
         # Display info message
         log.info("connectTelnet: password sent")
 
+    async def send_commandSSH(self, cmd, pattern=None, timeout=None):
+        """
+        Async method used to send data to a device
+
+        :param cmd: command to send
+        :type cmd: str
+
+        :param pattern: optional, a pattern replacing the prompt when the prompt is not expected
+        :type pattern: str
+
+        :param timeout: optional, a timeout for the command sent. Default value is self.timeout
+        :type timeout: str
+
+        :return: the output of command
+        :rtype: str
+        """
+
+        # Debug info message
+        log.info("send_commandSSH")
+
+        # Default value of timeout variable
+        if timeout is None:
+            timeout = self.timeout
+
+        # Debug info message
+        log.info(f"send_commandSSH: cmd = '{cmd}'")
+
+        # Sending command
+        # Add carriage return at the end of the command (mandatory to send the command)
+        self.stdinx.write(cmd + "\r\n")
+
+        # Display message
+        log.info("send_commandSSH: command sent")
+
+        # Variable used to gather data
+        output = ""
+
+        # Variable used for leaving loop (necessary sonce there is a "while" with a "for" and a "break" command)
+        stay_in_loop = True
+
+        # Reading data
+        while stay_in_loop:
+
+            # Read the data received
+            output += await asyncio.wait_for(
+                self.stdoutx.read(MAX_BUFFER_DATA), timeout=timeout
+            )
+
+            # Debug info message
+            log.debug(f"send_commandSSH: output hex: '{output.encode('utf-8').hex()}'")
+
+            # Remove ANSI escape sequence
+            output = self.remove_ansi_escape_sequence(output)
+
+            # Remove possible "\r"
+            output = output.replace("\r", "")
+
+            # Debug info message
+            log.info(f"send_commandSSH: output: '{output}'")
+
+            # Is a patten used?
+            if pattern:
+
+                # Use pattern instead of prompt
+                if pattern in output:
+
+                    # Yes
+
+                    # Leave the loop
+                    break
+
+            else:
+
+                # Check if prompt is found
+                for prompt in self.list_of_possible_ending_prompts:
+
+                    # A pattern found twice (or more)?
+                    if output.count(prompt) >= 2:
+
+                        # Yes
+
+                        # Display info message
+                        log.info(
+                            f"send_commandSSH: prompt found twice or more: '{prompt}'"
+                        )
+
+                        # Will leave the while loop
+                        stay_in_loop = False
+
+                        # Leave the loop
+                        break
+
+        # Debug info message
+        log.info(
+            f"send_commandSSH: raw output: '{output}'\nsend_commandSSH: raw output (hex): '{output.encode().hex()}'"
+        )
+
+        # # Remove the command sent from the result of the command
+        # output = self.remove_command_in_output(output, str(cmd))
+        # # Remove the carriage return of the output
+        # output = self.remove_starting_carriage_return_in_output(output)
+        # # Remove the ending prompt of the output
+        # output = self.remove_ending_prompt_in_output(output)
+
+        # Remove the command sent from the result of the command
+        # output = self.remove_command_in_output(output, str(cmd))
+        # For Mikrotik just remove the first line (complicated otherwise)
+        output = output.split("\n", 1)[1]
+        # Remove the carriage return of the output
+        # output = self.remove_starting_carriage_return_in_output(output)
+        # Remove the ending prompt of the output
+        # For Mikrotik just remove the last line (complicated otherwise)
+        output = output[: output.rfind("\n")] + "\n"
+
+        # Debug info message
+        log.info(
+            f"send_commandSSH: cleaned output: '{output}'\nsend_commandSSH: cleaned output (hex): '{output.encode().hex()}'"
+        )
+
+        # Return the result of the command
+        return output
+
     async def send_commandTelnet(self, cmd, pattern=None, timeout=None):
         """
         Async method used to send data to a device
@@ -370,10 +643,6 @@ class MikrotikRouterOS(NetworkDevice):
         log.info(
             f"send_commandTelnet: cleaned output: '{output}'\nsend_commandTelnet: cleaned output (hex): '{output.encode().hex()}'"
         )
-
-        # Check if there is an error in the output string (like "% Unrecognized command")
-        # and generate an exception if needed
-        self.check_error_output(output)
 
         # Return the result of the command
         return output
@@ -1583,3 +1852,29 @@ class MikrotikRouterOS(NetworkDevice):
 
         # Return data
         return returned_output
+
+    async def add_vlan(self, vland_id, vlan_name=None, bridge=None):
+        """
+        Asyn method used to add a vlan to a bridge from the device
+
+        :return: Status. True = no error, False error
+        :rtype: int
+        """
+
+        # Display info message
+        log.info("add_vlan")
+
+        # By default result status is having an error
+        return_status = False
+
+        # Bridge specified?
+        if not bridge:
+
+            # No
+
+            # Then find the first bridge
+
+            pass
+
+        # Return status
+        return return_status
