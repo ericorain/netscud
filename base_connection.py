@@ -6,7 +6,8 @@ log = logging.getLogger(__package__)
 
 # Debug level
 # logging.basicConfig(level=logging.WARNING)
-logging.basicConfig(level=logging.INFO)
+# logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 asyncssh.set_debug_level(2)
 
 
@@ -833,7 +834,7 @@ class NetworkDevice:
             raise
 
         # Display info message
-        log.info("connectTelnet: connnection success")
+        log.info("connectTelnet: connection success")
 
         # Get prompt for the login
         prompt = self._telnet_connect_login
@@ -852,6 +853,9 @@ class NetworkDevice:
 
         # Read the telnet information and first prompt (for login but a password prompt can be found for IOS for instance)
         while True:
+
+            # Display info message
+            log.info(f"connectTelnet: read data for prompt")
 
             # Read returned prompt
             byte_data += await asyncio.wait_for(
@@ -1413,6 +1417,11 @@ class NetworkDevice:
                 # Display info message
                 log.info(
                     f"telnet_send_command_with_unexpected_pattern: byte_data: '{byte_data}'"
+                )
+
+                # Display debug message
+                log.debug(
+                    f"telnet_send_command_with_unexpected_pattern: byte_data: hex: '{byte_data.hex()}'"
                 )
 
                 # Temporary convertion in string. This string has the following form: "b'....'"

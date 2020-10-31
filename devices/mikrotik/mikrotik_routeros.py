@@ -1,5 +1,9 @@
 # Python library import
 from netscud.base_connection import NetworkDevice, log
+import asyncio
+
+# Max data to read in read function
+MAX_BUFFER_DATA = 65535
 
 
 class MikrotikRouterOS(NetworkDevice):
@@ -11,17 +15,25 @@ class MikrotikRouterOS(NetworkDevice):
         super().__init__(*args, **kwargs)
 
         # Remove useless escape data using the user login
-        self.username = self.username + "+ct"
+        self.username = self.username + "+cte"
 
         self._connect_first_ending_prompt = ["> \x1b[K"]
         self.list_of_possible_ending_prompts = [
-            "> ",
+            "] > ",
         ]
+        self._telnet_connect_login = "Login: "
+        self._telnet_connect_password = "Password: "
+        self._telnet_connect_authentication_fail_prompt = [
+            "Login: ",
+            "Login failed, incorrect username or password",
+        ]
+
+        self._telnet_connect_first_ending_prompt = ["] > "]
         # No global disabling for Mikrotik RouterOS so use
         # "without-paging" at the end of your commands
         self.cmd_disable_paging = None
 
-        self.cmd_exit_config_mode = "quit"
+        self.cmd_exit_config_mode = "/"
         self.cmd_get_version = "system resource print without-paging"
         self.cmd_get_hostname = "system identity print without-paging"
         self.cmd_get_model = "system resource print without-paging"
@@ -40,6 +52,520 @@ class MikrotikRouterOS(NetworkDevice):
         self.cmd_get_routing_table = "ip route print without-paging terse"
         # No command to save the config. So it is always saved after "Enter"
         self.cmd_save_config = ""
+
+    async def connectTelnet(self):
+        """
+        Async method used for connecting a device using Telnet protocol
+
+        Mikrotik has a special prompt which is difficult to manage. Here
+        is an example of the Telnet prompt of Mikrotik switch:
+
+        "\r\r\r\r\r\r[admin@myswitch] >                                                            \r[admin@myswitch] > "
+
+        So this method is special to Mikrotik devices.
+        """
+
+        # Display info message
+        log.info("connectTelnet")
+
+        try:
+
+            # Prepare connection with Telnet
+            conn = asyncio.open_connection(self.ip, self.port)
+
+        except Exception as error:
+
+            # Preparation to the connection failed
+
+            # Display error message
+            log.error(f"connectTelnet: preparation to the connection failed: '{error}'")
+
+            # Exception propagation
+            raise
+
+        # Display info message
+        log.info("connectTelnet: preparation to the connection success")
+
+        try:
+
+            # Connection with Telnet
+            self._reader, self._writer = await asyncio.wait_for(
+                conn, timeout=self.timeout
+            )
+
+        except asyncio.TimeoutError:
+
+            # Time out during connection
+
+            # Display error message
+            log.error("connectTelnet: connection: timeout")
+
+            # Exception propagation
+            raise
+
+        # Display info message
+        log.info("connectTelnet: connection success")
+
+        # Get prompt for the login
+        prompt = self._telnet_connect_login
+
+        # Get prompt for the password
+        prompt_password = self._telnet_connect_password
+
+        # By default a login is expected
+        use_login = True
+
+        # Temporary string variable
+        output = ""
+
+        # Temporary bytes variable
+        byte_data = b""
+
+        # Read the telnet information and first prompt (for login but a password prompt can be found for IOS for instance)
+        while True:
+
+            # Display info message
+            log.info(f"connectTelnet: read data for prompt")
+
+            # await asyncio.sleep(2)
+
+            # Read returned prompt
+            byte_data += await asyncio.wait_for(
+                self._reader.read(MAX_BUFFER_DATA), timeout=self.timeout
+            )
+
+            # Display info message
+            log.info(f"connectTelnet: byte_data: {byte_data}")
+
+            # Temporary convertion in string. This string has the following form: "b'....'"
+            output = str(byte_data)
+
+            # Display info message
+            log.info(f"connectTelnet: output: {output}")
+
+            # Prompt for the username found?
+            if prompt in output:
+
+                # Yes
+
+                # Leave the loop
+                break
+
+            # Prompt for the password found?
+            elif prompt_password in output:
+
+                # Yes
+
+                # That means only password is required
+                use_login = False
+
+                # Leave the loop
+                break
+
+            # A special Telnet string send at first connection?
+            elif b"\xff\xfd\x18\xff\xfd \xff\xfd#\xff\xfd" in byte_data:
+
+                # Yes
+
+                # Display info message
+                log.info(f"connectTelnet: telnet_init_message")
+
+                # chr(0xFF).chr(0xFB).chr(0x1F).chr(0xFF).chr(0xFB).chr(0x20).chr(0xFF).chr(0xFB).chr(0x18).chr(0xFF).chr(0xFB).chr(0x27).chr(0xFF).chr(0xFD).chr(0x01).chr(0xFF).chr(0xFB).chr(0x03).chr(0xFF).chr(0xFD).chr(0x03).chr(0xFF).chr(0xFC).chr(0x23).chr(0xFF).chr(0xFC).chr(0x24).chr(0xFF).chr(0xFA).chr(0x1F).chr(0x00).chr(0x50).chr(0x00).chr(0x18).chr(0xFF).chr(0xF0).chr(0xFF).chr(0xFA).chr(0x20).chr(0x00).chr(0x33).chr(0x38).chr(0x34).chr(0x30).chr(0x30).chr(0x2C).chr(0x33).chr(0x38).chr(0x34).chr(0x30).chr(0x30).chr(0xFF).chr(0xF0).chr(0xFF).chr(0xFA).chr(0x27).chr(0x00).chr(0xFF).chr(0xF0).chr(0xFF).chr(0xFA).chr(0x18).chr(0x00).chr(0x41).chr(0x4E).chr(0x53).chr(0x49).chr(0xFF).chr(0xF0);
+                # Messages in Telnet format
+                cmd = b"\xff\xfb\x1f\xff\xfb\x20\xff\xfb\x18\xff\xfb\x27\xff\xfd\x01\xff\xfb\x03\xff\xfd\x03\xff\xfc\x23\xff\xfc\x24\xff\xfa\x1f\x00\x50\x00\x18\xff\xf0\xff\xfa\x20\x00\x33\x38\x34\x30\x30\x2c\x33\x38\x34\x30\x30\xff\xf0\xff\xfa\x27\x00\xff\xf0\xff\xfa\x18\x00\x41\x4e\x53\x49\xff\xf0"
+
+                cmd += b"\xff\xfc\x01\xff\xfc\x22\xff\xfe\x05\xff\xfc\x21"
+
+                # Display info message
+                log.info(f"connectTelnet: telnet_init_message: send: {cmd}")
+
+                # Display info message
+                log.debug(f"connectTelnet: telnet_init_message: send: '{cmd.hex()}'")
+
+                # Sending command
+                self._writer.write(cmd)
+
+                # Temporary bytes variable cleared
+                byte_data = b""
+
+        # Display info message
+        log.info(f"connectTelnet: login prompt: '{output}'")
+
+        # Login to use?
+        if use_login:
+
+            # Yes
+
+            # Display info message
+            log.info("connectTelnet: sending login")
+
+            try:
+
+                # Send login
+                # await self.send_command(self.username, prompt_password)
+                # Sending command
+                cmd = self.username + "\r\n"
+                self._writer.write(cmd.encode())
+
+                # Display info message
+                log.info("connectTelnet: login sent")
+
+            except Exception:
+
+                # Problem with the login
+
+                # Propagate the exception
+                raise
+
+        # Display info message
+        log.info("connectTelnet: sending password")
+
+        try:
+            # Send password
+            output = await self.telnet_send_command_with_unexpected_pattern(
+                self.password,
+                self._telnet_connect_first_ending_prompt,
+                self._telnet_connect_authentication_fail_prompt,
+            )
+
+        except Exception:
+
+            # Problem with the password
+
+            # Propagate the exception
+            raise
+
+        # Display info message
+        log.info("connectTelnet: password sent")
+
+    async def send_commandTelnet(self, cmd, pattern=None, timeout=None):
+        """
+        Async method used to send data to a device
+
+        :param cmd: command to send
+        :type cmd: str
+
+        :param pattern: optional, a pattern replacing the prompt when the prompt is not expected
+        :type pattern: str
+
+        :param timeout: optional, a timeout for the command sent. Default value is self.timeout
+        :type timeout: str
+
+        :return: the output of command
+        :rtype: str
+        """
+
+        # Debug info message
+        log.info("send_commandTelnet")
+
+        # Default value of timeout variable
+        if timeout is None:
+            timeout = self.timeout
+
+        # Add carriage return at the end of the command (mandatory to send the command)
+        cmd = cmd + "\r\n"
+
+        # Sending command
+        self._writer.write(cmd.encode())
+
+        # Temporary string variable
+        output = ""
+
+        # Temporary bytes variable
+        byte_data = b""
+
+        # Variable used for leaving loop (necessary sonce there is a "while" with a "for" and a "break" command)
+        stay_in_loop = True
+
+        try:
+
+            # Read data
+            while stay_in_loop:
+
+                # Read returned prompt
+                byte_data += await asyncio.wait_for(
+                    self._reader.read(MAX_BUFFER_DATA), timeout=timeout
+                )
+
+                # Display info message
+                log.info(f"send_commandTelnet: byte_data: '{byte_data}'")
+
+                # Temporary convertion in string. This string has the following form: "b'....'"
+                output = str(byte_data)
+
+                # Display info message
+                log.info(f"send_commandTelnet: output: '{output}'")
+
+                # Is a patten used?
+                if pattern:
+
+                    # Use pattern instead of prompt
+                    if pattern in output:
+
+                        # Yes
+
+                        # Leave the loop
+                        break
+
+                else:
+
+                    # Check if prompt is found
+                    for prompt in self.list_of_possible_ending_prompts:
+
+                        # A pattern found twice (or more)?
+                        if output.count(prompt) >= 2:
+
+                            # Yes
+
+                            # Display info message
+                            log.info(
+                                f"send_commandTelnet: prompt found twice or more: '{prompt}'"
+                            )
+
+                            # Will leave the while loop
+                            stay_in_loop = False
+
+                            # Leave the loop
+                            break
+
+        except asyncio.TimeoutError:
+
+            # Time out during when reading prompt
+
+            # Display error message
+            log.error("send_commandTelnet: connection: timeout")
+
+            # Exception propagation
+            raise
+
+        except Exception as error:
+
+            # Error during when reading prompt
+
+            # Display error message
+            log.error(f"send_commandTelnet: error: {error}")
+
+            # Exception propagation
+            raise
+
+        # Convert data (bytes) into string
+        output = byte_data.decode("utf-8", "ignore")
+
+        # Debug info message
+        log.info(
+            f"send_commandTelnet: raw output: '{output}'\nsend_commandTelnet: raw output (hex): '{output.encode().hex()}'"
+        )
+
+        # Remove the command sent from the result of the command
+        # output = self.remove_command_in_output(output, str(cmd))
+        # For Mikrotik just remove the first line (complicated otherwise)
+        output = output.split("\n\r", 1)[1]
+        # Remove the carriage return of the output
+        # output = self.remove_starting_carriage_return_in_output(output)
+        # Remove the ending prompt of the output
+        # For Mikrotik just remove the last line (complicated otherwise)
+        output = output[: output.rfind("\n")] + "\n"
+
+        # Debug info message
+        log.info(
+            f"send_commandTelnet: cleaned output: '{output}'\nsend_commandTelnet: cleaned output (hex): '{output.encode().hex()}'"
+        )
+
+        # Check if there is an error in the output string (like "% Unrecognized command")
+        # and generate an exception if needed
+        self.check_error_output(output)
+
+        # Return the result of the command
+        return output
+
+    async def telnet_send_command_with_unexpected_pattern(
+        self, cmd, pattern, error_pattern=None, timeout=None
+    ):
+        """
+        Async method used to send command for Telnet connection to a device with possible unexpected patterns
+
+        send_command can wait till time out if login and password are wrong. This method
+        speed up the returned error message when authentication failed is identified.
+        This method is limited to authentication whem password is required
+
+        :param cmd: command to send
+        :type cmd: str
+
+        :param pattern: optional, a list of patterns located at the very end of the a returned string. Can be used
+            to define a custom or unexpected prompt a the end of a string
+        :type pattern: str
+
+        :param timeout: optional, a timeout for the command sent. Default value is self.timeout
+        :type timeout: str
+
+        :param error_pattern: optional, a list of failed prompts found when the login and password are not correct
+        :type error_pattern: str
+
+        :return: the output of command
+        :rtype: str
+        """
+
+        # Debug info message
+        log.info("telnet_send_command_with_unexpected_pattern")
+
+        # Default value of timeout variable
+        if timeout is None:
+            timeout = self.timeout
+
+        # Add carriage return at the end of the command (mandatory to send the command)
+        cmd = cmd + "\n"
+
+        # Sending command
+        self._writer.write(cmd.encode())
+
+        # Temporary string variable
+        output = ""
+
+        # Temporary bytes variable
+        byte_data = b""
+
+        # By default pattern is not found
+        pattern_not_found = True
+
+        try:
+
+            # Read data
+            while pattern_not_found:
+
+                # Read returned prompt
+                byte_data += await asyncio.wait_for(
+                    self._reader.read(MAX_BUFFER_DATA), timeout=timeout
+                )
+
+                # Display info message
+                log.info(
+                    f"telnet_send_command_with_unexpected_pattern: byte_data: '{byte_data}'"
+                )
+
+                # Display debug message
+                log.debug(
+                    f"telnet_send_command_with_unexpected_pattern: byte_data: hex: '{byte_data.hex()}'"
+                )
+
+                # Temporary convertion in string. This string has the following form: "b'....'"
+                output = str(byte_data)
+
+                # Display info message
+                log.info(
+                    f"telnet_send_command_with_unexpected_pattern: output: '{output}'"
+                )
+
+                # Is a pattern used?
+                if pattern:
+
+                    # Check all pattern of prompt in the output
+                    for prompt in pattern:
+
+                        # Display info message
+                        log.info(
+                            f"telnet_send_command_with_unexpected_pattern: checking prompt: '{prompt}'"
+                        )
+
+                        # A pattern found twice (or more)?
+                        if output.count(prompt) >= 2:
+                            # if prompt in output:
+
+                            # Yes
+
+                            # A pattern is found. The main loop can be stopped
+                            pattern_not_found = False
+
+                            # Display info message
+                            log.info(
+                                f"telnet_send_command_with_unexpected_pattern: prompt found: '{prompt}'"
+                            )
+
+                            # Leave the loop
+                            break
+
+                # Is an unexpected pattern used?
+                if error_pattern and pattern_not_found:
+
+                    # Check all unexpected pattern of prompt in the output
+                    for bad_prompt in error_pattern:
+
+                        # Display info message
+                        log.info(
+                            f"telnet_send_command_with_unexpected_pattern: checking unexpected prompt: '{bad_prompt}'"
+                        )
+
+                        # An error_pattern pattern found?
+                        if bad_prompt in output:
+
+                            # Yes
+
+                            # Display error message
+                            log.error(
+                                "telnet_send_command_with_unexpected_pattern: authentication failed"
+                            )
+
+                            # Raise exception
+                            raise Exception(
+                                "telnet_send_command_with_unexpected_pattern: authentication failed"
+                            )
+
+                            # Leave the loop
+                            # break
+
+        except asyncio.TimeoutError:
+
+            # Time out during when reading prompt
+
+            # Close the connection in order to not display RuntimeError
+            await self.disconnect()
+
+            # Display error message
+            log.error(
+                "telnet_send_command_with_unexpected_pattern: reading prompt: timeout"
+            )
+
+            # Exception propagation
+            raise
+
+        except Exception as error:
+
+            # Error during when reading prompt
+
+            # Close the connection in order to not display RuntimeError
+            await self.disconnect()
+
+            # Display error message
+            log.error(
+                f"telnet_send_command_with_unexpected_pattern: reading prompt: error: {error}"
+            )
+
+            # Exception propagation
+            raise
+
+        # Convert data (bytes) into string
+        output = byte_data.decode("utf-8", "ignore")
+
+        # Debug info message
+        log.info(
+            f"telnet_send_command_with_unexpected_pattern: raw output: '{output}'\ntelnet_send_command_with_unexpected_pattern: raw output (hex): '{output.encode().hex()}'"
+        )
+
+        # Remove the command sent from the result of the command
+        # output = self.remove_command_in_output(output, str(cmd))
+        output = output.split("\n\r", 1)[1]
+        # Remove the carriage return of the output
+        output = self.remove_starting_carriage_return_in_output(output)
+        # Remove the ending prompt of the output
+        # For Mikrotik just remove the last line (complicated otherwise)
+        output = output[: output.rfind("\n")] + "\n"
+
+        # Debug info message
+        log.info(
+            f"telnet_send_command_with_unexpected_pattern: cleaned output: '{output}'\ntelnet_send_command_with_unexpected_pattern: cleaned output (hex): '{output.encode().hex()}'"
+        )
+
+        # Return the result of the command
+        return output
 
     async def send_config_set(self, cmds=None, timeout=None):
         """
@@ -281,32 +807,43 @@ class MikrotikRouterOS(NetworkDevice):
         # Read each line
         for line in lines:
 
+            # Set default values for variables
+            mac_type = None
+            mac_address = None
+            vlan = None
+            interface = None
+
             # If the MAC address is dynamic AND local then it is self (its own MAC address)
 
             # Get the type of MAC address (dynamic, static or self)
-            if line[6].lower() == "l":
+            if len(line) > 6:
 
-                # Self MAC address
-                mac_type = "self"
+                if line[6].lower() == "l":
 
-            # Get the type of MAC address (dynamic, static or self)
-            elif line[5].lower() == "d":
+                    # Self MAC address
+                    mac_type = "self"
 
-                # Dynamic MAC address
-                mac_type = "dynamic"
-            else:
+                # Get the type of MAC address (dynamic, static or self)
+                elif line[5].lower() == "d":
 
-                # Static MAC address
-                mac_type = "static"
+                    # Dynamic MAC address
+                    mac_type = "dynamic"
+                else:
+
+                    # Static MAC address
+                    mac_type = "static"
 
             # Get MAC address
-            mac_address = line[9:26]
+            if len(line) > 26:
+                mac_address = line[9:26]
 
             # Get VLAN
-            vlan = line[27:31].strip()
+            if len(line) > 31:
+                vlan = line[27:31].strip()
 
             # Get interface
-            interface = line[32:].split()[0]
+            if len(line) > 32:
+                interface = line[32:].split()[0]
 
             # Create a dictionary
             mac_dict = {
@@ -317,7 +854,8 @@ class MikrotikRouterOS(NetworkDevice):
             }
 
             # Add the MAC information to the list
-            returned_output.append(mac_dict)
+            if mac_address:
+                returned_output.append(mac_dict)
 
         # Return data
         return returned_output
@@ -348,14 +886,22 @@ class MikrotikRouterOS(NetworkDevice):
         # Read each line
         for line in lines:
 
+            # Set default values for variables
+            address = None
+            mac_address = None
+            interface = None
+
             # Get IP address
-            address = line.split(" address=")[-1].split()[0]
+            if " address=" in line:
+                address = line.split(" address=")[-1].split()[0]
 
             # Get MAC address
-            mac_address = line.split(" mac-address=")[-1].split()[0]
+            if " mac-address=" in line:
+                mac_address = line.split(" mac-address=")[-1].split()[0]
 
             # Get interface
-            interface = line.split(" interface=")[-1].split()[0]
+            if " interface=" in line:
+                interface = line.split(" interface=")[-1].split()[0]
 
             # Create a dictionary
             returned_dict = {
@@ -365,7 +911,8 @@ class MikrotikRouterOS(NetworkDevice):
             }
 
             # Add the information to the list
-            returned_output.append(returned_dict)
+            if address:
+                returned_output.append(returned_dict)
 
         # Return data
         return returned_output
@@ -595,19 +1142,24 @@ class MikrotikRouterOS(NetworkDevice):
         # Read all tagged interfaces line by line
         for line in block_of_strings_mode:
 
-            # Save the string with the name of the interfaces separated with a comma
-            tagged_interfaces = line.split(" tagged=")[-1].split()[0]
+            # Check if a " tagged=" is inside the string
+            if " tagged=" in line:
 
-            # Check if value is not empty
-            if tagged_interfaces != '""':
+                # Yes
 
-                # Not empty
+                # Save the string with the name of the interfaces separated with a comma
+                tagged_interfaces = line.split(" tagged=")[-1].split()[0]
 
-                # Read all trunk interfaces found and separate them
-                for interface_trunk in tagged_interfaces.split(","):
+                # Check if value is not empty
+                if tagged_interfaces != '""':
 
-                    # Save the trunk interface
-                    dict_trunk_interface[interface_trunk] = True
+                    # Not empty
+
+                    # Read all trunk interfaces found and separate them
+                    for interface_trunk in tagged_interfaces.split(","):
+
+                        # Save the trunk interface
+                        dict_trunk_interface[interface_trunk] = True
 
         # Read each line
         for line in lines:
@@ -629,205 +1181,213 @@ class MikrotikRouterOS(NetworkDevice):
                 # Display info message
                 log.info(f"get_interfaces: interface_name: {interface_name}")
 
-            # Get operational and admin_state status
-            data = line[3].upper()
+                # Get operational and admin_state status
+                if len(line) > 3:
+                    data = line[3].upper()
 
-            # operational + admin_state = "up"?
-            if data == "R":
+                    # operational + admin_state = "up"?
+                    if data == "R":
 
-                # Yes
-                operational = True
-                admin_state = True
+                        # Yes
+                        operational = True
+                        admin_state = True
 
-            # operational = "down" and admin_state = "up"?
-            elif data == " ":
+                    # operational = "down" and admin_state = "up"?
+                    elif data == " ":
 
-                # Yes
-                admin_state = True
+                        # Yes
+                        admin_state = True
 
-            # operational + admin_state = "down" means data == "X"
-            # No need to compare since default values are already fine
-
-            # Display info message
-            log.info(f"get_interfaces: operational: {operational}, admin_state")
-
-            # Get maximum frame size
-            if " l2mtu=" in line:
-                maximum_frame_size = int(line.split(" l2mtu=")[-1].split()[0])
+                    # operational + admin_state = "down" means data == "X"
+                    # No need to compare since default values are already fine
 
                 # Display info message
-                log.info(f"get_interfaces: maximum_frame_size : {maximum_frame_size}")
+                log.info(f"get_interfaces: operational: {operational}, admin_state")
 
-            # Get speed and duplex information
-
-            for index, data_block in enumerate(block_of_strings_bitrate):
-
-                # Display info message
-                log.info(
-                    f"get_interfaces: get_speed: index: {index} [{len(block_of_strings_bitrate)}]"
-                )
-
-                # Is the name of interface found in the block of strings?
-                if f"name: {interface_name}" in data_block:
-
-                    # Yes, so this block of strings has information on the interface
+                # Get maximum frame size
+                if " l2mtu=" in line:
+                    maximum_frame_size = int(line.split(" l2mtu=")[-1].split()[0])
 
                     # Display info message
-                    log.info(f"get_interfaces: get_speed: index found: {index}")
+                    log.info(
+                        f"get_interfaces: maximum_frame_size : {maximum_frame_size}"
+                    )
 
-                    # " rate: " field found in the block of strings? (speed)
-                    if " rate: " in data_block:
+                # Get speed and duplex information
 
-                        # Yes
+                for index, data_block in enumerate(block_of_strings_bitrate):
 
-                        # Then extract the string data
-                        rate_string = data_block.split(" rate: ")[-1].split()[0].lower()
+                    # Display info message
+                    log.info(
+                        f"get_interfaces: get_speed: index: {index} [{len(block_of_strings_bitrate)}]"
+                    )
 
-                        # Is is mbps?
-                        if "mbps" in rate_string:
-                            # Yes
+                    # Is the name of interface found in the block of strings?
+                    if f"name: {interface_name}" in data_block:
 
-                            # Then speed is saved
-                            speed = int(float(rate_string.split("mbps")[0]))
-
-                        # Is is gbps?
-                        elif "gbps" in rate_string:
-
-                            # Yes
-
-                            # Then speed is saved in mpbs
-                            speed = int(float(rate_string.split("gbps")[0]) * 1000)
-
-                        # Is is tbps? (not seen on current Mikrotik product; for future use)
-                        elif "tbps" in rate_string:
-                            # Yes
-
-                            # Then speed is saved in mpbs
-                            speed = int(float(rate_string.split("tbps")[0]) * 1000000)
+                        # Yes, so this block of strings has information on the interface
 
                         # Display info message
-                        log.info(
-                            f"get_interfaces: get_speed: rate found: {rate_string}, rate: {speed} mbps"
-                        )
+                        log.info(f"get_interfaces: get_speed: index found: {index}")
 
-                    # " full-duplex: yes" field found in the block of strings? (full_duplex)
-                    if " full-duplex: yes" in data_block:
+                        # " rate: " field found in the block of strings? (speed)
+                        if " rate: " in data_block:
 
-                        # Yes
+                            # Yes
 
-                        # Display info message
-                        log.info(
-                            f"get_interfaces: get_duplex: {interface_name} is in full duplex mode"
-                        )
+                            # Then extract the string data
+                            rate_string = (
+                                data_block.split(" rate: ")[-1].split()[0].lower()
+                            )
 
-                        # Then the insterface is in full duplex mode
-                        full_duplex = True
+                            # Is is mbps?
+                            if "mbps" in rate_string:
+                                # Yes
 
-                    # Remove current interface information from the block of data
-                    # (to speed up the research of data)
-                    del block_of_strings_bitrate[index]
+                                # Then speed is saved
+                                speed = int(float(rate_string.split("mbps")[0]))
 
-                    # Leave the loop
-                    break
+                            # Is is gbps?
+                            elif "gbps" in rate_string:
 
-            # Get interface mode (access or trunk)
+                                # Yes
 
-            # Check if the interface is one of the trunk interface
-            if interface_name in dict_trunk_interface:
+                                # Then speed is saved in mpbs
+                                speed = int(float(rate_string.split("gbps")[0]) * 1000)
 
-                # Yes
+                            # Is is tbps? (not seen on current Mikrotik product; for future use)
+                            elif "tbps" in rate_string:
+                                # Yes
 
-                # Set trunk mode
-                mode = "trunk"
+                                # Then speed is saved in mpbs
+                                speed = int(
+                                    float(rate_string.split("tbps")[0]) * 1000000
+                                )
 
-                # Display info message
-                log.info(f"get_interfaces: mode: {mode}")
+                            # Display info message
+                            log.info(
+                                f"get_interfaces: get_speed: rate found: {rate_string}, rate: {speed} mbps"
+                            )
 
-            # # Get input erros, FCS errors, input packets anf output packets
-            # for index, data_stats in enumerate(block_of_strings_stats):
+                        # " full-duplex: yes" field found in the block of strings? (full_duplex)
+                        if " full-duplex: yes" in data_block:
 
-            #     # Display info message
-            #     log.info(
-            #         f"get_interfaces: get_stats: index: {index} [{len(block_of_strings_stats)}]"
-            #     )
+                            # Yes
 
-            #     # Is the name of interface found in the block of strings?
-            #     if f"name: {interface_name}" in data_stats:
+                            # Display info message
+                            log.info(
+                                f"get_interfaces: get_duplex: {interface_name} is in full duplex mode"
+                            )
 
-            #         # Yes, so this block of strings has information on the interface
+                            # Then the insterface is in full duplex mode
+                            full_duplex = True
 
-            #         # Display info message
-            #         log.info(f"get_interfaces: get_stats: index found: {index}")
+                        # Remove current interface information from the block of data
+                        # (to speed up the research of data)
+                        del block_of_strings_bitrate[index]
 
-            #         # " rx-fcs-error=" filed found in the block of strings? (speed)
-            #         if " rx-fcs-error=" in data_stats:
+                        # Leave the loop
+                        break
 
-            #             # Yes
+                # Get interface mode (access or trunk)
 
-            #             # Save the line with the data of FCS errors
-            #             line_split = data_stats.split("rx-fcs-error=")[-1].split("=")[0]
+                # Check if the interface is one of the trunk interface
+                if interface_name in dict_trunk_interface:
 
-            #             # By default no string gathered
-            #             fcs_string = ""
+                    # Yes
 
-            #             # Check each character till a non-numeric character
-            #             for character in line_split:
+                    # Set trunk mode
+                    mode = "trunk"
 
-            #                 # Display info message
-            #                 log.info(
-            #                     f"get_interfaces: get_stats: fcs errors: char = {character}"
-            #                 )
+                    # Display info message
+                    log.info(f"get_interfaces: mode: {mode}")
 
-            #                 # Is it a numeric characer ("0" to "9")?
-            #                 if character >= "0" and character <= "9":
+                # # Get input erros, FCS errors, input packets anf output packets
+                # for index, data_stats in enumerate(block_of_strings_stats):
 
-            #                     # Yes
+                #     # Display info message
+                #     log.info(
+                #         f"get_interfaces: get_stats: index: {index} [{len(block_of_strings_stats)}]"
+                #     )
 
-            #                     # So the character is added to a string
-            #                     fcs_string += character
+                #     # Is the name of interface found in the block of strings?
+                #     if f"name: {interface_name}" in data_stats:
 
-            #                 # Is the character different than " " (which can be used for separator)?
-            #                 elif character != " ":
+                #         # Yes, so this block of strings has information on the interface
 
-            #                     # Yes, this is not a space
+                #         # Display info message
+                #         log.info(f"get_interfaces: get_stats: index found: {index}")
 
-            #                     # Leave the loop then since this is the beginning of another word
-            #                     break
+                #         # " rx-fcs-error=" filed found in the block of strings? (speed)
+                #         if " rx-fcs-error=" in data_stats:
 
-            #             log.info(
-            #                 f"get_interfaces: get_stats: fcs errors: fcs_string: {fcs_string}"
-            #             )
+                #             # Yes
 
-            #             # String not empty?
-            #             if fcs_string:
+                #             # Save the line with the data of FCS errors
+                #             line_split = data_stats.split("rx-fcs-error=")[-1].split("=")[0]
 
-            #                 # Yes
+                #             # By default no string gathered
+                #             fcs_string = ""
 
-            #                 # Then save the result in integer
-            #                 fcs_error = int(fcs_string)
+                #             # Check each character till a non-numeric character
+                #             for character in line_split:
 
-            # Get description
-            if " comment=" in line:
-                description = (
-                    line.split(" comment=")[-1].split("=")[0].rsplit(" ", 1)[0]
-                )
+                #                 # Display info message
+                #                 log.info(
+                #                     f"get_interfaces: get_stats: fcs errors: char = {character}"
+                #                 )
 
-                # Display info message
-                log.info(f"get_interfaces: comment: {description}")
+                #                 # Is it a numeric characer ("0" to "9")?
+                #                 if character >= "0" and character <= "9":
 
-            # Create a dictionary
-            returned_dict = {
-                "operational": operational,
-                "admin_state": admin_state,
-                "maximum_frame_size": maximum_frame_size,
-                "full_duplex": full_duplex,
-                "speed": speed,
-                "mode": mode,
-                "description": description,
-            }
+                #                     # Yes
 
-            # Add the information to the dict
-            returned_output[interface_name] = returned_dict
+                #                     # So the character is added to a string
+                #                     fcs_string += character
+
+                #                 # Is the character different than " " (which can be used for separator)?
+                #                 elif character != " ":
+
+                #                     # Yes, this is not a space
+
+                #                     # Leave the loop then since this is the beginning of another word
+                #                     break
+
+                #             log.info(
+                #                 f"get_interfaces: get_stats: fcs errors: fcs_string: {fcs_string}"
+                #             )
+
+                #             # String not empty?
+                #             if fcs_string:
+
+                #                 # Yes
+
+                #                 # Then save the result in integer
+                #                 fcs_error = int(fcs_string)
+
+                # Get description
+                if " comment=" in line:
+                    description = (
+                        line.split(" comment=")[-1].split("=")[0].rsplit(" ", 1)[0]
+                    )
+
+                    # Display info message
+                    log.info(f"get_interfaces: comment: {description}")
+
+                # Create a dictionary
+                returned_dict = {
+                    "operational": operational,
+                    "admin_state": admin_state,
+                    "maximum_frame_size": maximum_frame_size,
+                    "full_duplex": full_duplex,
+                    "speed": speed,
+                    "mode": mode,
+                    "description": description,
+                }
+
+                # Add the information to the dict
+                if interface_name:
+                    returned_output[interface_name] = returned_dict
 
         # Return data
         return returned_output
@@ -898,8 +1458,13 @@ class MikrotikRouterOS(NetworkDevice):
                 "extra": extra,
             }
 
-            # Add the information to the dict
-            returned_output[vlan_id] = returned_dict
+            # Is VLAN ID not nul?
+            if vlan_id:
+
+                # Yes
+
+                # Add the information to the dict
+                returned_output[vlan_id] = returned_dict
 
         # Return data
         return returned_output
@@ -936,7 +1501,6 @@ class MikrotikRouterOS(NetworkDevice):
             prefix = 0
             protocol = "unknown"
             administrative_distance = 0
-            metric = 0
             gateway = ""
             active = False
             protocol_attributes = None
@@ -950,37 +1514,39 @@ class MikrotikRouterOS(NetworkDevice):
             # Get protocol
 
             # Save char with protocol letter
-            protocol_char = line[5]
+            if len(line) > 5:
 
-            if protocol_char == "C":
+                protocol_char = line[5]
 
-                # Connected
-                protocol = "connected"
+                if protocol_char == "C":
 
-            elif protocol_char == "S":
+                    # Connected
+                    protocol = "connected"
 
-                # Static
-                protocol = "static"
+                elif protocol_char == "S":
 
-            elif protocol_char == "r":
+                    # Static
+                    protocol = "static"
 
-                # RIP
-                protocol = "rip"
+                elif protocol_char == "r":
 
-            elif protocol_char == "b":
+                    # RIP
+                    protocol = "rip"
 
-                # BGP
-                protocol = "bgp"
+                elif protocol_char == "b":
 
-            elif protocol_char == "o":
+                    # BGP
+                    protocol = "bgp"
 
-                # OSPF
-                protocol = "ospf"
+                elif protocol_char == "o":
 
-            elif protocol_char == "m":
+                    # OSPF
+                    protocol = "ospf"
 
-                # MME
-                protocol = "mme"
+                elif protocol_char == "m":
+
+                    # MME
+                    protocol = "mme"
 
             # Get administrative distance
             if " distance=" in line:
@@ -991,8 +1557,10 @@ class MikrotikRouterOS(NetworkDevice):
                 gateway = line.split(" gateway=")[-1].split()[0]
 
             # Get active status
-            if line[3] == "A":
-                active = True
+            if len(line) > 3:
+
+                if line[3] == "A":
+                    active = True
 
             # Create a dictionary
             returned_dict = {
@@ -1000,14 +1568,18 @@ class MikrotikRouterOS(NetworkDevice):
                 "prefix": prefix,
                 "protocol": protocol,
                 "administrative_distance": administrative_distance,
-                "metric": metric,
                 "gateway": gateway,
                 "active": active,
                 "protocol_attributes": protocol_attributes,
             }
 
-            # Add the information to the dict
-            returned_output[network] = returned_dict
+            # Is a network found?
+            if network:
+
+                # Yes
+
+                # Add the information to the dict
+                returned_output[network] = returned_dict
 
         # Return data
         return returned_output
