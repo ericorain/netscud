@@ -1853,7 +1853,7 @@ class MikrotikRouterOS(NetworkDevice):
         # Return data
         return returned_output
 
-    async def add_vlan(self, vland_id, vlan_name=None, bridge=None):
+    async def add_vlan(self, vland_id, vlan_name=None, **kwargs):
         """
         Asyn method used to add a vlan to a bridge from the device
 
@@ -1864,17 +1864,41 @@ class MikrotikRouterOS(NetworkDevice):
         # Display info message
         log.info("add_vlan")
 
+        # Default parameters value
+        # bridge = True
+        bridge_name = None
+
+        # Get parameters
+
+        # # "bridge" found?
+        # if "bridge" in kwargs:
+
+        #     # Save "bridge" parameter
+        #     bridge = kwargs["bridge"]
+
+        #     # Display info message
+        #     log.info(f"add_vlan: bridge found: {bridge}")
+
+        # "bridge_name" found?
+        if "bridge_name" in kwargs:
+
+            # Save "bridge" parameter
+            bridge_name = kwargs["bridge_name"]
+
+            # Display info message
+            log.info(f"add_vlan: bridge_name found: '{bridge_name}'")
+
         # By default result status is having an error
         return_status = False
 
-        # Bridge specified?
-        if not bridge:
+        # # Bridge specified?
+        # if not bridge:
 
-            # No
+        #     # No
 
-            # Then find the first bridge
+        #     # Then find the first bridge
 
-            pass
+        #     pass
 
         # Return status
         return return_status
