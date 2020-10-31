@@ -1,7 +1,7 @@
 Tutorial
 ####################
 
-This tutorial is made of examples to learn gradually how to use asynchronous SSH programming for network device (i.e. network switches or routers) with netscud.
+In this tutorial section you will find examples of codes to learn gradually how to use asynchronous SSH programming for network devices (i.e. network switches or routers) with netscud.
 
 Simple command
 **************
