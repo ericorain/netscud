@@ -52,6 +52,9 @@ class MikrotikRouterOS(NetworkDevice):
         ]
         self.cmd_get_vlans = "interface bridge vlan print terse without-paging"
         self.cmd_get_routing_table = "ip route print without-paging terse"
+        self.cmd_get_bridges = "interface bridge print terse without-paging"
+        self.cmd_add_vlan = 'interface bridge vlan add vlan-ids=<VLAN> comment="<VLAN_NAME>" bridge=<BRIDGE>'
+        self.cmd_remove_vlan = "interface bridge vlan remove [find vlan-ids=<VLAN>]"
         # No command to save the config. So it is always saved after "Enter"
         self.cmd_save_config = ""
 
@@ -426,7 +429,7 @@ class MikrotikRouterOS(NetworkDevice):
         # Variable used to gather data
         output = ""
 
-        # Variable used for leaving loop (necessary sonce there is a "while" with a "for" and a "break" command)
+        # Variable used for leaving loop (necessary since there is a "while" with a "for" and a "break" command)
         stay_in_loop = True
 
         # Reading data
@@ -500,8 +503,20 @@ class MikrotikRouterOS(NetworkDevice):
         # Remove the carriage return of the output
         # output = self.remove_starting_carriage_return_in_output(output)
         # Remove the ending prompt of the output
-        # For Mikrotik just remove the last line (complicated otherwise)
-        output = output[: output.rfind("\n")] + "\n"
+
+        # 2 lines?
+        if "\n" in output:
+
+            # Yes
+
+            # For Mikrotik just remove the last line (complicated otherwise)
+            output = output[: output.rfind("\n")]
+        else:
+
+            # No. There is just the prompt
+
+            # Empty string is returned
+            output = ""
 
         # Debug info message
         log.info(
@@ -547,7 +562,7 @@ class MikrotikRouterOS(NetworkDevice):
         # Temporary bytes variable
         byte_data = b""
 
-        # Variable used for leaving loop (necessary sonce there is a "while" with a "for" and a "break" command)
+        # Variable used for leaving loop (necessary since there is a "while" with a "for" and a "break" command)
         stay_in_loop = True
 
         try:
@@ -637,7 +652,7 @@ class MikrotikRouterOS(NetworkDevice):
         # output = self.remove_starting_carriage_return_in_output(output)
         # Remove the ending prompt of the output
         # For Mikrotik just remove the last line (complicated otherwise)
-        output = output[: output.rfind("\n")] + "\n"
+        output = output[: output.rfind("\n")]
 
         # Debug info message
         log.info(
@@ -826,7 +841,7 @@ class MikrotikRouterOS(NetworkDevice):
         output = self.remove_starting_carriage_return_in_output(output)
         # Remove the ending prompt of the output
         # For Mikrotik just remove the last line (complicated otherwise)
-        output = output[: output.rfind("\n")] + "\n"
+        output = output[: output.rfind("\n")]
 
         # Debug info message
         log.info(
@@ -1853,11 +1868,198 @@ class MikrotikRouterOS(NetworkDevice):
         # Return data
         return returned_output
 
-    async def add_vlan(self, vland_id, vlan_name=None, **kwargs):
+    async def get_bridges(self):
+        """
+        Asyn method used to get bridges from the device
+
+        :return: A dictionary with the bridge information
+        :rtype: dict of dict
+        """
+
+        # Display info message
+        log.info("get_bridges")
+
+        # By default nothing is returned
+        returned_output = {}
+
+        # Send a command
+        output = await self.send_command(self.cmd_get_bridges)
+
+        # Display info message
+        log.info(f"get_bridges:\n'{output}'")
+
+        # Convert a string into a list of strings
+        lines = output.splitlines()
+
+        # Read each line
+        for line in lines:
+
+            # Initialize data with default values
+            index = None
+            name = ""
+            status = False
+            mac_address = None
+            spanning_tree = None
+            igmp_snooping = False
+            vlan_filtering = False
+            multicast_querier = False
+
+            # Get index
+
+            # Line has enough characters?
+            if len(line) > 1:
+
+                # Yes
+
+                # Get the 2 first characters (100 bridges max should be ok)
+                index_string = line[:2]
+
+                # Convert characters into a integer
+                try:
+
+                    index = int(index_string)
+
+                    # Display info message
+                    log.info(f"get_bridges: index: {index}")
+
+                except:
+
+                    # Convertion failed
+                    pass
+
+            # Get name
+            if " name=" in line:
+                name = line.split(" name=")[-1].split("=")[0].rsplit(" ", 1)[0]
+
+                # Display info message
+                log.info(f"get_bridges: name: {name}")
+
+            # Get status
+            line_words = line.split()
+
+            # Enough words?
+            if len(line_words) > 1:
+
+                # Running?
+                if line_words[1] == "R":
+
+                    # Yes
+
+                    # So the bridge is enabled
+                    status = True
+
+                    # Display info message
+                    log.info(f"get_bridges: status: {status}")
+
+            # Get MAC ADDRESS
+            if " mac-address=" in line:
+                mac_address = (
+                    line.split(" mac-address=")[-1].split("=")[0].rsplit(" ", 1)[0]
+                )
+
+                # Display info message
+                log.info(f"get_bridges: mac_address: {mac_address}")
+
+            # Get Spanning Tree mode
+            if " protocol-mode=" in line:
+                spanning_tree = (
+                    line.split(" protocol-mode=")[-1].split("=")[0].rsplit(" ", 1)[0]
+                )
+
+                # Display info message
+                log.info(f"get_bridges: spanning_tree: {spanning_tree}")
+
+            # Get IGMP SNOOPING status
+            if " igmp-snooping=" in line:
+
+                # Value "yes" for IGMP SNOOPING?
+                if (
+                    line.split(" igmp-snooping=")[-1].split("=")[0].rsplit(" ", 1)[0]
+                    == "yes"
+                ):
+
+                    # Yes
+
+                    # IGMP SNOOPING is enabled
+                    igmp_snooping = True
+
+                    # Display info message
+                    log.info(f"get_bridges: igmp_snooping: {igmp_snooping}")
+
+            # Get VLAN filtering status
+            if " vlan-filtering=" in line:
+
+                # Value "yes" for VLAN filtering?
+                if (
+                    line.split(" vlan-filtering=")[-1].split("=")[0].rsplit(" ", 1)[0]
+                    == "yes"
+                ):
+
+                    # Yes
+
+                    # VLAN filtering is enabled
+                    vlan_filtering = True
+
+                    # Display info message
+                    log.info(f"get_bridges: vlan_filtering: {vlan_filtering}")
+
+            # Get multicast querier status
+            if " multicast-querier=" in line:
+
+                # Value "yes"?
+                if (
+                    line.split(" multicast-querier=")[-1]
+                    .split("=")[0]
+                    .rsplit(" ", 1)[0]
+                    == "yes"
+                ):
+
+                    # Yes
+
+                    # VLAN filtering is enabled
+                    multicast_querier = True
+
+                    # Display info message
+                    log.info(f"get_bridges: multicast_querier: {multicast_querier}")
+
+            # Create a dictionary
+            returned_dict = {
+                "name": name,
+                "status": status,
+                "mac_address": mac_address,
+                "spanning_tree": spanning_tree,
+                "igmp_snooping": igmp_snooping,
+                "vlan_filtering": vlan_filtering,
+                "multicast_querier": multicast_querier,
+            }
+
+            # Is there a value?
+            if index is not None:
+
+                # Yes
+
+                # Add the information to the dict
+                returned_output[index] = returned_dict
+
+        # Return data
+        return returned_output
+
+    async def add_vlan(self, vland_id, vlan_name="", **kwargs):
         """
         Asyn method used to add a vlan to a bridge from the device
+        VLAN to interface is not supported
 
-        :return: Status. True = no error, False error
+        :param vland_id: VLAN ID
+        :type vland_id: int
+
+        :param vlan_name: optional, name of the VLAN
+        :type vlan_name: str
+
+        :param kwargs: mandatory, must contain "bridge_name" (str) to specify
+                       which bridge to use (specific to Mikrotik)
+        :type kwargs: str
+
+        :return: Status. True = no error, False = error
         :rtype: int
         """
 
@@ -1865,40 +2067,101 @@ class MikrotikRouterOS(NetworkDevice):
         log.info("add_vlan")
 
         # Default parameters value
-        # bridge = True
         bridge_name = None
-
-        # Get parameters
-
-        # # "bridge" found?
-        # if "bridge" in kwargs:
-
-        #     # Save "bridge" parameter
-        #     bridge = kwargs["bridge"]
-
-        #     # Display info message
-        #     log.info(f"add_vlan: bridge found: {bridge}")
-
-        # "bridge_name" found?
-        if "bridge_name" in kwargs:
-
-            # Save "bridge" parameter
-            bridge_name = kwargs["bridge_name"]
-
-            # Display info message
-            log.info(f"add_vlan: bridge_name found: '{bridge_name}'")
 
         # By default result status is having an error
         return_status = False
 
-        # # Bridge specified?
-        # if not bridge:
+        # Get parameters
 
-        #     # No
+        # "bridge_name" found?
+        if "bridge_name" not in kwargs:
 
-        #     # Then find the first bridge
+            # No
 
-        #     pass
+            # So the VLAN cannot be added
+
+            # Return status
+            return return_status
+
+        # Save "bridge" parameter
+        bridge_name = kwargs["bridge_name"]
+
+        # Display info message
+        log.info(f"add_vlan: bridge_name found: '{bridge_name}'")
+
+        # Adapt the command line
+        # self.cmd_add_vlan = "interface bridge vlan add vlan-ids=<VLAN> comment=\"<VLAN_NAME>\" bridge=<BRIDGE>"
+        cmd_add_vlan = self.cmd_add_vlan
+
+        # Replace <VLAN> with the VLAN number
+        cmd_add_vlan = cmd_add_vlan.replace("<VLAN>", str(vland_id))
+
+        # Replace <BRIDGE> with the bridge name
+        cmd_add_vlan = cmd_add_vlan.replace("<BRIDGE>", bridge_name)
+
+        # Replace <VLAN_NAME> with the VLAN name
+        cmd_add_vlan = cmd_add_vlan.replace("<VLAN_NAME>", vlan_name)
+
+        # Display info message
+        log.info(f"add_vlan: cmd_add_vlan: '{cmd_add_vlan}'")
+
+        # Add VLAN
+        output = await self.send_command(cmd_add_vlan)
+
+        # Display info message
+        log.info(f"add_vlan: output: '{output}'")
+
+        # Check if an error happened
+        # "failure: vlan already added"
+        if "failure" not in output:
+
+            # No error
+            return_status = True
+
+        # Return status
+        return return_status
+
+    async def remove_vlan(self, vland_id):
+        """
+        Asyn method used to remove a vlan from a bridge of the device
+        VLAN to interface is not supported
+
+        :param vland_id: VLAN ID
+        :type vland_id: int
+
+        :return: Status. True = no error, False = error
+        :rtype: int
+        """
+
+        # Display info message
+        log.info("remove_vlan")
+
+        # By default result status is having an error
+        return_status = False
+
+        # Adapt the command line
+
+        # Replace <VLAN> with the VLAN number
+        cmd_remove_vlan = self.cmd_remove_vlan.replace("<VLAN>", str(vland_id))
+
+        # Display info message
+        log.info(f"remove_vlan: cmd_remove_vlan: '{cmd_remove_vlan}'")
+
+        # Add VLAN
+        output = await self.send_command(cmd_remove_vlan)
+
+        # Display info message
+        log.info(f"remove_vlan: output: '{output}'")
+
+        # No error?
+        if "no such item" not in output:
+
+            # No error
+            return_status = True
+
+            # Sadly "no such item" or any error message cannot be returned
+            # with "[find ...]" command
 
         # Return status
         return return_status
