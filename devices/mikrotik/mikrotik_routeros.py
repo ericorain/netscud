@@ -14,6 +14,12 @@ class MikrotikRouterOS(NetworkDevice):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.interface_mode = {
+            "access": "admit-only-untagged-and-priority-tagged",
+            "trunk": "admit-only-vlan-tagged",
+            "hybrid": "admit-all",
+        }
+
         # Remove useless escape data using the user login
         self.username = self.username + "+cte"
 
@@ -45,10 +51,15 @@ class MikrotikRouterOS(NetworkDevice):
         self.cmd_get_arp = "ip arp print terse without-paging"
         self.cmd_get_lldp_neighbors = "ip neighbor print terse without-paging"
         # Commands for status, duplex/speed, mode
+        # self.cmd_get_interfaces = [
+        #     "interface ethernet print terse without-paging",
+        #     "foreach i in=([/interface ethernet find]) do={/interface ethernet monitor $i once without-paging}",
+        #     "interface bridge vlan print terse",
+        # ]
         self.cmd_get_interfaces = [
             "interface ethernet print terse without-paging",
             "foreach i in=([/interface ethernet find]) do={/interface ethernet monitor $i once without-paging}",
-            "interface bridge vlan print terse",
+            "interface bridge port print terse without-paging",
         ]
         self.cmd_get_vlans = "interface bridge vlan print terse without-paging"
         self.cmd_get_routing_table = "ip route print without-paging terse"
@@ -1370,7 +1381,7 @@ class MikrotikRouterOS(NetworkDevice):
 
     async def get_interfaces(self):
         """
-        Asyn method used to get the interfaces information from the device
+        Asyn method used to get the information of ALL the interfaces of the device
 
         some commands are used to collect interface data:
         - one for status
@@ -1426,24 +1437,63 @@ class MikrotikRouterOS(NetworkDevice):
         # Read all tagged interfaces line by line
         for line in block_of_strings_mode:
 
-            # Check if a " tagged=" is inside the string
-            if " tagged=" in line:
+            # Check if a " frame-types=" is inside the string
+            if " frame-types=" in line:
 
                 # Yes
 
                 # Save the string with the name of the interfaces separated with a comma
-                tagged_interfaces = line.split(" tagged=")[-1].split()[0]
+                frame_types = line.split(" frame-types=")[-1].split()[0]
 
-                # Check if value is not empty
-                if tagged_interfaces != '""':
+                # Mikrotik devices have 3 modes:
+                # access, trunk or hybrid
+                # (FrameTypes ::= admit-all | admit-only-untagged-and-priority-tagged | admit-only-vlan-tagged)
 
-                    # Not empty
+                #
 
-                    # Read all trunk interfaces found and separate them
-                    for interface_trunk in tagged_interfaces.split(","):
+                # self.interface_mode = {
+                #     "access": "admit-only-untagged-and-priority-tagged",
+                #     "trunk": "admit-only-vlan-tagged",
+                #     "hybrid": "admit-all",
+                # }
 
-                        # Save the trunk interface
-                        dict_trunk_interface[interface_trunk] = True
+                # Check all modes an interface can get
+                for mode in self.interface_mode:
+
+                    # Does this interface is in the current mode?
+                    if frame_types == self.interface_mode[mode]:
+
+                        # Yes
+
+                        # Display info message
+                        log.info(
+                            f"get_interfaces: frame-types: mode found: '{frame_types}'"
+                        )
+
+                        # Get the name of the interface
+                        interface_trunk = line.split(" interface=")[-1].split()[0]
+
+                        # Display info message
+                        log.info(
+                            f"get_interfaces: frame-types: interface: '{interface_trunk}'"
+                        )
+
+                        # So save the interface mode with a conventional name
+                        dict_trunk_interface[interface_trunk] = mode
+
+                        # Leave the loop
+                        break
+
+                # # Check if value is not empty
+                # if tagged_interfaces != '""':
+
+                #     # Not empty
+
+                #     # Read all trunk interfaces found and separate them
+                #     for interface_trunk in tagged_interfaces.split(","):
+
+                #         # Save the trunk interface
+                #         dict_trunk_interface[interface_trunk] = True
 
         # Read each line
         for line in lines:
@@ -1573,18 +1623,29 @@ class MikrotikRouterOS(NetworkDevice):
                         # Leave the loop
                         break
 
-                # Get interface mode (access or trunk)
+                # Get interface mode (access, trunk or hybrid)
 
                 # Check if the interface is one of the trunk interface
                 if interface_name in dict_trunk_interface:
 
                     # Yes
 
-                    # Set trunk mode
-                    mode = "trunk"
+                    # Set interface mode
+                    mode = dict_trunk_interface[interface_name]
 
                     # Display info message
                     log.info(f"get_interfaces: mode: {mode}")
+
+                # # Check if the interface is one of the trunk interface
+                # if interface_name in dict_trunk_interface:
+
+                #     # Yes
+
+                #     # Set trunk mode
+                #     mode = "trunk"
+
+                #     # Display info message
+                #     log.info(f"get_interfaces: mode: {mode}")
 
                 # # Get input erros, FCS errors, input packets anf output packets
                 # for index, data_stats in enumerate(block_of_strings_stats):
