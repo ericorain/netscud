@@ -66,6 +66,11 @@ class MikrotikRouterOS(NetworkDevice):
         self.cmd_get_bridges = "interface bridge print terse without-paging"
         self.cmd_add_vlan = 'interface bridge vlan add vlan-ids=<VLAN> comment="<VLAN_NAME>" bridge=<BRIDGE>'
         self.cmd_remove_vlan = "interface bridge vlan remove [find vlan-ids=<VLAN>]"
+        self.cmd_set_interface = [
+            "interface ethernet enable <INTERFACE>",
+            "interface ethernet disable <INTERFACE>",
+            'interface ethernet comment <INTERFACE> "<COMMENT>"',
+        ]
         # No command to save the config. So it is always saved after "Enter"
         self.cmd_save_config = ""
 
@@ -1386,7 +1391,7 @@ class MikrotikRouterOS(NetworkDevice):
         some commands are used to collect interface data:
         - one for status
         - one for duplex/speed
-        - one for mode (access / trunk)
+        - one for mode (access / trunk / hybrid)
 
         :return: Interfaces of the device
         :rtype: dict of dict
@@ -2223,6 +2228,129 @@ class MikrotikRouterOS(NetworkDevice):
 
             # Sadly "no such item" or any error message cannot be returned
             # with "[find ...]" command
+
+        # Return status
+        return return_status
+
+    # async def set_interface(
+    #     self, admin_state, description, maximum_frame_size, mode, speed
+    # ):
+
+    async def set_interface(
+        self,
+        interface=None,
+        admin_state=None,
+        description=None,
+        maximum_frame_size=None,
+        mode=None,
+        speed=None,
+        **kwargs,
+    ):
+        """
+        Asyn method used to set the state of an interface of the device
+
+        :param admin_state: "up" or "down" status of the interface
+        :type admin_state: bool
+
+        :return: Status. True = no error, False = error
+        :rtype: int
+        """
+
+        # Display info message
+        log.info("set_interface")
+
+        # By default result status is having an error
+        return_status = False
+
+        # Display info message
+        log.info(f"set_interface: input: interface: {interface}")
+        log.info(f"set_interface: input: admin_state: {admin_state}")
+        log.info(f"set_interface: input: description: {description}")
+        log.info(f"set_interface: input: maximum_frame_size: {maximum_frame_size}")
+        log.info(f"set_interface: input: mode: {mode}")
+        log.info(f"set_interface: input: speed: {speed}")
+
+        # Get parameters
+
+        # "interface" found?
+        if interface == None:
+
+            # No
+
+            # So no action can be performed
+
+            # Display info message
+            log.info("set_interface: no interface specified")
+
+            # Return status
+            return return_status
+
+        # "admin_state" found?
+        if admin_state != None:
+
+            # Yes
+
+            # So admin state of the interface can be changed
+
+            # Display info message
+            log.info("set_interface: admin_state")
+
+            # "up" or "down"? (True of False)
+            if admin_state:
+
+                # "up"
+
+                # ["interface ethernet enable <INTERFACE>", "interface ethernet disable <INTERFACE>"]
+
+                # Get the command
+                cmd = self.cmd_set_interface[0]
+
+            else:
+
+                # "down"
+
+                # Get the command
+                cmd = self.cmd_set_interface[1]
+
+            # Adapt the command line
+
+            # Replace <INTERFACE> with the interface name
+            cmd = cmd.replace("<INTERFACE>", interface)
+
+            # Display info message
+            log.info(f"set_interface: admin_state: cmd: {cmd}")
+
+            # Change the state of the interface
+            await self.send_command(cmd)
+
+
+        # "description" found?
+        if description != None:
+
+            # Yes
+
+            # So description of the interface can be changed
+
+            # Display info message
+            log.info("set_interface: description")
+
+            # Adapt the command line
+
+            # 'interface ethernet comment <INTERFACE> "<COMMENT>"',
+
+            # Replace <INTERFACE> with the interface name
+            cmd = self.cmd_set_interface[2].replace("<INTERFACE>", interface)
+
+            # Replace <COMMENT> with the description
+            cmd = cmd.replace("<COMMENT>", description)
+
+            # Display info message
+            log.info(f"set_interface: description: cmd: {cmd}")
+
+            # Change the description of the interface
+            await self.send_command(cmd)
+            
+
 
         # Return status
         return return_status
