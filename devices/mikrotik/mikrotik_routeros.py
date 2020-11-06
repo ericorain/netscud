@@ -70,6 +70,8 @@ class MikrotikRouterOS(NetworkDevice):
             "interface ethernet enable <INTERFACE>",
             "interface ethernet disable <INTERFACE>",
             'interface ethernet comment <INTERFACE> "<COMMENT>"',
+            "interface ethernet set l2mtu=<MAXIMUMFRAMESIZE> <INTERFACE>",
+            "interface bridge port set frame-types=<MODE> ingress-filtering=<FILTERINGVLAN> [find interface=<INTERFACE>]",
         ]
         # No command to save the config. So it is always saved after "Enter"
         self.cmd_save_config = ""
@@ -2243,7 +2245,6 @@ class MikrotikRouterOS(NetworkDevice):
         description=None,
         maximum_frame_size=None,
         mode=None,
-        speed=None,
         **kwargs,
     ):
         """
@@ -2268,7 +2269,6 @@ class MikrotikRouterOS(NetworkDevice):
         log.info(f"set_interface: input: description: {description}")
         log.info(f"set_interface: input: maximum_frame_size: {maximum_frame_size}")
         log.info(f"set_interface: input: mode: {mode}")
-        log.info(f"set_interface: input: speed: {speed}")
 
         # Get parameters
 
@@ -2323,7 +2323,6 @@ class MikrotikRouterOS(NetworkDevice):
             # Change the state of the interface
             await self.send_command(cmd)
 
-
         # "description" found?
         if description != None:
 
@@ -2349,8 +2348,95 @@ class MikrotikRouterOS(NetworkDevice):
 
             # Change the description of the interface
             await self.send_command(cmd)
-            
 
+        # "maximum_frame_size" found?
+        if maximum_frame_size != None:
+
+            # Yes
+
+            # So the Maximum Frame Size can be changed
+
+            # Display info message
+            log.info("set_interface: maximum_frame_size")
+
+            # Adapt the command line
+
+            # "interface ethernet set l2mtu=<MAXIMUMFRAMESIZE> <INTERFACE>",
+
+            # Replace <INTERFACE> with the interface name
+            cmd = self.cmd_set_interface[3].replace("<INTERFACE>", interface)
+
+            # Replace <MAXIMUMFRAMESIZE> with the size of the frame
+            cmd = cmd.replace("<MAXIMUMFRAMESIZE>", str(maximum_frame_size))
+
+            # Display info message
+            log.info(f"set_interface: maximum_frame_size: cmd: {cmd}")
+
+            # Change the description of the interface
+            output = await self.send_command(cmd)
+
+            # Check if the is an error
+            # "value of l2mtu out of range (0..65536)"
+            if "out of range" in output:
+
+                # Error with the Maximum Frame Size value
+
+                # Display info message
+                log.error(f"set_interface: maximum_frame_size: output: {output}")
+
+                # Return an error
+                return return_status
+
+        # "mode" found?
+        if mode != None:
+
+            # Yes
+
+            # So the mode (access, trunk, hybrid) of the interface can be changed
+            # Note that it affect an interface inside a bridge
+
+            # Display info message
+            log.info("set_interface: mode")
+
+            # Adapt the command line
+
+            # "interface bridge port set frame-types=<MODE> ingress-filtering=<FILTERINGVLAN> [find interface=<INTERFACE>]",
+
+            # Replace <INTERFACE> with the interface name
+            cmd = self.cmd_set_interface[4].replace("<INTERFACE>", interface)
+
+            # Replace <FILTERINGVLAN> with "yes" (hybrid, trunk) or "no" (access)
+            cmd = cmd.replace("<FILTERINGVLAN>", "no" if mode == "access" else "yes")
+
+            # By default port is in trunk mode
+            interface_mode = "admit-only-vlan-tagged"
+
+            # Access?
+            if mode == "access":
+
+                # Yes
+                interface_mode = "admit-only-untagged-and-priority-tagged"
+
+            # Hybrid?
+            elif mode == "hybrid":
+
+                # Yes
+                interface_mode = "admit-all"
+
+            # Replace <MODE> with:
+            # "admit-all": for "hybrid"
+            # "admit-only-untagged-and-priority-tagged": for "access"
+            # "admit-only-vlan-tagged": for "trunk"
+            cmd = cmd.replace("<MODE>", interface_mode)
+
+            # Display info message
+            log.info(f"set_interface: mode: cmd: {cmd}")
+
+            # Change the description of the interface
+            await self.send_command(cmd)
+
+        # No error
+        return_status = True
 
         # Return status
         return return_status
