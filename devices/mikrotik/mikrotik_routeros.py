@@ -73,6 +73,11 @@ class MikrotikRouterOS(NetworkDevice):
             "interface ethernet set l2mtu=<MAXIMUMFRAMESIZE> <INTERFACE>",
             "interface bridge port set frame-types=<MODE> ingress-filtering=<FILTERINGVLAN> [find interface=<INTERFACE>]",
         ]
+        self.cmd_set_interface_to_vlan = [
+            "interface bridge vlan set [find vlan-ids=<VLAN>] untagged=<INTERFACE>",
+            "interface bridge vlan set [find vlan-ids=<VLAN>] tagged=<INTERFACE>",
+            "interface bridge port set [find interface=<INTERFACE>] pvid=<VLAN>",
+        ]
         # No command to save the config. So it is always saved after "Enter"
         self.cmd_save_config = ""
 
@@ -2250,8 +2255,24 @@ class MikrotikRouterOS(NetworkDevice):
         """
         Asyn method used to set the state of an interface of the device
 
-        :param admin_state: "up" or "down" status of the interface
+
+        :param interface: the name of the interface
+        :type interface: str
+
+        :param admin_state: optional, "up" or "down" status of the interface
         :type admin_state: bool
+
+        :param description: optional, a description for the interface
+        :type description: str
+
+        :param maximum_frame_size: optional, L2 MTU for packets
+        :type maximum_frame_size: int
+
+        :param mode: optional, set the mode (access, trunk, hybrid) of the interface
+        :type mode: str
+
+        :param kwargs: not used
+        :type kwargs: dict
 
         :return: Status. True = no error, False = error
         :rtype: int
@@ -2375,7 +2396,7 @@ class MikrotikRouterOS(NetworkDevice):
             # Change the description of the interface
             output = await self.send_command(cmd)
 
-            # Check if the is an error
+            # Check if there is an error
             # "value of l2mtu out of range (0..65536)"
             if "out of range" in output:
 
@@ -2434,6 +2455,181 @@ class MikrotikRouterOS(NetworkDevice):
 
             # Change the description of the interface
             await self.send_command(cmd)
+
+        # No error
+        return_status = True
+
+        # Return status
+        return return_status
+
+    async def set_interface_to_vlan(
+        self,
+        interface=None,
+        mode=None,
+        vlan=None,
+        **kwargs,
+    ):
+        """
+        Asyn method used to add an interface to a VLAN of the device
+
+
+        :param interface: the name of the interface
+        :type interface: str
+
+        :param mode: mode of the interface (access, trunk, hybrid)
+        :type mode: str
+
+        :param vlan: VLAN number
+        :type vlan: int
+
+        :param kwargs: not used
+        :type kwargs: dict
+
+        :return: Status. True = no error, False = error
+        :rtype: int
+        """
+
+        # Display info message
+        log.info("set_interface_to_vlan")
+
+        # By default result status is having an error
+        return_status = False
+
+        # Display info message
+        log.info(f"set_interface_to_vlan: input: interface: {interface}")
+        log.info(f"set_interface_to_vlan: input: mode: {mode}")
+        log.info(f"set_interface_to_vlan: input: vlan: {vlan}")
+
+        # Get parameters
+
+        # "interface" found?
+        if interface == None:
+
+            # No
+
+            # So no action can be performed
+
+            # Display info message
+            log.info("set_interface_to_vlan: no interface specified")
+
+            # Return status
+            return return_status
+
+        # "mode" found?
+        if mode == None:
+
+            # No
+
+            # So no action can be performed
+
+            # Display info message
+            log.info("set_interface_to_vlan: no mode specified")
+
+            # Return status
+            return return_status
+
+        # "vlan" found?
+        if vlan == None:
+
+            # No
+
+            # So no action can be performed
+
+            # Display info message
+            log.info("set_interface_to_vlan: no vlan specified")
+
+            # Return status
+            return return_status
+
+        # Check if mode is "access"
+        if mode == "access":
+
+            # Access mode interface
+
+            # "interface bridge vlan set [find vlan-ids=<VLAN>] untagged=<INTERFACE>",
+
+            # Replace <INTERFACE> with the interface name
+            cmd = self.cmd_set_interface_to_vlan[0].replace("<INTERFACE>", interface)
+
+            # Replace <VLAN> with the VLAN value
+            cmd = cmd.replace("<VLAN>", str(vlan))
+
+            # Display info message
+            log.info(f"set_interface_to_vlan: mode access: vlan: cmd: {cmd}")
+
+            # Change the VLAN of the interface (in VLAN config of a bridge)
+            output = await self.send_command(cmd)
+
+            # Check if there is an error
+            # "failure: interface cannot be in tagged and untagged at the same time"
+            if "failure" in output:
+
+                # Error with the VLAN value
+
+                # Display info message
+                log.error(f"set_interface_to_vlan: mode access: vlan: output: {output}")
+
+                # Return an error
+                return return_status
+
+            # "interface bridge port set [find interface=<INTERFACE>] pvid=<VLAN>",
+
+            # Replace <INTERFACE> with the interface name
+            cmd = self.cmd_set_interface_to_vlan[2].replace("<INTERFACE>", interface)
+
+            # Replace <VLAN> with the VLAN value
+            cmd = cmd.replace("<VLAN>", str(vlan))
+
+            # Display info message
+            log.info(f"set_interface_to_vlan: mode access: port: cmd: {cmd}")
+
+            # Change the VLAN of the interface (in Port config of a bridge)
+            output = await self.send_command(cmd)
+
+            # Check if there is an error
+            # "value of pvid out of range (1..4094)"
+            if "out of range" in output:
+
+                # Error with the VLAN value
+
+                # Display info message
+                log.error(f"set_interface_to_vlan: mode access: port: output: {output}")
+
+                # Return an error
+                return return_status
+
+        else:
+
+            # trunk mode of hybrid interface
+
+            # "interface bridge vlan set [find vlan-ids=<VLAN>] tagged=<INTERFACE>",
+
+            # Replace <INTERFACE> with the interface name
+            cmd = self.cmd_set_interface_to_vlan[1].replace("<INTERFACE>", interface)
+
+            # Replace <VLAN> with the VLAN value
+            cmd = cmd.replace("<VLAN>", str(vlan))
+
+            # Display info message
+            log.info(f"set_interface_to_vlan: mode trunk or hybrid: cmd: {cmd}")
+
+            # Change the description of the interface
+            output = await self.send_command(cmd)
+
+            # Check if there is an error
+            # "failure: interface cannot be in tagged and untagged at the same time"
+            # "failure: can not change dynamic"
+            if "failure" in output:
+
+                # Error with the VLAN value
+
+                # Display info message
+                log.error(
+                    f"set_interface_to_vlan: mode trunk/hybrid: port: output: {output}"
+                )
+
+                # Return an error
+                return return_status
 
         # No error
         return_status = True
