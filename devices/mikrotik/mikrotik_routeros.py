@@ -73,7 +73,15 @@ class MikrotikRouterOS(NetworkDevice):
             "interface ethernet set l2mtu=<MAXIMUMFRAMESIZE> <INTERFACE>",
             "interface bridge port set frame-types=<MODE> ingress-filtering=<FILTERINGVLAN> [find interface=<INTERFACE>]",
         ]
-        self.cmd_set_interface_to_vlan = [
+        self.cmd_add_interface_to_vlan = [
+            "interface bridge vlan print terse",
+            "interface bridge vlan set [find vlan-ids=<VLAN>] untagged=<INTERFACE>",
+            "interface bridge vlan set [find vlan-ids=<VLAN>] tagged=<INTERFACE>",
+            "interface bridge port set [find interface=<INTERFACE>] pvid=<VLAN>",
+        ]
+
+        self.cmd_remove_interface_from_vlan = [
+            "interface bridge vlan print terse",
             "interface bridge vlan set [find vlan-ids=<VLAN>] untagged=<INTERFACE>",
             "interface bridge vlan set [find vlan-ids=<VLAN>] tagged=<INTERFACE>",
             "interface bridge port set [find interface=<INTERFACE>] pvid=<VLAN>",
@@ -2133,7 +2141,7 @@ class MikrotikRouterOS(NetworkDevice):
         :type kwargs: str
 
         :return: Status. True = no error, False = error
-        :rtype: int
+        :rtype: bool
         """
 
         # Display info message
@@ -2204,7 +2212,7 @@ class MikrotikRouterOS(NetworkDevice):
         :type vland_id: int
 
         :return: Status. True = no error, False = error
-        :rtype: int
+        :rtype: bool
         """
 
         # Display info message
@@ -2275,7 +2283,7 @@ class MikrotikRouterOS(NetworkDevice):
         :type kwargs: dict
 
         :return: Status. True = no error, False = error
-        :rtype: int
+        :rtype: bool
         """
 
         # Display info message
@@ -2462,7 +2470,7 @@ class MikrotikRouterOS(NetworkDevice):
         # Return status
         return return_status
 
-    async def set_interface_to_vlan(
+    async def add_interface_to_vlan(
         self,
         interface=None,
         mode=None,
@@ -2486,19 +2494,19 @@ class MikrotikRouterOS(NetworkDevice):
         :type kwargs: dict
 
         :return: Status. True = no error, False = error
-        :rtype: int
+        :rtype: bool
         """
 
         # Display info message
-        log.info("set_interface_to_vlan")
+        log.info("add_interface_to_vlan")
 
         # By default result status is having an error
         return_status = False
 
         # Display info message
-        log.info(f"set_interface_to_vlan: input: interface: {interface}")
-        log.info(f"set_interface_to_vlan: input: mode: {mode}")
-        log.info(f"set_interface_to_vlan: input: vlan: {vlan}")
+        log.info(f"add_interface_to_vlan: input: interface: {interface}")
+        log.info(f"add_interface_to_vlan: input: mode: {mode}")
+        log.info(f"add_interface_to_vlan: input: vlan: {vlan}")
 
         # Get parameters
 
@@ -2510,7 +2518,7 @@ class MikrotikRouterOS(NetworkDevice):
             # So no action can be performed
 
             # Display info message
-            log.info("set_interface_to_vlan: no interface specified")
+            log.info("add_interface_to_vlan: no interface specified")
 
             # Return status
             return return_status
@@ -2523,7 +2531,7 @@ class MikrotikRouterOS(NetworkDevice):
             # So no action can be performed
 
             # Display info message
-            log.info("set_interface_to_vlan: no mode specified")
+            log.info("add_interface_to_vlan: no mode specified")
 
             # Return status
             return return_status
@@ -2536,38 +2544,179 @@ class MikrotikRouterOS(NetworkDevice):
             # So no action can be performed
 
             # Display info message
-            log.info("set_interface_to_vlan: no vlan specified")
+            log.info("add_interface_to_vlan: no vlan specified")
 
             # Return status
             return return_status
+
+        # Convert VLAN (integer) to string
+        vlan_string = str(vlan)
+
+        # Get all VLAN IDs
+
+        # Get command
+        cmd = self.cmd_add_interface_to_vlan[0]
+
+        # Display info message
+        log.info(f"add_interface_to_vlan: get VLAN IDs: cmd: {cmd}")
+
+        # Change the VLAN of the interface (in VLAN config of a bridge)
+        output = await self.send_command(cmd)
+
+        # Display info message
+        log.info(f"add_interface_to_vlan: get VLAN IDs: output: {output}")
+
+        # Convert a string into a list of strings
+        lines = output.splitlines()
+
+        # By default no VLAN found
+        vlan_found = False
+
+        # Check each line
+        for line in lines:
+
+            # VLAN IDs in the line?
+            if "vlan-ids=" in line:
+
+                # Yes
+
+                # Get VLAN IDs
+                list_of_vlans_in_one_line = (
+                    line.split(" vlan-ids=")[-1].split()[0].split(",")
+                )
+
+                # Something returned?
+                if list_of_vlans_in_one_line:
+
+                    # Yes
+
+                    # Is the first element empty?
+                    if list_of_vlans_in_one_line[0] != '""':
+
+                        # No it is not empty
+
+                        # Check if the current VLAN is the one we look for
+                        if vlan_string in list_of_vlans_in_one_line:
+
+                            # That is the VLAN
+
+                            # Display info message
+                            log.info(
+                                f"add_interface_to_vlan: get VLAN IDs: VLAN found: {vlan}"
+                            )
+
+                            # Get tagged list of interfaces
+                            tagged_list_of_interfaces = (
+                                line.split(" tagged=")[-1].split()[0].split(",")
+                            )
+
+                            # Get untagged list of interfaces
+                            untagged_list_of_interfaces = (
+                                line.split(" untagged=")[-1].split()[0].split(",")
+                            )
+
+                            # VLAN found
+                            vlan_found = True
+
+                            # Leave the loop
+                            break
+
+        # VLAN found?
+        if not vlan_found:
+
+            # No VLAN found
+
+            # So it is impossible to add interface to a non-existing VLAN
+
+            # Display info message
+            log.info("add_interface_to_vlan: get VLAN IDs: no VLAN found")
+
+            return False
+
+        # Display info message
+        log.info(
+            f"add_interface_to_vlan: get VLAN IDs: tagged_list_of_interfaces: {tagged_list_of_interfaces}"
+        )
+
+        # Display info message
+        log.info(
+            f"add_interface_to_vlan: get VLAN IDs: untagged_list_of_interfaces: {untagged_list_of_interfaces}"
+        )
+
+        # Check if tagged and untagged list have a value ['""']
+
+        # Check if tagged_list_of_interfaces has just one element
+        if len(tagged_list_of_interfaces) == 1:
+
+            # Yes just one
+
+            # Check if that element is ""
+            if tagged_list_of_interfaces[0] == '""':
+
+                # Yes it is
+
+                # So the value is removed
+                tagged_list_of_interfaces = []
+
+        # Check if untagged_list_of_interfaces has just one element
+        if len(untagged_list_of_interfaces) == 1:
+
+            # Yes just one
+
+            # Check if that element is ""
+            if untagged_list_of_interfaces[0] == '""':
+
+                # Yes it is
+
+                # So the value is removed
+                untagged_list_of_interfaces = []
+
+        # Display info message
+        log.info(
+            f'add_interface_to_vlan: get VLAN IDs: after removing "": tagged_list_of_interfaces: {tagged_list_of_interfaces}'
+        )
+
+        # Display info message
+        log.info(
+            f'add_interface_to_vlan: get VLAN IDs: after removing "": untagged_list_of_interfaces: {untagged_list_of_interfaces}'
+        )
 
         # Check if mode is "access"
         if mode == "access":
 
             # Access mode interface
 
+            # Add the interface to the list of all the untagged interfaces
+            untagged_list_of_interfaces.append(interface)
+
+            # String with all interfaces seperated with comma
+            all_untagged_list_of_interfaces = ",".join(untagged_list_of_interfaces)
+
             # "interface bridge vlan set [find vlan-ids=<VLAN>] untagged=<INTERFACE>",
 
             # Replace <INTERFACE> with the interface name
-            cmd = self.cmd_set_interface_to_vlan[0].replace("<INTERFACE>", interface)
+            cmd = self.cmd_add_interface_to_vlan[1].replace(
+                "<INTERFACE>", all_untagged_list_of_interfaces
+            )
 
             # Replace <VLAN> with the VLAN value
-            cmd = cmd.replace("<VLAN>", str(vlan))
+            cmd = cmd.replace("<VLAN>", vlan_string)
 
             # Display info message
-            log.info(f"set_interface_to_vlan: mode access: vlan: cmd: {cmd}")
+            log.info(f"add_interface_to_vlan: mode access: vlan: cmd: {cmd}")
 
             # Change the VLAN of the interface (in VLAN config of a bridge)
             output = await self.send_command(cmd)
 
             # Check if there is an error
             # "failure: interface cannot be in tagged and untagged at the same time"
+            # "failure: each interface can appear only once"
             if "failure" in output:
 
                 # Error with the VLAN value
 
                 # Display info message
-                log.error(f"set_interface_to_vlan: mode access: vlan: output: {output}")
+                log.error(f"add_interface_to_vlan: mode access: vlan: output: {output}")
 
                 # Return an error
                 return return_status
@@ -2575,13 +2724,13 @@ class MikrotikRouterOS(NetworkDevice):
             # "interface bridge port set [find interface=<INTERFACE>] pvid=<VLAN>",
 
             # Replace <INTERFACE> with the interface name
-            cmd = self.cmd_set_interface_to_vlan[2].replace("<INTERFACE>", interface)
+            cmd = self.cmd_add_interface_to_vlan[3].replace("<INTERFACE>", interface)
 
             # Replace <VLAN> with the VLAN value
-            cmd = cmd.replace("<VLAN>", str(vlan))
+            cmd = cmd.replace("<VLAN>", vlan_string)
 
             # Display info message
-            log.info(f"set_interface_to_vlan: mode access: port: cmd: {cmd}")
+            log.info(f"add_interface_to_vlan: mode access: port: cmd: {cmd}")
 
             # Change the VLAN of the interface (in Port config of a bridge)
             output = await self.send_command(cmd)
@@ -2593,25 +2742,33 @@ class MikrotikRouterOS(NetworkDevice):
                 # Error with the VLAN value
 
                 # Display info message
-                log.error(f"set_interface_to_vlan: mode access: port: output: {output}")
+                log.error(f"add_interface_to_vlan: mode access: port: output: {output}")
 
                 # Return an error
                 return return_status
 
         else:
 
-            # trunk mode of hybrid interface
+            # trunk or hybrid mode
+
+            # Add the interface to the list of all the tagged interfaces
+            tagged_list_of_interfaces.append(interface)
+
+            # String with all interfaces seperated with comma
+            all_tagged_list_of_interfaces = ",".join(tagged_list_of_interfaces)
 
             # "interface bridge vlan set [find vlan-ids=<VLAN>] tagged=<INTERFACE>",
 
             # Replace <INTERFACE> with the interface name
-            cmd = self.cmd_set_interface_to_vlan[1].replace("<INTERFACE>", interface)
+            cmd = self.cmd_add_interface_to_vlan[2].replace(
+                "<INTERFACE>", all_tagged_list_of_interfaces
+            )
 
             # Replace <VLAN> with the VLAN value
-            cmd = cmd.replace("<VLAN>", str(vlan))
+            cmd = cmd.replace("<VLAN>", vlan_string)
 
             # Display info message
-            log.info(f"set_interface_to_vlan: mode trunk or hybrid: cmd: {cmd}")
+            log.info(f"add_interface_to_vlan: mode trunk or hybrid: cmd: {cmd}")
 
             # Change the description of the interface
             output = await self.send_command(cmd)
@@ -2619,13 +2776,385 @@ class MikrotikRouterOS(NetworkDevice):
             # Check if there is an error
             # "failure: interface cannot be in tagged and untagged at the same time"
             # "failure: can not change dynamic"
+            # "failure: each interface can appear only once"
             if "failure" in output:
 
                 # Error with the VLAN value
 
                 # Display info message
                 log.error(
-                    f"set_interface_to_vlan: mode trunk/hybrid: port: output: {output}"
+                    f"add_interface_to_vlan: mode trunk/hybrid: port: output: {output}"
+                )
+
+                # Return an error
+                return return_status
+
+        # No error
+        return_status = True
+
+        # Return status
+        return return_status
+
+    async def remove_interface_from_vlan(
+        self,
+        interface=None,
+        mode=None,
+        vlan=None,
+        **kwargs,
+    ):
+        """
+        Asyn method used to remove an interface from a VLAN of the device
+
+
+        :param interface: the name of the interface
+        :type interface: str
+
+        :param mode: mode of the interface (access, trunk, hybrid)
+        :type mode: str
+
+        :param vlan: VLAN number
+        :type vlan: int
+
+        :param kwargs: not used
+        :type kwargs: dict
+
+        :return: Status. True = no error, False = error
+        :rtype: bool
+        """
+
+        # Display info message
+        log.info("remove_interface_from_vlan")
+
+        # By default result status is having an error
+        return_status = False
+
+        # Display info message
+        log.info(f"remove_interface_from_vlan: input: interface: {interface}")
+        log.info(f"remove_interface_from_vlan: input: mode: {mode}")
+        log.info(f"remove_interface_from_vlan: input: vlan: {vlan}")
+
+        # Get parameters
+
+        # "interface" found?
+        if interface == None:
+
+            # No
+
+            # So no action can be performed
+
+            # Display info message
+            log.info("remove_interface_from_vlan: no interface specified")
+
+            # Return status
+            return return_status
+
+        # "mode" found?
+        if mode == None:
+
+            # No
+
+            # So no action can be performed
+
+            # Display info message
+            log.info("remove_interface_from_vlan: no mode specified")
+
+            # Return status
+            return return_status
+
+        # "vlan" found?
+        if vlan == None:
+
+            # No
+
+            # So no action can be performed
+
+            # Display info message
+            log.info("remove_interface_from_vlan: no vlan specified")
+
+            # Return status
+            return return_status
+
+        # Convert VLAN (integer) to string
+        vlan_string = str(vlan)
+
+        # Get command
+        cmd = self.cmd_remove_interface_from_vlan[0]
+
+        # Display info message
+        log.info(f"remove_interface_from_vlan: get VLAN IDs: cmd: {cmd}")
+
+        # Change the VLAN of the interface (in VLAN config of a bridge)
+        output = await self.send_command(cmd)
+
+        # Display info message
+        log.info(f"remove_interface_from_vlan: get VLAN IDs: output: {output}")
+
+        # Convert a string into a list of strings
+        lines = output.splitlines()
+
+        # By default no VLAN found
+        vlan_found = False
+
+        # Check each line
+        for line in lines:
+
+            # VLAN IDs in the line?
+            if "vlan-ids=" in line:
+
+                # Yes
+
+                # Get VLAN IDs
+                list_of_vlans_in_one_line = (
+                    line.split(" vlan-ids=")[-1].split()[0].split(",")
+                )
+
+                # Something returned?
+                if list_of_vlans_in_one_line:
+
+                    # Yes
+
+                    # Is the first element empty?
+                    if list_of_vlans_in_one_line[0] != '""':
+
+                        # No it is not empty
+
+                        # Check if the current VLAN is the one we look for
+                        if vlan_string in list_of_vlans_in_one_line:
+
+                            # That is the VLAN
+
+                            # Display info message
+                            log.info(
+                                f"remove_interface_from_vlan: get VLAN IDs: VLAN found: {vlan}"
+                            )
+
+                            # Get tagged list of interfaces
+                            tagged_list_of_interfaces = (
+                                line.split(" tagged=")[-1].split()[0].split(",")
+                            )
+
+                            # Get untagged list of interfaces
+                            untagged_list_of_interfaces = (
+                                line.split(" untagged=")[-1].split()[0].split(",")
+                            )
+
+                            # VLAN found
+                            vlan_found = True
+
+                            # Leave the loop
+                            break
+
+        # VLAN found?
+        if not vlan_found:
+
+            # No VLAN found
+
+            # So it is impossible to remove interface from a non-existing VLAN
+
+            # Display info message
+            log.info("remove_interface_from_vlan: get VLAN IDs: no VLAN found")
+
+            return False
+
+        # Display info message
+        log.info(
+            f"remove_interface_from_vlan: get VLAN IDs: tagged_list_of_interfaces: {tagged_list_of_interfaces}"
+        )
+
+        # Display info message
+        log.info(
+            f"remove_interface_from_vlan: get VLAN IDs: untagged_list_of_interfaces: {untagged_list_of_interfaces}"
+        )
+
+        # Check if tagged and untagged list have a value ['""']
+
+        # Check if tagged_list_of_interfaces has just one element
+        if len(tagged_list_of_interfaces) == 1:
+
+            # Yes just one
+
+            # Check if that element is ""
+            if tagged_list_of_interfaces[0] == '""':
+
+                # Yes it is
+
+                # So the value is removed
+                tagged_list_of_interfaces = []
+
+        # Check if untagged_list_of_interfaces has just one element
+        if len(untagged_list_of_interfaces) == 1:
+
+            # Yes just one
+
+            # Check if that element is ""
+            if untagged_list_of_interfaces[0] == '""':
+
+                # Yes it is
+
+                # So the value is removed
+                untagged_list_of_interfaces = []
+
+        # Display info message
+        log.info(
+            f'remove_interface_from_vlan: get VLAN IDs: after removing "": tagged_list_of_interfaces: {tagged_list_of_interfaces}'
+        )
+
+        # Display info message
+        log.info(
+            f'remove_interface_from_vlan: get VLAN IDs: after removing "": untagged_list_of_interfaces: {untagged_list_of_interfaces}'
+        )
+
+        # Check if mode is "access"
+        if mode == "access":
+
+            # Access mode interface
+
+            # Check if the interface is in the list of tagged interfaces
+            if interface not in untagged_list_of_interfaces:
+
+                # The interface is not in the list of interfaces of the VLAN
+
+                # Display info message
+                log.error(
+                    f"remove_interface_from_vlan: access: interface '{interface}' does not belong to VLAN {vlan_string}"
+                )
+
+                # Return an error
+                return return_status
+
+            # Remove the interface to the list of all the untagged interfaces
+            untagged_list_of_interfaces.remove(interface)
+
+            # String with all interfaces seperated with comma
+            all_untagged_list_of_interfaces = ",".join(untagged_list_of_interfaces)
+
+            # Empty string?
+            if all_untagged_list_of_interfaces == "":
+
+                # Yes
+
+                # Give an empty string (Mikrotik format)
+                all_untagged_list_of_interfaces = '""'
+
+            # "interface bridge vlan set [find vlan-ids=<VLAN>] untagged=<INTERFACE>",
+
+            # Replace <INTERFACE> with the interface name
+            cmd = self.cmd_remove_interface_from_vlan[1].replace(
+                "<INTERFACE>", all_untagged_list_of_interfaces
+            )
+
+            # Replace <VLAN> with the VLAN value
+            cmd = cmd.replace("<VLAN>", vlan_string)
+
+            # Display info message
+            log.info(f"remove_interface_from_vlan: mode access: vlan: cmd: {cmd}")
+
+            # Change the VLAN of the interface (in VLAN config of a bridge)
+            output = await self.send_command(cmd)
+
+            # Check if there is an error
+            # "failure: interface cannot be in tagged and untagged at the same time"
+            # "failure: each interface can appear only once"
+            if "failure" in output:
+
+                # Error with the VLAN value
+
+                # Display info message
+                log.error(
+                    f"remove_interface_from_vlan: mode access: vlan: output: {output}"
+                )
+
+                # Return an error
+                return return_status
+
+            # "interface bridge port set [find interface=<INTERFACE>] pvid=<VLAN>",
+
+            # Replace <INTERFACE> with the interface name
+            cmd = self.cmd_remove_interface_from_vlan[3].replace(
+                "<INTERFACE>", interface
+            )
+
+            # Replace <VLAN> with the default VLAN value
+            cmd = cmd.replace("<VLAN>", "1")
+
+            # Display info message
+            log.info(f"remove_interface_from_vlan: mode access: port: cmd: {cmd}")
+
+            # Change the VLAN of the interface (in Port config of a bridge)
+            output = await self.send_command(cmd)
+
+            # Check if there is an error
+            # "value of pvid out of range (1..4094)"
+            if "out of range" in output:
+
+                # Error with the VLAN value
+
+                # Display info message
+                log.error(
+                    f"cmd_remove_interface_from_vlan: mode access: port: output: {output}"
+                )
+
+                # Return an error
+                return return_status
+
+        else:
+
+            # trunk or hybrid mode
+
+            # Check if the interface is in the list of tagged interfaces
+            if interface not in tagged_list_of_interfaces:
+
+                # The interface is not in the list of interfaces of the VLAN
+
+                # Display info message
+                log.error(
+                    f"remove_interface_from_vlan: trunk/hybrid: interface '{interface}' does not belong to VLAN {vlan_string}"
+                )
+
+                # Return an error
+                return return_status
+
+            # Remove the interface from the list of all the tagged interfaces
+            tagged_list_of_interfaces.remove(interface)
+
+            # String with all interfaces seperated with comma
+            all_tagged_list_of_interfaces = ",".join(tagged_list_of_interfaces)
+
+            # Empty string?
+            if all_tagged_list_of_interfaces == "":
+
+                # Yes
+
+                # Give an empty string (Mikrotik format)
+                all_tagged_list_of_interfaces = '""'
+
+            # "interface bridge vlan set [find vlan-ids=<VLAN>] tagged=<INTERFACE>",
+
+            # Replace <INTERFACE> with the interface name
+            cmd = self.cmd_remove_interface_from_vlan[2].replace(
+                "<INTERFACE>", all_tagged_list_of_interfaces
+            )
+
+            # Replace <VLAN> with the VLAN value
+            cmd = cmd.replace("<VLAN>", vlan_string)
+
+            # Display info message
+            log.info(f"remove_interface_from_vlan: mode trunk or hybrid: cmd: {cmd}")
+
+            # Change the description of the interface
+            output = await self.send_command(cmd)
+
+            # Check if there is an error
+            # "failure: interface cannot be in tagged and untagged at the same time"
+            # "failure: can not change dynamic"
+            # "failure: each interface can appear only once"
+            if "failure" in output:
+
+                # Error with the VLAN value
+
+                # Display info message
+                log.error(
+                    f"remove_interface_from_vlan: mode trunk/hybrid: port: output: {output}"
                 )
 
                 # Return an error
