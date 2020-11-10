@@ -1,5 +1,5 @@
 # Python library import
-from netscud.base_connection import NetworkDevice, log
+from netscud.base_connection import NetworkDevice, log, ipv4_netmask_list
 import asyncio, asyncssh
 
 # Max data to read in read function
@@ -86,6 +86,11 @@ class MikrotikRouterOS(NetworkDevice):
             "interface bridge vlan set [find vlan-ids=<VLAN>] tagged=<INTERFACE>",
             "interface bridge port set [find interface=<INTERFACE>] pvid=<VLAN>",
         ]
+        self.cmd_get_interfaces_ip = "ip address print terse without-paging"
+        self.cmd_add_static_route = "ip route add dst-address=<NETWORK>/<PREFIXLENGTH> gateway=<DESTINATION> distance=<METRIC>"
+        self.cmd_remove_static_route = (
+            "ip route remove [find dst-address=<NETWORK>/<PREFIXLENGTH>]"
+        )
         # No command to save the config. So it is always saved after "Enter"
         self.cmd_save_config = ""
 
@@ -3159,6 +3164,294 @@ class MikrotikRouterOS(NetworkDevice):
 
                 # Return an error
                 return return_status
+
+        # No error
+        return_status = True
+
+        # Return status
+        return return_status
+
+    async def get_interfaces_ip(self):
+        """
+        Asyn method used to get IP addresses of the interfaces of the device
+        Only IPv4 is supported
+
+        :return: the interfaces and their IP addresses
+        :rtype: dict of dict
+        """
+
+        # Display info message
+        log.info("get_interfaces_ip")
+
+        # Get command
+        cmd = self.cmd_get_interfaces_ip
+
+        # Sending command
+        output = await self.send_command(cmd)
+
+        # Display info message
+        log.info(f"get_interfaces_ip: output: '{output}'")
+
+        # By default the dictionary returned is empty
+        returned_dict = {}
+
+        # Convert a string into a list of strings
+        lines = output.splitlines()
+
+        # Read each line
+        for line in lines:
+
+            # Set default values for variables
+            interface = None
+            address = None
+            prefix = None
+
+            # Get interface
+            if " interface=" in line:
+                interface = line.split(" interface=")[-1].split()[0]
+
+            # Get IP address and prefix
+            if " address=" in line:
+                full_address = line.split(" address=")[-1].split()[0]
+
+                # Separate IP address from prefix
+                (address, prefix_string) = full_address.split("/")
+
+                # Convert prefix into a number
+                prefix = int(prefix_string)
+
+            # An interface found?
+            if interface:
+
+                # Yes
+
+                # So the information can be saved into the returned dictionary
+
+                # Is it a new interface?
+                if interface in returned_dict:
+
+                    # No
+
+                    # Save another IP address for the same interface
+                    returned_dict[interface]["ipv4"][address] = {"prefix_length": 24}
+
+                else:
+
+                    # Yes
+
+                    # So the new interface is saved into the dictionary
+                    returned_dict[interface] = {
+                        "ipv4": {address: {"prefix_length": prefix}}
+                    }
+
+        # Return data
+        return returned_dict
+
+    async def add_static_route(
+        self,
+        network_ip=None,
+        prefix_length=None,
+        destination_ip=None,
+        metric=1,
+        **kwargs,
+    ):
+        """
+        Asyn method used to add a static route to the routing table the device
+        Only IPv4 is supported
+        EXPERIMENTAL (not tested)
+
+
+        :param network_ip: the network to add to the route
+        :type network_ip: str
+
+        :param prefix_length: length of the network mask (32, 31, 30 ... for /32, /31, /30 ...)
+        :type prefix_length: int
+
+        :param destination_ip: IP address as a destination
+        :type destination_ip: str
+
+        :param metric: optional, the metric to specify to the route. Default value is 1
+        :type metric: int
+
+        :param kwargs: not used
+        :type kwargs: dict
+
+        :return: Status. True = no error, False = error
+        :rtype: bool
+        """
+
+        # Display info message
+        log.info("add_static_route")
+
+        # By default result status is having an error
+        return_status = False
+
+        # Check if a network has been specified
+        if not network_ip:
+
+            # No
+
+            # Display info message
+            log.error(f"add_static_route: no network specified: {network_ip}")
+
+            # Return an error
+            return return_status
+
+        # Check if a prefix_length has been specified
+        if not prefix_length:
+
+            # No
+
+            # Display info message
+            log.error(f"add_static_route: no prefix_length specified: {prefix_length}")
+
+            # Return an error
+            return return_status
+
+        # Check if the prefix_length is between 1 and 32
+        if prefix_length < 1 or prefix_length > 32:
+
+            # No
+
+            # Display info message
+            log.error(
+                f"add_static_route: prefix_length incorrect value (1...32): {prefix_length}"
+            )
+
+            # Return an error
+            return return_status
+
+        # Check if a destination_ip has been specified
+        if not destination_ip:
+
+            # No
+
+            # Display info message
+            log.error(
+                f"add_static_route: no destination_ip specified: {destination_ip}"
+            )
+
+            # Return an error
+            return return_status
+
+        # Check if a metric has been specified
+        if not metric:
+
+            # No
+
+            # Display info message
+            log.error(f"add_static_route: no metric specified: {metric}")
+
+            # Return an error
+            return return_status
+
+        # self.cmd_add_static_route = "ip route add dst-address=<NETWORK>/<PREFIXLENGTH> gateway=<DESTINATION> distance=<METRIC>"
+
+        # Replace <NETWORK> with the network value
+        cmd = self.cmd_add_static_route.replace("<NETWORK>", network_ip)
+
+        # Replace <PREFIXLENGTH> with the prefix_length value
+        cmd = self.cmd_add_static_route.replace("<PREFIXLENGTH>", str(prefix_length))
+
+        # Replace <DESTINATION> with the destination value
+        cmd = self.cmd_add_static_route.replace("<DESTINATION>", destination_ip)
+
+        # Replace <METRIC> with the metric value
+        cmd = self.cmd_add_static_route.replace("<METRIC>", str(metric))
+
+        # Display info message
+        log.info(f"add_static_route: cmd: {cmd}")
+
+        # Sending command
+        await self.send_command(cmd)
+
+        # No error
+        return_status = True
+
+        # Return status
+        return return_status
+
+    async def remove_static_route(
+        self,
+        network_ip=None,
+        prefix_length=None,
+        **kwargs,
+    ):
+        """
+        Asyn method used to remove a static route to the routing table the device
+        Only IPv4 is supported
+        EXPERIMENTAL (not tested)
+
+
+        :param network_ip: the network to remove to the route
+        :type network_ip: str
+
+        :param prefix_length: length of the network mask (32, 31, 30 ... for /32, /31, /30 ...)
+        :type prefix_length: int
+
+        :param kwargs: not used
+        :type kwargs: dict
+
+        :return: Status. True = no error, False = error
+        :rtype: bool
+        """
+
+        # Display info message
+        log.info("remove_static_route")
+
+        # By default result status is having an error
+        return_status = False
+
+        # Check if a network has been specified
+        if not network_ip:
+
+            # No
+
+            # Display info message
+            log.error(f"remove_static_route: no network specified: {network_ip}")
+
+            # Return an error
+            return return_status
+
+        # Check if a prefix_length has been specified
+        if not prefix_length:
+
+            # No
+
+            # Display info message
+            log.error(
+                f"remove_static_route: no prefix_length specified: {prefix_length}"
+            )
+
+            # Return an error
+            return return_status
+
+        # Check if the prefix_length is between 1 and 32
+        if prefix_length < 1 or prefix_length > 32:
+
+            # No
+
+            # Display info message
+            log.error(
+                f"remove_static_route: prefix_length incorrect value (1...32): {prefix_length}"
+            )
+
+            # Return an error
+            return return_status
+
+        #  self.cmd_remove_static_route = "ip route remove [find dst-address=<NETWORK>/<PREFIXLENGTH>]"
+
+        # Replace <NETWORK> with the network value
+        cmd = self.cmd_add_static_route.replace("<NETWORK>", network_ip)
+
+        # Replace <PREFIXLENGTH> with the prefix_length value
+        cmd = self.cmd_add_static_route.replace("<PREFIXLENGTH>", str(prefix_length))
+
+        # Display info message
+        log.info(f"remove_static_route: cmd: {cmd}")
+
+        # Sending command
+        await self.send_command(cmd)
 
         # No error
         return_status = True
