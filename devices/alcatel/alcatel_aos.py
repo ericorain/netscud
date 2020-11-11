@@ -18,6 +18,8 @@ class AlcatelAOS(NetworkDevice):
             "login :",
             "Authentication failure",
         ]
+
+        # General commands
         self.cmd_disable_paging = ""
         self.cmd_enter_config_mode = ""
         self.cmd_exit_config_mode = ""
@@ -31,6 +33,19 @@ class AlcatelAOS(NetworkDevice):
             "copy running certified",  # AOS 7, AOS 8, save working configuration into certified configuration
             "copy working certified",  # AOS 6 and lower, save working configuration into certified configuration
         ]
+
+        # Layer 1 commands
+        self.cmd_get_interfaces = [
+            "show interfaces",
+            "show interfaces alias",  # AOS 7, AOS 8
+            "show interfaces port",  # AOS 6 and lower
+            "show vlan members",  # AOS 7, AOS 8
+            "show vlan port",  # AOS 6 and lower
+        ]
+
+        # Layer 2 commands
+
+        # Layer 3 commands
 
     async def get_hostname(self):
         """
@@ -316,3 +331,444 @@ class AlcatelAOS(NetworkDevice):
 
         # Return the commands sent
         return output
+
+    async def get_interfaces(self):
+        """
+        Asyn method used to get the information of ALL the interfaces of the device
+
+        some commands are used to collect interface data:
+        - one for status
+        - one for duplex/speed
+        - one for mode (access / trunk / hybrid)
+
+        The returned dictionaries inside the dictionary will return that information:
+
+                returned_dict = {
+                    "operational": operational,
+                    "admin_state": admin_state,
+                    "maximum_frame_size": maximum_frame_size,
+                    "full_duplex": full_duplex,
+                    "speed": speed,
+                    "mode": mode,
+                    "description": description,
+                }
+
+        :return: Interfaces of the device
+        :rtype: dict of dict
+        """
+
+        # Display info message
+        log.info("get_interfaces")
+
+        # By default nothing is returned
+        returned_output = {}
+
+        # self.cmd_get_interfaces = [
+        #     "show interfaces",
+        #     "show interfaces alias", # AOS 7, AOS 8
+        #     "show interfaces port",  # AOS 6 and lower
+        #     "show vlan members",     # AOS 7, AOS 8
+        #     "show vlan port",        # AOS 6 and lower
+        # ]
+
+        # Command for the status of the interfaces
+
+        # Send a command
+        output_status = await self.send_command(self.cmd_get_interfaces[0])
+
+        # Display info message
+        log.info(f"get_interfaces: status command\n'{output_status}'")
+
+        # Command for the description of the interfaces
+
+        # Send a command
+        output_description = await self.send_command(self.cmd_get_interfaces[1])
+
+        # Check if the returned value is not having an error (AOS 6 does has another command)
+        # Error message should be:
+        #                                                ^
+        # ERROR: Invalid entry: "alias"
+        if "error" in output_description.lower():
+
+            # Yes, the command returns an error
+
+            # Display info message
+            log.info(
+                f"get_interfaces: description command: error:\n'{output_description}'"
+            )
+
+            # So let's try to send an AOS 6 equivalent command
+
+            # Send a command
+            output_description = await self.send_command(self.cmd_get_interfaces[2])
+
+        # Display info message
+        log.info(f"get_interfaces: description command\n'{output_description}'")
+
+        # Command for the mode of the interfaces (access or trunk)
+
+        # Send a command
+        output_mode = await self.send_command(self.cmd_get_interfaces[3])
+
+        # Check if there is an error message like this one:
+        #                                         ^
+        # ERROR: Invalid entry: "members"
+        #
+        if "error" in output_mode.lower():
+            # Yes
+
+            # Display info message
+            log.info(f"get_interfaces: mode command: error:\n'{output_mode}'")
+
+            # Then an older command will be used
+
+            # Command for the mode of the interfaces (access or trunk)
+
+            # Send a command
+            output_mode = await self.send_command(self.cmd_get_interfaces[4])
+
+        # Display info message
+        log.info(f"get_interfaces: mode command\n'{output_mode}'")
+
+        ############################################
+        # Research of trunk
+        ############################################
+
+        # Convert output_description into a list of lines
+        list_output_mode_data = output_mode.splitlines()
+
+        # By default the description dictionary is empty
+        dict_mode = {}
+
+        # By default the lines read are header
+        no_header_data = False
+
+        # Read each line to find data (mode)
+        for line in list_output_mode_data:
+
+            # Is it the header data without information about interfaces?
+            if not no_header_data:
+
+                # Yes
+
+                # Let's check if it is still the case
+                if line.startswith("---"):
+
+                    # Next time it will be interface data
+                    no_header_data = True
+
+            else:
+
+                # Initialize data with default values
+                interface_name = ""
+                mode = "access"
+
+                # Data after header = interface information
+
+                # Get interface name and admin state
+                interface_and_mode = line.split()
+
+                # Check if there are 3 values at least (i.e. vlan, interface and mode)
+                if len(interface_and_mode) > 3:
+
+                    # Yes, there are 3 values at least
+
+                    # Check if the interface is have type "qtagged"
+                    if interface_and_mode[2] == "qtagged":
+
+                        # Yes, it is a trunk
+
+                        # Extract interface name
+                        interface_name_possible = interface_and_mode[1]
+
+                        # Check now if the interface name has "/" in the string
+                        if "/" in interface_name_possible:
+
+                            # Yes it has
+
+                            # So save the name of the interface
+                            interface_name = interface_name_possible
+
+                            # Save data into the descrition dictionary
+                            dict_mode[interface_name] = {
+                                "mode": "trunk",
+                            }
+
+        # Display info message
+        log.info(f"get_interfaces: dict_mode:\n'{dict_mode}'")
+
+        # return dict_mode
+
+        ############################################
+        # Research of admin status and description
+        ############################################
+
+        # Convert output_description into a list of lines
+        list_output_description_data = output_description.splitlines()
+
+        # By default the description dictionary is empty
+        dict_description = {}
+
+        # By default the lines read are header
+        no_header_data = False
+
+        # Read each line to find data (admin status and description)
+        for line in list_output_description_data:
+
+            # Is it the header data without information about interfaces?
+            if not no_header_data:
+
+                # Yes
+
+                # Let's check if it is still the case
+                if line.startswith("---"):
+
+                    # Next time it will be interface data
+                    no_header_data = True
+
+            else:
+
+                # Data after header = interface information
+
+                # Initialize data with default values
+                interface_name = ""
+                admin_state = False
+                description = ""
+
+                # Get interface name and admin state
+                interface_and_admin_state = line.split()
+
+                # Check if there are 2 values (i.e. an interface and an admin state are in the data)
+                if len(interface_and_admin_state) >= 2:
+
+                    # Yes, there are 2 values at least
+
+                    # Extract interface name
+                    interface_name_possible = interface_and_admin_state[0]
+
+                    # Check now if the interface name has "/" in the string
+                    if "/" in interface_name_possible:
+
+                        # Yes it has
+
+                        # So save the name of the interface
+                        interface_name = interface_name_possible
+
+                        # Extract admin state
+                        admin_state_string = interface_and_admin_state[1]
+
+                        # Check if admin state is "en" or "enable"
+                        if "en" in admin_state_string:
+
+                            # Admin state is enable
+                            admin_state = True
+
+                        # Now let's extract the description
+                        # Only the first 40 characters are gathered
+                        description = line.split('"', 1)[1].rsplit('"', 1)[0]
+
+                        # Save data into the descrition dictionary
+                        dict_description[interface_name] = {
+                            "admin_state": admin_state,
+                            "description": description,
+                        }
+
+        # Display info message
+        log.info(f"get_interfaces: dict_description:\n'{dict_description}'")
+
+        # return dict_description
+
+        ############################################
+        # Research of interface name, operational status,
+        # duplex and speed
+        ############################################
+
+        # Let's convert the whole data of output_status into a list of data
+        # Each list has data of 1 single interface (excluding first element)
+        list_interfaces_status_data = output_status.split("Port")[1:]
+
+        # Read each block of data to get information (interface name, operational status,
+        # duplex and speed)
+        for block_of_strings_status in list_interfaces_status_data:
+
+            # Initialize data with default values
+            interface_name = ""
+            operational = False
+            admin_state = False
+            maximum_frame_size = 0
+            full_duplex = False
+            speed = 0  # speed is in Mbit/s
+            mode = "access"
+            description = ""
+
+            # print(block_of_strings_status.split()[0])
+
+            # Split data block into lines
+            lines = block_of_strings_status.splitlines()
+
+            # Get interface name:
+            interface_name = lines[0].split()[0]
+
+            # Read each line
+            for line in lines:
+
+                # Check if "Operational Status" is found in a line
+                if "Operational Status" in line:
+
+                    # Yes
+
+                    # Check if "up" is in the string also
+                    if "up" in line:
+
+                        # Yes
+
+                        # So operational status is "up"
+                        operational = True
+
+                # Check if "BandWidth" is found in a line
+                if "BandWidth" in line:
+
+                    # Yes
+
+                    # Get speed
+                    speed_string = line.split(":")[1].split(",")[0].strip()
+
+                    # Check if the data string is a numeric value
+                    if speed_string.isnumeric():
+
+                        # Yes it is a numeric value
+
+                        # Convert the speed in integer
+                        speed = int(speed_string)
+
+                    # Check if "Full" for Full duplex is in the line
+                    if "full" in line.lower():
+
+                        # Yes
+
+                        # Save Full duplex state
+                        full_duplex = True
+
+                # Check if "Long Frame Size(Bytes)" is found in a line
+                if "Long Frame Size(Bytes)" in line:
+
+                    # Yes
+
+                    # Get Maximum Frame Size
+                    maximum_frame_size_string = line.split(": ")[1].split(",")[0]
+
+                    # Check if the data string is a numeric value
+                    if maximum_frame_size_string.isnumeric():
+
+                        # Yes it is a numeric value
+
+                        # Convert the Maximum Frame Size in integer
+                        maximum_frame_size = int(maximum_frame_size_string)
+
+            # Check if the interface is present in dict_description
+            if interface_name in dict_description:
+
+                # Yes it is
+
+                # Gathering admin state
+                admin_state = dict_description[interface_name]["admin_state"]
+
+                # Gathering description
+                description = dict_description[interface_name]["description"]
+
+            # Check if the interface is present in dict_mode (which means there is a trunk)
+            if interface_name in dict_mode:
+
+                # Yes, it is a trunk
+
+                # Interface mode is "trunk"
+                mode = "trunk"
+
+            # Check if interface name is not empty
+            if interface_name:
+
+                # It is not empty
+
+                # Create a dictionary
+                returned_dict = {
+                    "operational": operational,
+                    "admin_state": admin_state,
+                    "maximum_frame_size": maximum_frame_size,
+                    "full_duplex": full_duplex,
+                    "speed": speed,
+                    "mode": mode,
+                    "description": description,
+                }
+
+                # Add the information to the dict
+                if interface_name:
+                    returned_output[interface_name] = returned_dict
+
+        # Return data
+        return returned_output
+
+    async def set_interface(
+        self,
+        interface=None,
+        admin_state=None,
+        description=None,
+        maximum_frame_size=None,
+        mode=None,
+        **kwargs,
+    ):
+        """
+        Asyn method used to set the state of an interface of the device
+
+
+        :param interface: the name of the interface
+        :type interface: str
+
+        :param admin_state: optional, "up" or "down" status of the interface
+        :type admin_state: bool
+
+        :param description: optional, a description for the interface
+        :type description: str
+
+        :param maximum_frame_size: optional, L2 MTU for packets
+        :type maximum_frame_size: int
+
+        :param mode: optional, set the mode (access, trunk, hybrid) of the interface
+        :type mode: str
+
+        :param kwargs: not used
+        :type kwargs: dict
+
+        :return: Status. True = no error, False = error
+        :rtype: bool
+        """
+
+        # Display info message
+        log.info("set_interface")
+
+        # By default result status is having an error
+        return_status = False
+
+        # Display info message
+        log.info(f"set_interface: input: interface: {interface}")
+        log.info(f"set_interface: input: admin_state: {admin_state}")
+        log.info(f"set_interface: input: description: {description}")
+        log.info(f"set_interface: input: maximum_frame_size: {maximum_frame_size}")
+        log.info(f"set_interface: input: mode: {mode}")
+
+        # No error
+        return_status = True
+
+        """
+        interfaces 1/1 admin up
+        interfaces 1/1/1 admin-state enable
+        interfaces 1/1/1 alias ""
+        interfaces 1/1/1 max-frame-size 1500
+        interfaces 1/1 max frame 1500
+        show configuration snapshot vlan
+        vlan 310 members port 1/2/21 tagged
+        vlan 229 port default 1/8
+        vlan 229 802.1q 1/24 "TAG 1/24 VLAN 229"
+        """
+
+        # Return status
+        return return_status

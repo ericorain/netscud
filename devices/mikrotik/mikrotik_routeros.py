@@ -1,5 +1,5 @@
 # Python library import
-from netscud.base_connection import NetworkDevice, log, ipv4_netmask_list
+from netscud.base_connection import NetworkDevice, log
 import asyncio, asyncssh
 
 # Max data to read in read function
@@ -37,19 +37,21 @@ class MikrotikRouterOS(NetworkDevice):
         ]
 
         self._telnet_connect_first_ending_prompt = ["] > "]
+
+        # General commands
         # No global disabling for Mikrotik RouterOS so use
         # "without-paging" at the end of your commands
         self.cmd_disable_paging = None
-
         self.cmd_exit_config_mode = "/"
         self.cmd_get_version = "system resource print without-paging"
         self.cmd_get_hostname = "system identity print without-paging"
         self.cmd_get_model = "system resource print without-paging"
         self.cmd_get_serial_number = "system routerboard print without-paging"
         self.cmd_get_config = "export"
-        self.cmd_get_mac_address_table = "interface bridge host print without-paging"
-        self.cmd_get_arp = "ip arp print terse without-paging"
-        self.cmd_get_lldp_neighbors = "ip neighbor print terse without-paging"
+        # No command to save the config. So it is always saved after "Enter"
+        self.cmd_save_config = ""
+
+        # Layer 1 commands
         # Commands for status, duplex/speed, mode
         # self.cmd_get_interfaces = [
         #     "interface ethernet print terse without-paging",
@@ -61,11 +63,6 @@ class MikrotikRouterOS(NetworkDevice):
             "foreach i in=([/interface ethernet find]) do={/interface ethernet monitor $i once without-paging}",
             "interface bridge port print terse without-paging",
         ]
-        self.cmd_get_vlans = "interface bridge vlan print terse without-paging"
-        self.cmd_get_routing_table = "ip route print without-paging terse"
-        self.cmd_get_bridges = "interface bridge print terse without-paging"
-        self.cmd_add_vlan = 'interface bridge vlan add vlan-ids=<VLAN> comment="<VLAN_NAME>" bridge=<BRIDGE>'
-        self.cmd_remove_vlan = "interface bridge vlan remove [find vlan-ids=<VLAN>]"
         self.cmd_set_interface = [
             "interface ethernet enable <INTERFACE>",
             "interface ethernet disable <INTERFACE>",
@@ -73,26 +70,37 @@ class MikrotikRouterOS(NetworkDevice):
             "interface ethernet set l2mtu=<MAXIMUMFRAMESIZE> <INTERFACE>",
             "interface bridge port set frame-types=<MODE> ingress-filtering=<FILTERINGVLAN> [find interface=<INTERFACE>]",
         ]
+
+        # Layer 2 commands
+        self.cmd_get_mac_address_table = "interface bridge host print without-paging"
+        self.cmd_get_arp = "ip arp print terse without-paging"
+        self.cmd_get_lldp_neighbors = "ip neighbor print terse without-paging"
+        self.cmd_get_vlans = "interface bridge vlan print terse without-paging"
+        self.cmd_get_bridges = (
+            "interface bridge print terse without-paging"  # Specific to Mikrotik
+        )
+        self.cmd_add_vlan = 'interface bridge vlan add vlan-ids=<VLAN> comment="<VLAN_NAME>" bridge=<BRIDGE>'
+        self.cmd_remove_vlan = "interface bridge vlan remove [find vlan-ids=<VLAN>]"
         self.cmd_add_interface_to_vlan = [
             "interface bridge vlan print terse",
             "interface bridge vlan set [find vlan-ids=<VLAN>] untagged=<INTERFACE>",
             "interface bridge vlan set [find vlan-ids=<VLAN>] tagged=<INTERFACE>",
             "interface bridge port set [find interface=<INTERFACE>] pvid=<VLAN>",
         ]
-
         self.cmd_remove_interface_from_vlan = [
             "interface bridge vlan print terse",
             "interface bridge vlan set [find vlan-ids=<VLAN>] untagged=<INTERFACE>",
             "interface bridge vlan set [find vlan-ids=<VLAN>] tagged=<INTERFACE>",
             "interface bridge port set [find interface=<INTERFACE>] pvid=<VLAN>",
         ]
+
+        # Layer 3 commands
+        self.cmd_get_routing_table = "ip route print without-paging terse"
         self.cmd_get_interfaces_ip = "ip address print terse without-paging"
         self.cmd_add_static_route = "ip route add dst-address=<NETWORK>/<PREFIXLENGTH> gateway=<DESTINATION> distance=<METRIC>"
         self.cmd_remove_static_route = (
             "ip route remove [find dst-address=<NETWORK>/<PREFIXLENGTH>]"
         )
-        # No command to save the config. So it is always saved after "Enter"
-        self.cmd_save_config = ""
 
     async def connectSSH(self):
         """
@@ -521,7 +529,7 @@ class MikrotikRouterOS(NetworkDevice):
                         break
 
         # Debug info message
-        log.info(
+        log.debug(
             f"send_commandSSH: raw output: '{output}'\nsend_commandSSH: raw output (hex): '{output.encode().hex()}'"
         )
 
@@ -555,7 +563,7 @@ class MikrotikRouterOS(NetworkDevice):
             output = ""
 
         # Debug info message
-        log.info(
+        log.debug(
             f"send_commandSSH: cleaned output: '{output}'\nsend_commandSSH: cleaned output (hex): '{output.encode().hex()}'"
         )
 
@@ -676,7 +684,7 @@ class MikrotikRouterOS(NetworkDevice):
         output = byte_data.decode("utf-8", "ignore")
 
         # Debug info message
-        log.info(
+        log.debug(
             f"send_commandTelnet: raw output: '{output}'\nsend_commandTelnet: raw output (hex): '{output.encode().hex()}'"
         )
 
@@ -691,7 +699,7 @@ class MikrotikRouterOS(NetworkDevice):
         output = output[: output.rfind("\n")]
 
         # Debug info message
-        log.info(
+        log.debug(
             f"send_commandTelnet: cleaned output: '{output}'\nsend_commandTelnet: cleaned output (hex): '{output.encode().hex()}'"
         )
 
@@ -866,7 +874,7 @@ class MikrotikRouterOS(NetworkDevice):
         output = byte_data.decode("utf-8", "ignore")
 
         # Debug info message
-        log.info(
+        log.debug(
             f"telnet_send_command_with_unexpected_pattern: raw output: '{output}'\ntelnet_send_command_with_unexpected_pattern: raw output (hex): '{output.encode().hex()}'"
         )
 
@@ -880,7 +888,7 @@ class MikrotikRouterOS(NetworkDevice):
         output = output[: output.rfind("\n")]
 
         # Debug info message
-        log.info(
+        log.debug(
             f"telnet_send_command_with_unexpected_pattern: cleaned output: '{output}'\ntelnet_send_command_with_unexpected_pattern: cleaned output (hex): '{output.encode().hex()}'"
         )
 
@@ -2251,10 +2259,6 @@ class MikrotikRouterOS(NetworkDevice):
 
         # Return status
         return return_status
-
-    # async def set_interface(
-    #     self, admin_state, description, maximum_frame_size, mode, speed
-    # ):
 
     async def set_interface(
         self,

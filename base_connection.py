@@ -6,8 +6,8 @@ log = logging.getLogger(__package__)
 
 # Debug level
 # logging.basicConfig(level=logging.WARNING)
-# logging.basicConfig(level=logging.INFO)
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
+# logging.basicConfig(level=logging.DEBUG)
 # asyncssh.set_debug_level(2)
 
 
@@ -16,6 +16,7 @@ logging.basicConfig(level=logging.DEBUG)
 # Max data to read in read function
 MAX_BUFFER_DATA = 65535
 
+"""
 # Dictonary with all netmasks of IPv4
 ipv4_netmask_list = {
     "128.0.0.0": "1",
@@ -51,6 +52,7 @@ ipv4_netmask_list = {
     "255.255.255.254": "31",
     "255.255.255.255": "32",
 }
+"""
 
 
 class NetworkDevice:
@@ -173,6 +175,8 @@ class NetworkDevice:
         self._telnet_connect_login = "Username:"
         self._telnet_connect_password = "Password:"
         self._telnet_connect_authentication_fail_prompt = [":", "%"]
+
+        # General commands
         self.cmd_enable = "enable"
         self.cmd_disable_paging = "terminal length 0"
         self.cmd_enter_config_mode = "configure terminal"
@@ -183,6 +187,48 @@ class NetworkDevice:
         self.cmd_get_serial_number = "show inventory | i SN"
         self.cmd_get_config = "show running-config"
         self.cmd_save_config = "write memory"
+
+        # Layer 1 commands
+        self.cmd_get_interfaces = [
+            "interface ethernet print terse without-paging",
+            "foreach i in=([/interface ethernet find]) do={/interface ethernet monitor $i once without-paging}",
+            "interface bridge port print terse without-paging",
+        ]
+        self.cmd_set_interface = [
+            "interface ethernet enable <INTERFACE>",
+            "interface ethernet disable <INTERFACE>",
+            'interface ethernet comment <INTERFACE> "<COMMENT>"',
+            "interface ethernet set l2mtu=<MAXIMUMFRAMESIZE> <INTERFACE>",
+            "interface bridge port set frame-types=<MODE> ingress-filtering=<FILTERINGVLAN> [find interface=<INTERFACE>]",
+        ]
+
+        # Layer 2 commands
+        self.cmd_get_mac_address_table = "interface bridge host print without-paging"
+        self.cmd_get_arp = "ip arp print terse without-paging"
+        self.cmd_get_lldp_neighbors = "ip neighbor print terse without-paging"
+        self.cmd_get_vlans = "interface bridge vlan print terse without-paging"
+        self.cmd_add_vlan = 'interface bridge vlan add vlan-ids=<VLAN> comment="<VLAN_NAME>" bridge=<BRIDGE>'
+        self.cmd_remove_vlan = "interface bridge vlan remove [find vlan-ids=<VLAN>]"
+        self.cmd_add_interface_to_vlan = [
+            "interface bridge vlan print terse",
+            "interface bridge vlan set [find vlan-ids=<VLAN>] untagged=<INTERFACE>",
+            "interface bridge vlan set [find vlan-ids=<VLAN>] tagged=<INTERFACE>",
+            "interface bridge port set [find interface=<INTERFACE>] pvid=<VLAN>",
+        ]
+        self.cmd_remove_interface_from_vlan = [
+            "interface bridge vlan print terse",
+            "interface bridge vlan set [find vlan-ids=<VLAN>] untagged=<INTERFACE>",
+            "interface bridge vlan set [find vlan-ids=<VLAN>] tagged=<INTERFACE>",
+            "interface bridge port set [find interface=<INTERFACE>] pvid=<VLAN>",
+        ]
+
+        # Layer 3 commands
+        self.cmd_get_routing_table = "ip route print without-paging terse"
+        self.cmd_get_interfaces_ip = "ip address print terse without-paging"
+        self.cmd_add_static_route = "ip route add dst-address=<NETWORK>/<PREFIXLENGTH> gateway=<DESTINATION> distance=<METRIC>"
+        self.cmd_remove_static_route = (
+            "ip route remove [find dst-address=<NETWORK>/<PREFIXLENGTH>]"
+        )
 
         # Display info message
         log.info("__init__: kwargs: " + str(kwargs))
@@ -210,7 +256,7 @@ class NetworkDevice:
             self.password = kwargs["password"]
 
             # Display info message
-            log.info("__init__: password found: " + str(self.password))
+            log.debug("__init__: password found: " + str(self.password))
 
         # "device_type" found?
         if "device_type" in kwargs:
@@ -1244,7 +1290,7 @@ class NetworkDevice:
                     break
 
         # Debug info message
-        log.info(
+        log.debug(
             f"send_commandSSH: raw output: '{output}'\nsend_commandSSH: raw output (hex): '{output.encode().hex()}'"
         )
 
@@ -1256,7 +1302,7 @@ class NetworkDevice:
         output = self.remove_ending_prompt_in_output(output)
 
         # Debug info message
-        log.info(
+        log.debug(
             f"send_commandSSH: cleaned output: '{output}'\nsend_commandSSH: cleaned output (hex): '{output.encode().hex()}'"
         )
 
@@ -1367,7 +1413,7 @@ class NetworkDevice:
         output = byte_data.decode("utf-8", "ignore")
 
         # Debug info message
-        log.info(
+        log.debug(
             f"send_commandTelnet: raw output: '{output}'\nsend_commandTelnet: raw output (hex): '{output.encode().hex()}'"
         )
 
@@ -1379,7 +1425,7 @@ class NetworkDevice:
         output = self.remove_ending_prompt_in_output(output)
 
         # Debug info message
-        log.info(
+        log.debug(
             f"send_commandTelnet: cleaned output: '{output}'\nsend_commandTelnet: cleaned output (hex): '{output.encode().hex()}'"
         )
 
@@ -1557,7 +1603,7 @@ class NetworkDevice:
         output = byte_data.decode("utf-8", "ignore")
 
         # Debug info message
-        log.info(
+        log.debug(
             f"telnet_send_command_with_unexpected_pattern: raw output: '{output}'\ntelnet_send_command_with_unexpected_pattern: raw output (hex): '{output.encode().hex()}'"
         )
 
@@ -1569,7 +1615,7 @@ class NetworkDevice:
         output = self.remove_ending_prompt_in_output(output)
 
         # Debug info message
-        log.info(
+        log.debug(
             f"telnet_send_command_with_unexpected_pattern: cleaned output: '{output}'\ntelnet_send_command_with_unexpected_pattern: cleaned output (hex): '{output.encode().hex()}'"
         )
 
@@ -1727,7 +1773,7 @@ class NetworkDevice:
                 break
 
         # Debug info message
-        log.info(
+        log.debug(
             f"send_config_setSSH: raw output: '{output}'\nsend_config_setSSH: raw output (hex): '{output.encode().hex()}'"
         )
 
@@ -1742,7 +1788,7 @@ class NetworkDevice:
         output = self.remove_ending_prompt_in_output(output)
 
         # Display info message
-        log.info(
+        log.debug(
             f"send_config_setSSH: cleaned output: '{output}'\nsend_config_setSSH: cleaned output (hex): '{output.encode().hex()}'"
         )
 
@@ -1794,7 +1840,7 @@ class NetworkDevice:
                     break
 
             # Debug info message
-            log.info(
+            log.debug(
                 f"send_config_setSSH: raw output: '{output}'\nsend_config_setSSH: raw output (hex): '{output.encode().hex()}'"
             )
 
@@ -1809,7 +1855,7 @@ class NetworkDevice:
             output = self.remove_ending_prompt_in_output(output)
 
             # Display info message
-            log.info(
+            log.debug(
                 f"send_config_setSSH: cleaned output: '{output}'\nsend_config_setSSH: cleaned output (hex): '{output.encode().hex()}'"
             )
 
@@ -1861,7 +1907,7 @@ class NetworkDevice:
                 break
 
         # Debug info message
-        log.info(
+        log.debug(
             f"send_config_setSSH: raw output: '{output}'\nsend_config_setSSH: raw output (hex): '{output.encode().hex()}'"
         )
 
@@ -1876,7 +1922,7 @@ class NetworkDevice:
         output = self.remove_ending_prompt_in_output(output)
 
         # Display info message
-        log.info(
+        log.debug(
             f"send_config_setSSH: cleaned output: '{output}'\nsend_config_setSSH: cleaned output (hex): '{output.encode().hex()}'"
         )
 
@@ -2017,7 +2063,7 @@ class NetworkDevice:
         output = byte_data.decode("utf-8", "ignore")
 
         # Debug info message
-        log.info(
+        log.debug(
             f"send_config_setTelnet: raw output: '{output}'\nsend_config_setTelnet: raw output (hex): '{output.encode().hex()}'"
         )
 
@@ -2032,7 +2078,7 @@ class NetworkDevice:
         output = self.remove_ending_prompt_in_output(output)
 
         # Display info message
-        log.info(
+        log.debug(
             f"send_config_setTelnet: cleaned output: '{output}'\nsend_config_setTelnet: cleaned output (hex): '{output.encode().hex()}'"
         )
 
@@ -2119,7 +2165,7 @@ class NetworkDevice:
             output = byte_data.decode("utf-8", "ignore")
 
             # Debug info message
-            log.info(
+            log.debug(
                 f"send_config_setTelnet: raw output: '{output}'\nsend_config_setTelnet: raw output (hex): '{output.encode().hex()}'"
             )
 
@@ -2134,7 +2180,7 @@ class NetworkDevice:
             output = self.remove_ending_prompt_in_output(output)
 
             # Display info message
-            log.info(
+            log.debug(
                 f"send_config_setTelnet: cleaned output: '{output}'\nsend_config_setTelnet: cleaned output (hex): '{output.encode().hex()}'"
             )
 
@@ -2229,7 +2275,7 @@ class NetworkDevice:
         output = byte_data.decode("utf-8", "ignore")
 
         # Debug info message
-        log.info(
+        log.debug(
             f"send_config_setTelnet: raw output: '{output}'\nsend_config_setTelnet: raw output (hex): '{output.encode().hex()}'"
         )
 
@@ -2244,7 +2290,7 @@ class NetworkDevice:
         output = self.remove_ending_prompt_in_output(output)
 
         # Display info message
-        log.info(
+        log.debug(
             f"send_config_setTelnet: cleaned output: '{output}'\nsend_config_setTelnet: cleaned output (hex): '{output.encode().hex()}'"
         )
 
