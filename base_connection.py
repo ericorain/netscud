@@ -6,9 +6,9 @@ log = logging.getLogger(__package__)
 
 # Debug level
 # logging.basicConfig(level=logging.WARNING)
-logging.basicConfig(level=logging.INFO)
-# logging.basicConfig(level=logging.DEBUG)
-# asyncssh.set_debug_level(2)
+# logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
+asyncssh.set_debug_level(2)
 
 
 # Declaration of constant values
@@ -231,7 +231,7 @@ class NetworkDevice:
         )
 
         # Display info message
-        log.info("__init__: kwargs: " + str(kwargs))
+        log.debug("__init__: kwargs: " + str(kwargs))
 
         # Get information from dictionary
 

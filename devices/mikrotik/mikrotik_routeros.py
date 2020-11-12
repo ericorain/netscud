@@ -2,6 +2,8 @@
 from netscud.base_connection import NetworkDevice, log
 import asyncio, asyncssh
 
+# Declaration of constant values
+
 # Max data to read in read function
 MAX_BUFFER_DATA = 65535
 
@@ -2410,7 +2412,7 @@ class MikrotikRouterOS(NetworkDevice):
             # Display info message
             log.info(f"set_interface: maximum_frame_size: cmd: {cmd}")
 
-            # Change the description of the interface
+            # Change the Maximum Frame Size of the interface
             output = await self.send_command(cmd)
 
             # Check if there is an error
@@ -2431,7 +2433,7 @@ class MikrotikRouterOS(NetworkDevice):
             # Yes
 
             # So the mode (access, trunk, hybrid) of the interface can be changed
-            # Note that it affect an interface inside a bridge
+            # Note that it affects an interface inside a bridge
 
             # Display info message
             log.info("set_interface: mode")
@@ -2470,7 +2472,7 @@ class MikrotikRouterOS(NetworkDevice):
             # Display info message
             log.info(f"set_interface: mode: cmd: {cmd}")
 
-            # Change the description of the interface
+            # Change the mode of the interface
             await self.send_command(cmd)
 
         # No error

@@ -1,5 +1,11 @@
 # Python library import
 from netscud.base_connection import NetworkDevice, log
+import asyncio, asyncssh
+
+# Declaration of constant values
+
+# Max data to read in read function
+MAX_BUFFER_DATA = 65535
 
 
 class AlcatelAOS(NetworkDevice):
@@ -42,10 +48,181 @@ class AlcatelAOS(NetworkDevice):
             "show vlan members",  # AOS 7, AOS 8
             "show vlan port",  # AOS 6 and lower
         ]
+        self.cmd_set_interface = [
+            "interfaces <INTERFACE> admin-state enable",
+            "interfaces <INTERFACE> admin-state disable",
+            "interfaces <INTERFACE> admin up",
+            "interfaces <INTERFACE> admin down",
+            'interfaces <INTERFACE> alias "<DESCRIPTION>"',
+            "interfaces <INTERFACE> max-frame-size <MAXIMUMFRAMESIZE>",
+            "interfaces <INTERFACE> max frame <MAXIMUMFRAMESIZE>",
+            "show configuration snapshot vlan",
+            "show configuration snapshot 802.1q",
+        ]
 
         # Layer 2 commands
 
         # Layer 3 commands
+
+    def monkey_patch_dsa_512(self):
+
+        """
+        Monkey patch that allows DSA 512 bits connections
+
+        Code is ugly
+        """
+
+        import cryptography.hazmat.primitives.asymmetric.dsa
+
+        def my_check_dsa_parameters(parameters):
+            if parameters.p.bit_length() not in [512, 1024, 2048, 3072]:
+                raise ValueError("p must be exactly 512, 1024, 2048, or 3072 bits long")
+            if parameters.q.bit_length() not in [160, 224, 256]:
+                raise ValueError("q must be exactly 160, 224, or 256 bits long")
+
+        cryptography.hazmat.primitives.asymmetric.dsa._check_dsa_parameters = (
+            my_check_dsa_parameters
+        )
+
+    async def connectSSH(self):
+        """
+        Async method used for connecting a device using SSH protocol
+        """
+
+        # Display info message
+        log.info("connectSSH")
+
+        # Monkey patch DSA 512 bits connections
+        self.monkey_patch_dsa_512()
+
+        # Parameters of the connection
+        generator = asyncssh.connect(
+            self.ip,
+            username=self.username,
+            password=self.password,
+            known_hosts=None,
+            # encryption_algs="*",  # Parameter that includes all encryption algorithms (even the old ones disabled by default)
+            encryption_algs=[
+                algs.decode("utf-8") for algs in asyncssh.encryption._enc_algs
+            ],  # Parameter that includes all encryption algorithms (even the old ones disabled by default)
+            # server_host_key_algs=["ssh-rsa", "ssh-dss"],
+            server_host_key_algs=["ssh-dss"],
+        )
+
+        # Trying to connect to the device
+        try:
+
+            self.conn = await asyncio.wait_for(generator, timeout=self.timeout)
+
+        except asyncio.exceptions.TimeoutError as error:
+
+            # Timeout
+
+            # Display error message
+            log.error(f"connectSSH: connection failed: {self.ip} timeout: '{error}'")
+
+            # Exception propagation
+            raise asyncio.exceptions.TimeoutError(
+                "Connection failed: connection timed out."
+            )
+
+        except Exception as error:
+
+            # Connection failed
+
+            # Display error message
+            log.error(f"connectSSH: connection failed: {self.ip} '{error}'")
+
+            # Exception propagation
+            raise
+
+        # Display info message
+        log.info("connectSSH: connection success")
+
+        # Create a session
+        self.stdinx, self.stdoutx, _ = await self.conn.open_session(term_type="netscud")
+
+        # Display info message
+        log.info("connectSSH: open_session success")
+
+        # By default no data has been read
+        data = ""
+
+        # By default no prompt found
+        prompt_not_found = True
+
+        try:
+
+            # Read data
+            while prompt_not_found:
+
+                # Display info message
+                log.info("connectSSH: beginning of the loop")
+
+                # Read the prompt
+                data += await asyncio.wait_for(
+                    self.stdoutx.read(MAX_BUFFER_DATA), timeout=self.timeout
+                )
+
+                # Display info message
+                log.info(f"connectSSH: data: '{str(data)}'")
+
+                # Display info message
+                log.info(f"connectSSH: data: hex:'{data.encode('utf-8').hex()}'")
+
+                # Check if an initial prompt is found
+                for prompt in self._connect_first_ending_prompt:
+
+                    # Ending prompt found?
+                    if data.endswith(prompt):
+
+                        # Yes
+
+                        # Display info message
+                        log.info(f"connectSSH: first ending prompt found: '{prompt}'")
+
+                        # A ending prompt has been found
+                        prompt_not_found = False
+
+                        # Leave the loop
+                        break
+
+                # Display info message
+                log.info("connectSSH: end of loop")
+
+        except Exception as error:
+
+            # Fail while reading the prompt
+
+            # Display error message
+            log.error(
+                f"connectSSH: timeout while reading the prompt: {self.ip} '{error}'"
+            )
+
+            # Exception propagation
+            raise
+
+        # Display info message
+        log.info(f"connectSSH: end of prompt loop")
+
+        # Remove possible escape sequence
+        data = self.remove_ansi_escape_sequence(data)
+
+        # Find prompt
+        self.prompt = self.find_prompt(str(data))
+
+        # Display info message
+        log.info(f"connectSSH: prompt found: '{self.prompt}'")
+
+        # Display info message
+        log.info(f"connectSSH: prompt found size: '{len(self.prompt)}'")
+
+        # Disable paging command available?
+        if self.cmd_disable_paging:
+            # Yes
+
+            # Disable paging
+            await self.disable_paging()
 
     async def get_hostname(self):
         """
@@ -755,20 +932,242 @@ class AlcatelAOS(NetworkDevice):
         log.info(f"set_interface: input: maximum_frame_size: {maximum_frame_size}")
         log.info(f"set_interface: input: mode: {mode}")
 
-        # No error
-        return_status = True
-
         """
-        interfaces 1/1 admin up
-        interfaces 1/1/1 admin-state enable
-        interfaces 1/1/1 alias ""
-        interfaces 1/1/1 max-frame-size 1500
-        interfaces 1/1 max frame 1500
-        show configuration snapshot vlan
+        "interfaces <INTERFACE> admin-state enable",
+        "interfaces <INTERFACE> admin-state disable",
+        "interfaces <INTERFACE> admin up",
+        "interfaces <INTERFACE> admin down",
+        'interfaces <INTERFACE> alias "<DESCRIPTION>"',
+        "interfaces <INTERFACE> max-frame-size <MAXIMUMFRAMESIZE>",
+        "interfaces <INTERFACE> max frame <MAXIMUMFRAMESIZE>",
+        "show configuration snapshot vlan",
+        "show configuration snapshot 802.1q",
         vlan 310 members port 1/2/21 tagged
+        vlan 101 members port 1/2/21 untagged
         vlan 229 port default 1/8
         vlan 229 802.1q 1/24 "TAG 1/24 VLAN 229"
         """
+
+        # # Return status
+        # return return_status
+
+        # Get parameters
+
+        # "interface" found?
+        if interface == None:
+
+            # No
+
+            # So no action can be performed
+
+            # Display info message
+            log.info("set_interface: no interface specified")
+
+            # Return status
+            return return_status
+
+        # "admin_state" found?
+        if admin_state != None:
+
+            # Yes
+
+            # So admin state of the interface can be changed
+
+            # Display info message
+            log.info("set_interface: admin_state")
+
+            # "up" or "down"? (True of False)
+            if admin_state:
+
+                # "up"
+
+                # [ "interfaces <INTERFACE> admin-state enable", "interfaces <INTERFACE> admin-state disable",]
+
+                # AOS 7+
+
+                # Get the command
+                cmd = self.cmd_set_interface[0]
+
+            else:
+
+                # "down"
+
+                # Get the command
+                cmd = self.cmd_set_interface[1]
+
+            # Adapt the command line
+
+            # Replace <INTERFACE> with the interface name
+            cmd = cmd.replace("<INTERFACE>", interface)
+
+            # Display info message
+            log.info(f"set_interface: admin_state: cmd: {cmd}")
+
+            # Change the state of the interface
+            output = await self.send_command(cmd)
+
+            # Check if there is an error (like whith AOS6)
+            #                                               ^
+            # ERROR: Invalid entry: "admin-state"
+            if "admin-state" in output:
+
+                # AOS 7+ command not supported
+
+                # Display info message
+                log.info(f"set_interface: admin_state command: error: {output}")
+
+                # "up" or "down"? (True of False)
+                if admin_state:
+
+                    # "up"
+
+                    # ["interfaces <INTERFACE> admin up","interfaces <INTERFACE> admin down",]
+
+                    # AOS 6
+
+                    # Get the command
+                    cmd = self.cmd_set_interface[2]
+
+                else:
+
+                    # "down"
+
+                    # Get the command
+                    cmd = self.cmd_set_interface[3]
+
+                # Adapt the command line
+
+                # Replace <INTERFACE> with the interface name
+                cmd = cmd.replace("<INTERFACE>", interface)
+
+                # Display info message
+                log.info(f"set_interface: admin_state: cmd: {cmd}")
+
+                # Change the state of the interface
+                output = await self.send_command(cmd)
+
+            # An error (maybe a second time)?
+            if "error" in output.lower():
+
+                # Yes an error after a command in AOS6 and in AOS7+
+
+                # Display info message
+                log.error(f"set_interface: admin-state: error: {output}")
+
+                # Return an error
+                return return_status
+
+        # "description" found?
+        if description != None:
+
+            # Yes
+
+            # So description of the interface can be changed
+
+            # Display info message
+            log.info("set_interface: description")
+
+            # Adapt the command line
+
+            # 'interfaces <INTERFACE> alias "<DESCRIPTION>"',
+
+            # Replace <INTERFACE> with the interface name
+            cmd = self.cmd_set_interface[4].replace("<INTERFACE>", interface)
+
+            # Replace <DESCRIPTION> with the description
+            cmd = cmd.replace("<DESCRIPTION>", description)
+
+            # Display info message
+            log.info(f"set_interface: description: cmd: {cmd}")
+
+            # Change the description of the interface
+            await self.send_command(cmd)
+
+        # "maximum_frame_size" found?
+        if maximum_frame_size != None:
+
+            # Yes
+
+            # So the Maximum Frame Size can be changed
+
+            # Display info message
+            log.info("set_interface: maximum_frame_size")
+
+            # Adapt the command line
+
+            #  ["interfaces <INTERFACE> max-frame-size <MAXIMUMFRAMESIZE>",
+            # "interfaces <INTERFACE> max frame <MAXIMUMFRAMESIZE>",]
+
+            # Replace <INTERFACE> with the interface name
+            cmd = self.cmd_set_interface[5].replace("<INTERFACE>", interface)
+
+            # Maximum Frame Size is between 1518-9216
+
+            # Replace <MAXIMUMFRAMESIZE> with the size of the frame
+            cmd = cmd.replace("<MAXIMUMFRAMESIZE>", str(maximum_frame_size))
+
+            # Display info message
+            log.info(f"set_interface: maximum_frame_size: cmd: {cmd}")
+
+            # Change the Maximum Frame Size of the interface
+            output = await self.send_command(cmd)
+
+            # Check if there is an error
+            # "                                               ^
+            # ERROR: Invalid entry: "max-frame-size""
+            if "max-frame-size" in output:
+
+                # The AOS7+ command is not accepted
+
+                # Attempt with AOS6 command
+
+                # Replace <INTERFACE> with the interface name
+                cmd = self.cmd_set_interface[6].replace("<INTERFACE>", interface)
+
+                # Replace <MAXIMUMFRAMESIZE> with the size of the frame
+                cmd = cmd.replace("<MAXIMUMFRAMESIZE>", str(maximum_frame_size))
+
+                # Change the Maximum Frame Size of the interface
+                output = await self.send_command(cmd)
+
+            # Check if there is an error
+            # Example:
+            # ERROR: Invalid Max Frame Size for non-tagged port/100 (1518-9216): 1234
+            #
+            #
+            if "error" in output.lower():
+
+                # Yes, there is an error
+
+                # Display info message
+                log.error(f"set_interface: max-frame-size: error: {output}")
+
+                # Return an error
+                return return_status
+
+        # "mode" found?
+        if mode != None:
+
+            # Yes
+
+            # So the mode (access, trunk, hybrid) of the interface can be changed
+
+            # Display info message
+            log.info("set_interface: mode")
+
+            # "show configuration snapshot vlan",
+
+            # Get command
+            cmd = self.cmd_set_interface[7]
+
+            # Change the mode of the interface
+            await self.send_command(cmd)
+
+            #                                             ^
+            # ERROR: Invalid entry: "802.1q"
+
+        # No error
+        return_status = True
 
         # Return status
         return return_status
