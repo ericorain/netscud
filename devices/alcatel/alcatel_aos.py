@@ -56,8 +56,11 @@ class AlcatelAOS(NetworkDevice):
             'interfaces <INTERFACE> alias "<DESCRIPTION>"',
             "interfaces <INTERFACE> max-frame-size <MAXIMUMFRAMESIZE>",
             "interfaces <INTERFACE> max frame <MAXIMUMFRAMESIZE>",
-            "show configuration snapshot vlan",
-            "show configuration snapshot 802.1q",
+            "show vlan members",
+            "show vlan port",
+            "no vlan <VLAN> members port <INTERFACE>",
+            "vlan <VLANLIST> no 802.1q <INTERFACE>",
+            "show vlan",
         ]
 
         # Layer 2 commands
@@ -940,12 +943,33 @@ class AlcatelAOS(NetworkDevice):
         'interfaces <INTERFACE> alias "<DESCRIPTION>"',
         "interfaces <INTERFACE> max-frame-size <MAXIMUMFRAMESIZE>",
         "interfaces <INTERFACE> max frame <MAXIMUMFRAMESIZE>",
+        "show vlan members",
+        "show vlan port",
+        "no vlan <VLAN> members port <INTERFACE>",
+        "vlan <VLANLIST> no 802.1q <INTERFACE>",
+        "show vlan",
+
         "show configuration snapshot vlan",
         "show configuration snapshot 802.1q",
+
         vlan 310 members port 1/2/21 tagged
         vlan 101 members port 1/2/21 untagged
         vlan 229 port default 1/8
         vlan 229 802.1q 1/24 "TAG 1/24 VLAN 229"
+
+        # Alcatel AOS 7+
+        vlan 101 members port 1/1/22 tagged
+        vlan 110 members port 1/1/22 tagged
+        no vlan 101 members port 1/1/22
+        no vlan 110 members port 1/1/22
+
+        # Alcatel AOS 6
+        vlan 229 port default 1/7
+        vlan 1 802.1q 1/7
+        vlan 1 101 110 802.1q 1/7
+        no 802.1q 1/7
+        vlan 1 no 802.1q 1/7
+        vlan 1 101 110 no 802.1q 1/7
         """
 
         # # Return status
@@ -1150,21 +1174,344 @@ class AlcatelAOS(NetworkDevice):
 
             # Yes
 
-            # So the mode (access, trunk, hybrid) of the interface can be changed
+            # So the mode (access, trunk) of the interface can be changed
 
             # Display info message
             log.info("set_interface: mode")
 
-            # "show configuration snapshot vlan",
+            # By default, this is Alcatel AOS 7+
+            alcatel_version = 7
+
+            # "show vlan members",
 
             # Get command
             cmd = self.cmd_set_interface[7]
 
             # Change the mode of the interface
-            await self.send_command(cmd)
+            output = await self.send_command(cmd)
 
-            #                                             ^
-            # ERROR: Invalid entry: "802.1q"
+            # Check if an error occured
+            #                                          ^
+            # ERROR: Invalid entry: "members"
+            if "members" in output:
+
+                # Not Alcatel AOS 7+
+
+                # Probably Alcatel AOS 6
+                alcatel_version = 6
+
+                # The send a command for Alcatel AOS 6
+
+                # "show vlan port",
+
+                # Get command
+                cmd = self.cmd_set_interface[8]
+
+                # Change the mode of the interface
+                output = await self.send_command(cmd)
+
+            # Display info message
+            log.info(f"set_interface: mode: aos discovered version: {alcatel_version}")
+
+            # Check if there is an error
+            if "error" in output.lower():
+
+                # Yes, there is an error
+
+                # Display info message
+                log.error(f"set_interface: mode: vlan members: error: {output}")
+
+                # Return an error
+                return return_status
+
+            # Let's check if the port is already an access port or a trunk
+
+            # Display info message
+            log.info(f"set_interface: mode: checking trunk_type")
+
+            # Convert output into a list of lines
+            list_output = output.splitlines()
+
+            # By default the port is an access port
+            trunk_type = False
+
+            # By default the list of VLANs is empty for a trunk port
+            list_vlan_trunk = []
+
+            # By default the lines read are header
+            no_header_data = False
+
+            # Read each line to find data (trunk)
+            for line in list_output:
+
+                # Is it the header data without information about VLANS and interfaces?
+                if not no_header_data:
+
+                    # Yes
+
+                    # Let's check if it is still the case
+                    if line.startswith("---"):
+
+                        # Next time it will be interface data
+                        no_header_data = True
+
+                else:
+
+                    # Data after header = interface information
+
+                    # Get "vlan", "port" and "type"
+                    vlan_port_type = line.split()
+
+                    # Check if there are 3 values (i.e. "vlan", "port" and "type" in the line)
+                    if len(vlan_port_type) >= 3:
+
+                        # Yes, there are 3 values at least
+
+                        # Extract interface name
+                        interface_name_possible = vlan_port_type[1]
+
+                        # Check now if the interface name has "/" in the string
+                        if "/" in interface_name_possible:
+
+                            # Yes it has
+
+                            # So save the name of the interface
+                            interface_name = interface_name_possible
+
+                            # Check if the name of the interface is the same as the one of the line
+                            if interface == interface_name:
+
+                                # Yes that is the interface
+
+                                # Extract type (default or qtagged)
+                                type_string = vlan_port_type[2]
+
+                                # Check if admin state is "default" or "qtagged"
+                                if "qtagged" in type_string:
+
+                                    # type is "trunk"
+                                    trunk_type = True
+
+                                    # Get VLAN
+                                    vlan_found = vlan_port_type[0]
+
+                                    # Add VLAN to the list of VLANs for a trunk
+                                    list_vlan_trunk.append(vlan_found)
+
+                                    # # No need to read more information since we know this is a trunk port
+
+                                    # # Break the loop
+                                    # break
+
+            # Display info message
+            log.info(
+                f"set_interface: mode: trunk_type (False=access, True=trunk): {trunk_type}"
+            )
+
+            # Display info message
+            log.info(
+                f"set_interface: mode: list of VLANs found for a trunk: {list_vlan_trunk}"
+            )
+
+            # Check if access port is requested
+            if mode == "access":
+
+                # Yes access mode requested for the interface
+
+                # If the interface is already in access mode there is so no need extra configuration
+
+                # Check if the interface is in trunk mode
+                if trunk_type:
+
+                    # Yes. The interface is in trunk mode and needs to be changed into access mode
+
+                    # "no vlan <VLAN> members port <INTERFACE>",
+                    # "vlan <VLANLIST> no 802.1q <INTERFACE>",
+
+                    # Alcatel AOS 7+?
+                    if alcatel_version == 7:
+
+                        # Yes
+
+                        # Replace <INTERFACE> with the interface name
+                        cmd_interface_already_filled = self.cmd_set_interface[
+                            9
+                        ].replace("<INTERFACE>", interface)
+
+                        # Run a command to remove each tagged VLAN of the interface
+                        for vlan_8021q in list_vlan_trunk:
+
+                            # Replace <VLAN> with the current VLAN
+                            cmd = cmd_interface_already_filled.replace(
+                                "<VLAN>", vlan_8021q
+                            )
+
+                            # Display info message
+                            log.info(
+                                f"set_interface: mode: remove tagged vlan: aos 7+: cmd: '{cmd}'"
+                            )
+
+                            # Remove all the tagged VLANs on the interface
+                            output = await self.send_command(cmd)
+
+                            # Check if there is an error
+                            # Example:
+                            # ERROR: VPA does not exist
+                            #
+                            if "error" in output.lower():
+
+                                # Yes, there is an error
+
+                                # Display info message
+                                log.error(
+                                    f"set_interface: mode: remove tagged vlan: aos 7+: error: {output}"
+                                )
+
+                                # Return an error
+                                return return_status
+
+                    else:
+
+                        # Alcatel AOS 6
+
+                        # Convert the list of VLANs into a string
+                        string_list_vlans = " ".join(list_vlan_trunk)
+
+                        # Replace <INTERFACE> with the interface name
+                        cmd = self.cmd_set_interface[10].replace(
+                            "<INTERFACE>", interface
+                        )
+
+                        # Replace <VLANLIST> with the VLANs
+                        cmd = cmd.replace("<VLANLIST>", string_list_vlans)
+
+                        # Display info message
+                        log.info(
+                            f"set_interface: mode: remove tagged vlan: aos 6: cmd: '{cmd}'"
+                        )
+
+                        # Remove all the tagged VLANs on the interface
+                        output = await self.send_command(cmd)
+
+                        # Check if there is an error
+                        # Example:
+                        # ERROR: VLAN 102 does not exist. First create the VLAN
+                        #
+                        if "error" in output.lower():
+
+                            # Yes, there is an error
+
+                            # Display info message
+                            log.error(
+                                f"set_interface: mode: remove tagged vlan: aos 6: error: {output}"
+                            )
+
+                            # Return an error
+                            return return_status
+
+            else:
+
+                # Trunk mode requested for the interface
+
+                # If the interface is already in trunk mode there is so no need extra configuration
+
+                # Check if the interface is in access mode
+                if not trunk_type:
+
+                    # Yes. The interface is in access mode and needs to be changed into trunk mode
+
+                    # "show vlan",
+
+                    # Get list of VLANs
+
+                    # Get command
+                    cmd = self.cmd_set_interface[11]
+
+                    # Display info message
+                    log.info(
+                        f"set_interface: mode: add tagged vlan: get list of VLANs: cmd: '{cmd}'"
+                    )
+
+                    # Get the list of VLANs
+                    output = await self.send_command(cmd)
+
+                    # Convert output into a list of lines
+                    list_output = output.splitlines()
+
+                    # By default the list of VLANs is empty
+                    list_vlans = []
+
+                    # By default the lines read are header
+                    no_header_data = False
+
+                    # Read each line to find data (trunk)
+                    for line in list_output:
+
+                        # Is it the header data without information about VLANS?
+                        if not no_header_data:
+
+                            # Yes
+
+                            # Let's check if it is still the case
+                            if line.startswith("---"):
+
+                                # Next time will be after header
+                                no_header_data = True
+
+                        else:
+
+                            # Data after header = VLAN information
+
+                            # Get "vlan"
+                            linesplitted = line.split()
+
+                            # Check if there are at least 3 values (i.e. "vlan", "type" and "admin" in the line)
+                            if len(linesplitted) >= 3:
+
+                                # Yes, there are at least 3 values
+
+                                # Extract VLAN ID
+                                vlan_id = linesplitted[0]
+
+                                # Check if the VLAN ID is a numeric value
+                                if vlan_id.isnumeric():
+
+                                    # Yes, it is a number
+
+                                    # Add VLAN to the list of VLANs for a trunk
+                                    list_vlans.append(vlan_id)
+
+                    # Display info message
+                    log.info(
+                        f"set_interface: mode: add tagged vlan: get list of VLANs: list_vlans: {list_vlans}"
+                    )
+
+                    # Alcatel AOS 7+?
+                    if alcatel_version == 7:
+
+                        # Yes
+
+                        # # Get command
+                        # cmd = self.cmd_set_interface[9]
+
+                        # # Change the mode of the interface
+                        # output = await self.send_command(cmd)
+                        pass
+
+                    else:
+
+                        # Alcatel AOS 6
+
+                        # # Get command
+                        # cmd = self.cmd_set_interface[10]
+
+                        # # Change the mode of the interface
+                        # output = await self.send_command(cmd)
+                        pass
+
+                    pass
+
+                pass
 
         # No error
         return_status = True
