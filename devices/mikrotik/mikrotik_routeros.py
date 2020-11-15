@@ -31,6 +31,7 @@ class MikrotikRouterOS(NetworkDevice):
         self.list_of_possible_ending_prompts = [
             "] > ",
         ]
+        self._carriage_return_for_send_command = "\r\n"
         self._telnet_connect_login = "Login: "
         self._telnet_connect_password = "Password: "
         self._telnet_connect_authentication_fail_prompt = [
@@ -467,7 +468,7 @@ class MikrotikRouterOS(NetworkDevice):
 
         # Sending command
         # Add carriage return at the end of the command (mandatory to send the command)
-        self.stdinx.write(cmd + "\r\n")
+        self.stdinx.write(cmd + self._carriage_return_for_send_command)
 
         # Display message
         log.info("send_commandSSH: command sent")
@@ -597,7 +598,7 @@ class MikrotikRouterOS(NetworkDevice):
             timeout = self.timeout
 
         # Add carriage return at the end of the command (mandatory to send the command)
-        cmd = cmd + "\r\n"
+        cmd = cmd + self._carriage_return_for_send_command
 
         # Sending command
         self._writer.write(cmd.encode())
@@ -1167,9 +1168,12 @@ class MikrotikRouterOS(NetworkDevice):
             if len(line) > 26:
                 mac_address = line[9:26]
 
+                # Convert MAC address into lower case
+                mac_address = mac_address.lower()
+
             # Get VLAN
             if len(line) > 31:
-                vlan = line[27:31].strip()
+                vlan = int(line[27:31].strip())
 
             # Get interface
             if len(line) > 32:

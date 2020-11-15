@@ -171,6 +171,7 @@ class NetworkDevice:
             ">",
             "#",
         ]
+        self._carriage_return_for_send_command = "\n"
         self._send_command_error_in_returned_output = []
         self._telnet_connect_login = "Username:"
         self._telnet_connect_password = "Password:"
@@ -539,7 +540,8 @@ class NetworkDevice:
                 # Yes
 
                 # Then it is removed from the text
-                text = text.rstrip(prompt)
+                # text = text.rstrip(prompt)
+                text = text[: -len(prompt)]
 
                 # Remove also carriage return
                 text = text.rstrip("\r\n")
@@ -1232,7 +1234,7 @@ class NetworkDevice:
         log.info(f"send_commandSSH: cmd = '{cmd}'")
 
         # Sending command
-        self.stdinx.write(cmd + "\r\n")
+        self.stdinx.write(cmd + self._carriage_return_for_send_command)
 
         # Display message
         log.info("send_commandSSH: command sent")
@@ -1471,7 +1473,7 @@ class NetworkDevice:
             timeout = self.timeout
 
         # Add carriage return at the end of the command (mandatory to send the command)
-        cmd = cmd + "\n"
+        cmd = cmd + self._carriage_return_for_send_command
 
         # Sending command
         self._writer.write(cmd.encode())
@@ -1743,7 +1745,7 @@ class NetworkDevice:
         cmd = self.cmd_enter_config_mode
 
         # Add carriage return at the end of the command (mandatory to send the command)
-        cmd = cmd + "\n"
+        cmd = cmd + self._carriage_return_for_send_command
 
         # Display info message
         log.info(f"send_config_setSSH: cmd = '{cmd}'")
@@ -1810,7 +1812,7 @@ class NetworkDevice:
         for cmd in cmds:
 
             # Add carriage return at the end of the command (mandatory to send the command)
-            cmd = cmd + "\n"
+            cmd = cmd + self._carriage_return_for_send_command
 
             # Display info message
             log.info(f"send_config_setSSH: cmd = '{cmd}'")
@@ -1877,7 +1879,7 @@ class NetworkDevice:
         cmd = self.cmd_exit_config_mode
 
         # Add carriage return at the end of the command (mandatory to send the command)
-        cmd = cmd + "\n"
+        cmd = cmd + self._carriage_return_for_send_command
 
         # Display info message
         log.info(f"send_config_setSSH: cmd = '{cmd}'")
@@ -1998,7 +2000,7 @@ class NetworkDevice:
         cmd = self.cmd_enter_config_mode
 
         # Add carriage return at the end of the command (mandatory to send the command)
-        cmd = cmd + "\n"
+        cmd = cmd + self._carriage_return_for_send_command
 
         # Display info message
         log.info(f"send_config_setTelnet: cmd = '{cmd}'")
@@ -2100,7 +2102,7 @@ class NetworkDevice:
         for cmd in cmds:
 
             # Add carriage return at the end of the command (mandatory to send the command)
-            cmd = cmd + "\n"
+            cmd = cmd + self._carriage_return_for_send_command
 
             # Display info message
             log.info(f"send_config_setTelnet: cmd = '{cmd}'")
@@ -2202,7 +2204,7 @@ class NetworkDevice:
         cmd = self.cmd_exit_config_mode
 
         # Add carriage return at the end of the command (mandatory to send the command)
-        cmd = cmd + "\n"
+        cmd = cmd + self._carriage_return_for_send_command
 
         # Display info message
         log.info(f"send_config_setTelnet: cmd = '{cmd}'")

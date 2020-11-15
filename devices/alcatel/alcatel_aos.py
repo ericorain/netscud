@@ -61,9 +61,18 @@ class AlcatelAOS(NetworkDevice):
             "no vlan <VLAN> members port <INTERFACE>",
             "vlan <VLANLIST> no 802.1q <INTERFACE>",
             "show vlan",
+            "vlan <VLAN>",
+            "vlan <VLANLIST> 802.1q <INTERFACE>",
+            "vlan <VLAN> members port <INTERFACE> tagged",
         ]
 
         # Layer 2 commands
+        self.cmd_get_mac_address_table = [
+            "show mac-learning",  # AOS7+
+            "show mac-address-table",  # AOS 6
+        ]
+        self.cmd_get_arp = "show arp"
+        self.cmd_get_lldp_neighbors = "show lldp remote-system"
 
         # Layer 3 commands
 
@@ -915,7 +924,9 @@ class AlcatelAOS(NetworkDevice):
         :param mode: optional, set the mode (access, trunk, hybrid) of the interface
         :type mode: str
 
-        :param kwargs: not used
+        :param kwargs: optional, "default_trunk_vlans" (list) defines what VLANs can be
+                       used for access port becoming trunk port (Alcatel AOS requires a VLAN).
+                       "default_trunk_vlans" default value is: [4040]
         :type kwargs: dict
 
         :return: Status. True = no error, False = error
@@ -928,12 +939,30 @@ class AlcatelAOS(NetworkDevice):
         # By default result status is having an error
         return_status = False
 
+        # Get parameters
+
+        # "default_trunk_vlans" found?
+        if "default_trunk_vlans" not in kwargs:
+
+            # No
+
+            # So the default configuration must be applied
+            default_trunk_vlans = [4040]
+
+        else:
+
+            # Yes, it is defined in the parameters entered in kwargs
+
+            # Save "bridge" parameter
+            default_trunk_vlans = kwargs["default_trunk_vlans"]
+
         # Display info message
         log.info(f"set_interface: input: interface: {interface}")
         log.info(f"set_interface: input: admin_state: {admin_state}")
         log.info(f"set_interface: input: description: {description}")
         log.info(f"set_interface: input: maximum_frame_size: {maximum_frame_size}")
         log.info(f"set_interface: input: mode: {mode}")
+        log.info(f"set_interface: input: default_trunk_vlans: {default_trunk_vlans}")
 
         """
         "interfaces <INTERFACE> admin-state enable",
@@ -948,10 +977,12 @@ class AlcatelAOS(NetworkDevice):
         "no vlan <VLAN> members port <INTERFACE>",
         "vlan <VLANLIST> no 802.1q <INTERFACE>",
         "show vlan",
+        "vlan <VLAN>",
+        "vlan <VLANLIST> 802.1q <INTERFACE>",
+        "vlan <VLAN> members port <INTERFACE> tagged",
 
-        "show configuration snapshot vlan",
-        "show configuration snapshot 802.1q",
 
+        Examples of commmands on AOS:
         vlan 310 members port 1/2/21 tagged
         vlan 101 members port 1/2/21 untagged
         vlan 229 port default 1/8
@@ -1318,6 +1349,11 @@ class AlcatelAOS(NetworkDevice):
 
                 # Yes access mode requested for the interface
 
+                # Display info message
+                log.info(
+                    f"set_interface: mode: interface {interface} wants to be in access mode"
+                )
+
                 # If the interface is already in access mode there is so no need extra configuration
 
                 # Check if the interface is in trunk mode
@@ -1413,12 +1449,32 @@ class AlcatelAOS(NetworkDevice):
 
                 # Trunk mode requested for the interface
 
+                # Display info message
+                log.info(
+                    f"set_interface: mode: interface {interface} wants to be in trunk mode"
+                )
+
                 # If the interface is already in trunk mode there is so no need extra configuration
 
                 # Check if the interface is in access mode
                 if not trunk_type:
 
                     # Yes. The interface is in access mode and needs to be changed into trunk mode
+
+                    # Check if list of VLANs to tag is empty
+                    if not default_trunk_vlans:
+
+                        # Yes, list of tagged VLANs is empty so cannot tag VLAN on the interface
+
+                        # There is an error
+
+                        # Display info message
+                        log.error(
+                            f"set_interface: mode: adding trunk is impossible on access port: error: default_trunk_vlans is empty: {default_trunk_vlans}"
+                        )
+
+                        # Return an error
+                        return return_status
 
                     # "show vlan",
 
@@ -1486,35 +1542,509 @@ class AlcatelAOS(NetworkDevice):
                         f"set_interface: mode: add tagged vlan: get list of VLANs: list_vlans: {list_vlans}"
                     )
 
+                    # By default the VLAN list of VLAN to add is empty
+                    vlan_to_add = []
+
+                    # Get the list of VLANs to add (i.e non-existing VLANs)
+
+                    # Read each VLANs that should set on the device
+                    for vlan_id in default_trunk_vlans:
+
+                        # Convert string to integer
+                        vlan_string = str(vlan_id)
+
+                        # Check if VLAN is already configured on the device
+                        if vlan_string not in list_vlans:
+
+                            # The VLAN must be added
+                            vlan_to_add.append(vlan_string)
+
+                    # Display info message
+                    log.info(
+                        f"set_interface: mode: add tagged vlan: VLANs to add: vlan_to_add: {vlan_to_add}"
+                    )
+
+                    # Creation of the needed VLANs
+
+                    # "vlan <VLAN>",
+
+                    # Each VLAN
+                    for vlan_id in vlan_to_add:
+
+                        # Replace <VLAN> with the VLAN name
+                        cmd = self.cmd_set_interface[12].replace("<VLAN>", vlan_id)
+
+                        # Display info message
+                        log.info(
+                            f"set_interface: mode: add tagged vlan: VLANs to add: cmd: '{cmd}'"
+                        )
+
+                        # Remove all the tagged VLANs on the interface
+                        output = await self.send_command(cmd)
+
+                        # Check if there is an error
+                        # Example:
+                        # ERROR: VLAN number should be from 1 to 4094
+                        #
+                        if "error" in output.lower():
+
+                            # Yes, there is an error
+
+                            # Display info message
+                            log.error(
+                                f"set_interface: mode: add tagged vlan: VLANs to add: VLAN {vlan_id}: error: {output}"
+                            )
+
+                            # Return an error
+                            return return_status
+
                     # Alcatel AOS 7+?
                     if alcatel_version == 7:
 
                         # Yes
 
-                        # # Get command
-                        # cmd = self.cmd_set_interface[9]
+                        # "vlan <VLAN> members port <INTERFACE> tagged",
 
-                        # # Change the mode of the interface
-                        # output = await self.send_command(cmd)
-                        pass
+                        # Convert the list of integers into a list of strings
+                        default_trunk_vlans_string = [
+                            str(x) for x in default_trunk_vlans
+                        ]
+
+                        # Loop for each VLAN to add to the trunk
+                        for vlan_id in default_trunk_vlans_string:
+
+                            # Replace <INTERFACE> with the interface name
+                            cmd = self.cmd_set_interface[14].replace(
+                                "<INTERFACE>", interface
+                            )
+
+                            # Replace <VLAN> with the current VLAN ID
+                            cmd = cmd.replace("<VLAN>", vlan_id)
+
+                            # Display info message
+                            log.info(
+                                f"set_interface: mode: add tagged vlans to trunk: aos 7+: cmd: '{cmd}'"
+                            )
+
+                            # Add tagged VLANs to the interface to make it a trunk port
+                            output = await self.send_command(cmd)
+
+                            # Check if there is an error
+                            # Example:
+                            # ERROR: Invalid slot/port number
+                            #
+                            if "error" in output.lower():
+
+                                # Yes, there is an error
+
+                                # Display info message
+                                log.error(
+                                    f"set_interface: mode: add tagged vlans to trunk: aos 7+: error: {output}"
+                                )
+
+                                # Return an error
+                                return return_status
 
                     else:
 
                         # Alcatel AOS 6
 
-                        # # Get command
-                        # cmd = self.cmd_set_interface[10]
+                        # "vlan <VLANLIST> 802.1q <INTERFACE>",
 
-                        # # Change the mode of the interface
-                        # output = await self.send_command(cmd)
-                        pass
+                        # Convert the list of integers into a list of strings
+                        default_trunk_vlans_string = [
+                            str(x) for x in default_trunk_vlans
+                        ]
 
-                    pass
+                        # Convert the list of VLANs into a single string separated with spaces
+                        string_list_vlans = " ".join(default_trunk_vlans_string)
 
-                pass
+                        # Replace <INTERFACE> with the interface name
+                        cmd = self.cmd_set_interface[13].replace(
+                            "<INTERFACE>", interface
+                        )
+
+                        # Replace <VLANLIST> with the VLANs
+                        cmd = cmd.replace("<VLANLIST>", string_list_vlans)
+
+                        # Display info message
+                        log.info(
+                            f"set_interface: mode: add tagged vlans to trunk: aos 6: cmd: '{cmd}'"
+                        )
+
+                        # Add tagged VLANs to the interface to make it a trunk port
+                        output = await self.send_command(cmd)
+
+                        # Check if there is an error
+                        # Example:
+                        # ERROR: Invalid slot/port number
+                        #
+                        if "error" in output.lower():
+
+                            # Yes, there is an error
+
+                            # Display info message
+                            log.error(
+                                f"set_interface: mode: add tagged vlans to trunk: aos 6: error: {output}"
+                            )
+
+                            # Return an error
+                            return return_status
 
         # No error
         return_status = True
 
         # Return status
         return return_status
+
+    async def get_mac_address_table(self):
+        """
+        Asyn method used to get the mac address table of the device
+
+        :return: MAC address table of the device
+        :rtype: list of dict
+        """
+
+        # self.cmd_get_mac_address_table = [
+        #     "show mac-learning",  # AOS7+
+        #     "show mac-address-table",  # AOS 6
+        # ]
+
+        # Display info message
+        log.info("get_mac_address_table")
+
+        # By default nothing is returned
+        returned_output = []
+
+        # By default, this is Alcatel AOS 7+
+        alcatel_version = 7
+
+        # Get command
+        cmd = self.cmd_get_mac_address_table[0]
+
+        # Display info message
+        log.info(f"get_mac_address_table: aos 7+: cmd: '{cmd}'")
+
+        # Send a command
+        output = await self.send_command(cmd)
+
+        # Check if there is an error
+        # Example:
+        #                                     ^
+        # ERROR: Invalid entry: "mac-learning"
+        if "mac-learning" in output.lower():
+
+            # Yes, there is an error
+
+            # Second try in AOS 6
+
+            # Maybe Alcatel AOS 6
+            alcatel_version = 6
+
+            # Get command
+            cmd = self.cmd_get_mac_address_table[1]
+
+            # Display info message
+            log.info(f"get_mac_address_table: aos 6: cmd: '{cmd}'")
+
+            # Send a command
+            output = await self.send_command(cmd)
+
+        # Check if there is an error
+        if "error" in output.lower():
+
+            # Yes, there is an error
+
+            # Display info message
+            log.error(f"get_mac_address_table: error: {output}")
+
+            # Return an error
+            return returned_output
+
+        # Now we can gather the information
+
+        # Convert output into a list of lines
+        lines = output.splitlines()
+
+        # By default the first lines read are the header
+        header_data = True
+
+        # Read each line
+        for line in lines:
+
+            # Is it the header data without usefull information?
+            if header_data:
+
+                # Yes
+
+                # Let's check if it is still the case
+                if line.startswith("---"):
+
+                    # Next time will be after header
+                    header_data = False
+
+            else:
+
+                # Data after header = usefull information
+
+                # Set default values for variables
+                mac_type = None
+                mac_address = None
+                vlan = None
+                interface = None
+
+                # Split the line
+                linesplitted = line.split()
+
+                # Check if it is AOS7+
+                if alcatel_version == 7:
+
+                    # Yes, Alcatel AOS 7+
+
+                    # Display info message
+                    log.info(
+                        f"get_mac_address_table: aos 7: linesplitted: '{linesplitted}'"
+                    )
+
+                    # Check if there are at least 6 values
+                    # (i.e.  "Domain", "Vlan/SrvcId[ISId/vnId]", "Mac Address", "Type", "Operation", "Interface")
+                    if len(linesplitted) >= 6:
+
+                        # Yes, there are at least 6 values
+
+                        # "linesplitted" example:
+                        # ['VLAN', '1234', '02:60:74:1f:f5:cd', 'dynamic', 'bridging', '1/1/8']
+
+                        # Get the type of MAC address (dynamic or static)
+                        # MAC address type is either "dynamic"/"bmac"/"multicast" (dynamic) or "static" (static)
+                        # Check if "learned" is found
+                        if "static" in linesplitted[3]:
+
+                            # Static MAC address
+                            mac_type = "static"
+
+                        else:
+
+                            # Dynamic MAC address
+                            mac_type = "dynamic"
+
+                        # Get MAC address
+                        mac_address_possible = linesplitted[2].lower()
+
+                        # Check if ':' is in the MAC address
+                        if ":" in mac_address_possible:
+
+                            # Yes, so it should be a MAC address
+                            mac_address = mac_address_possible
+
+                        # Check if the firt value is "VLAN"
+                        if linesplitted[0].lower() == "vlan":
+
+                            # Yes, so the next value is a VLAN information
+
+                            # Get VLAN
+                            vlan = int(linesplitted[1])
+
+                        # Get interface
+                        interface = linesplitted[5]
+
+                        # Create a dictionary
+                        mac_dict = {
+                            "mac_type": mac_type,
+                            "mac_address": mac_address,
+                            "vlan": vlan,
+                            "interface": interface,
+                        }
+
+                        # Add the MAC information to the list
+                        if mac_address:
+                            returned_output.append(mac_dict)
+
+                else:
+
+                    # Alcatel AOS 6
+
+                    # Display info message
+                    log.info(
+                        f"get_mac_address_table: aos 6: linesplitted: '{linesplitted}'"
+                    )
+
+                    # Check if there are at least 7 values
+                    # (i.e.  "Domain", "Vlan/SrvcId", "Mac Address", "Type", "Protocol",
+                    # "Operation", "Interface")
+                    if len(linesplitted) >= 7:
+
+                        # Yes, there are at least 7 values
+
+                        # "linesplitted" example:
+                        # ['VLAN', '1234', '02:60:74:1f:f5:cd', 'learned', '---', 'bridging', '1/8']
+
+                        # Get the type of MAC address (dynamic or static)
+                        # MAC address type is either "learned" (dynamic) or "permanent" (static)
+                        # Check if "learned" is found
+                        if "learned" in linesplitted[3]:
+
+                            # Dynamic MAC address
+                            mac_type = "dynamic"
+
+                        else:
+
+                            # Static MAC address
+                            mac_type = "static"
+
+                        # Get MAC address
+                        mac_address_possible = linesplitted[2].lower()
+
+                        # Check if ':' is in the MAC address
+                        if ":" in mac_address_possible:
+
+                            # Yes, so it should be a MAC address
+                            mac_address = mac_address_possible
+
+                        # Check if the firt value is "VLAN"
+                        if linesplitted[0].lower() == "vlan":
+
+                            # Yes, so the next value is a VLAN information
+
+                            # Get VLAN
+                            vlan = int(linesplitted[1])
+
+                        # Get interface
+                        interface = linesplitted[6]
+
+                        # Create a dictionary
+                        mac_dict = {
+                            "mac_type": mac_type,
+                            "mac_address": mac_address,
+                            "vlan": vlan,
+                            "interface": interface,
+                        }
+
+                        # Add the MAC information to the list
+                        if mac_address:
+                            returned_output.append(mac_dict)
+
+        # Return data
+        return returned_output
+
+    async def get_arp_table(self):
+        """
+        Asyn method used to get the ARP table of the device
+
+        :return: ARP table of the device
+        :rtype: list of dict
+        """
+
+        # Display info message
+        log.info("get_arp_table")
+
+        # By default nothing is returned
+        returned_output = []
+
+        # Send a command
+        output = await self.send_command(self.cmd_get_arp)
+
+        # Display info message
+        log.info(f"get_arp:\n'{output}'")
+
+        # Example of returned output:
+        #
+        # Total 3 arp entries
+        # Flags (P=Proxy, A=Authentication, V=VRRP, R=Remote)
+        #
+        # IP Addr           Hardware Addr       Type       Flags   Port     Interface   Name
+        # -----------------+-------------------+----------+-------+--------+-----------+----------
+        # 192.168.10.2      00:1d:b4:1c:b5:d1   DYNAMIC               1/22  vlan 660
+        # 192.168.10.1      00:52:06:f0:27:87   DYNAMIC               1/22  vlan 660
+        # 192.168.10.44     e9:e7:32:d9:d3:c0   DYNAMIC               1/22  vlan 660
+        #
+        #
+
+        # Convert a string into a list of strings
+        lines = output.splitlines()
+
+        # By default, the beginning of the first character of the inerface is not defined
+        interface_starting_position = None
+
+        # By default the first lines read are the header
+        header_data = True
+
+        # Read each line
+        for line in lines:
+
+            # Is it the header data without usefull information?
+            if header_data:
+
+                # Yes
+
+                # Let's check if it is still the case
+                if line.startswith("---"):
+
+                    # Get the position of the first charater of the interface
+                    list_of_plus = [i for i, letter in enumerate(line) if letter == "+"]
+
+                    # At least than 5 characters "+"?
+                    if len(list_of_plus) >= 5:
+                        # Yes
+
+                        # Saving the position of the first character of the interface
+                        interface_starting_position = list_of_plus[4]
+
+                    # Next time will be after header
+                    header_data = False
+
+            else:
+
+                # Data after header = usefull information
+
+                # Set default values for variables
+                address = None
+                mac_address = None
+                interface = None
+
+                # Split the line
+                splitted_line = line.split()
+
+                # Does the line has at least 3 elements?
+                if len(splitted_line) >= 3:
+
+                    # Yes
+
+                    # Get MAC address
+                    mac_address_possible = splitted_line[1]
+
+                    # Check if this is a MAC address
+                    if ":" in mac_address_possible:
+
+                        # Yes
+
+                        # Save the MAC Address
+                        mac_address = mac_address_possible
+
+                        # Get IP address
+                        address = splitted_line[0]
+
+                        # Position of the interface found?
+                        if interface_starting_position:
+
+                            # Yes
+
+                            # Get interface
+                            interface = line[interface_starting_position:]
+
+                            # Remove left and right space
+                            interface = interface.strip()
+
+                # Create a dictionary
+                returned_dict = {
+                    "address": address,
+                    "mac_address": mac_address,
+                    "interface": interface,
+                }
+
+                # Add the information to the list
+                if address:
+                    returned_output.append(returned_dict)
+
+        # Return data
+        return returned_output
