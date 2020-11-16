@@ -73,6 +73,7 @@ class AlcatelAOS(NetworkDevice):
         ]
         self.cmd_get_arp = "show arp"
         self.cmd_get_lldp_neighbors = "show lldp remote-system"
+        self.cmd_get_vlans = "show vlan"
 
         # Layer 3 commands
 
@@ -1963,7 +1964,7 @@ class AlcatelAOS(NetworkDevice):
         # Convert a string into a list of strings
         lines = output.splitlines()
 
-        # By default, the beginning of the first character of the inerface is not defined
+        # By default, the beginning of the first character of the interface is not defined
         interface_starting_position = None
 
         # By default the first lines read are the header
@@ -2045,6 +2046,285 @@ class AlcatelAOS(NetworkDevice):
                 # Add the information to the list
                 if address:
                     returned_output.append(returned_dict)
+
+        # Return data
+        return returned_output
+
+    async def get_lldp_neighbors(self):
+        """
+        Asyn method used to get the LLDP information from the device
+
+        :return: LLDP information of the device
+        :rtype: dict of list of dict
+        """
+
+        # Display info message
+        log.info("get_lldp_neighbors")
+
+        # By default nothing is returned
+        returned_output = {}
+
+        # Send a command
+        output = await self.send_command(self.cmd_get_lldp_neighbors)
+
+        # Display info message
+        log.info(f"get_lldp_neighbors:\n'{output}'")
+
+        # Example of LLDP data on Alcatel AOS switch:
+        # Remote LLDP Agents on Local Slot/Port 1/21:
+        #
+        # Chassis e0:e8:a2:bb:7b:ce, Port 1021:
+        # Remote ID                   = 1,
+        # Chassis Subtype             = 4 (MAC Address),
+        # Port Subtype                = 7 (Locally assigned),
+        # Port Description            = (null),
+        # System Name                 = switch007,
+        # System Description          = Alcatel-Lucent Enterprise OS6860E-P48 8.1.1.223.R01 GA, July 11, 2009.,
+        # Capabilities Supported      = Bridge Router,
+        # Capabilities Enabled        = Bridge Router,
+        # Management IP Address       = 192.168.0.1
+
+        # Convert a string into a list of blocks
+        blocks = output.split("Remote LLDP")[1:]
+
+        # Read each line
+        for block in blocks:
+
+            # Display info message
+            log.debug(f"get_lldp_neighbors: block: '{block}'")
+
+            # Check if the block is just having empty string
+            if block:
+
+                # Default value for local interface (no interface)
+                local_interface = None
+
+                # Initialize potential LLDP data with default values
+                chassis_id = ""
+                port_id = ""
+                ttl = None
+                port_description = ""
+                system_name = ""
+                system_description = ""
+                system_capabilities = []
+                management_address = ""
+
+                # Split the current bloc into lines of strings
+                lines = block.splitlines()
+
+                # Get local interface
+                local_interface = lines[0].split()[-1][:-1]
+
+                # Display info message
+                log.info(f"get_lldp_neighbors: local_interface: {local_interface}")
+
+                # Read each line
+                for line in lines:
+
+                    # Lower case line
+                    lower_case_line = line.lower()
+
+                    # Check if the line has "chassis" and "port"
+                    # if all(x in line[2].lower() for x in ["chassis", "port"]):
+                    if all(x in lower_case_line for x in ["chassis", "port"]):
+
+                        # Then split the line
+                        splitted_line = line.split()
+
+                        # Check if the size is 4 words at least
+                        if len(splitted_line) >= 4:
+
+                            # Yes
+
+                            # Get Chassis ID - TLV type 1
+                            chassis_id = splitted_line[1][:-1]
+
+                            # Display info message
+                            log.info(f"get_lldp_neighbors: chassis_id: {chassis_id}")
+
+                            # Get Port ID - TLV type 2
+                            port_id = splitted_line[3][:-1]
+
+                            # Display info message
+                            log.info(f"get_lldp_neighbors: port_id: {port_id}")
+
+                    # Get Time To Live - TLV type 3
+                    # Not available on Alcatel AOS.
+
+                    # Get Port description - TLV type 4
+                    if "port description" in lower_case_line:
+                        port_description = line.split("= ", 1)[1][:-1]
+
+                        # Display info message
+                        log.info(
+                            f"get_lldp_neighbors: port_description: {port_description}"
+                        )
+
+                    # Get System name - TLV type 5
+                    if "system name" in lower_case_line:
+                        system_name = line.split("= ", 1)[1][:-1]
+
+                        # Display info message
+                        log.info(f"get_lldp_neighbors: system_name: {system_name}")
+
+                    # Get System description - TLV type 6
+                    if "system description" in lower_case_line:
+                        system_description = line.split("= ", 1)[1][:-1]
+
+                        # Display info message
+                        log.info(
+                            f"get_lldp_neighbors: system_description: {system_description}"
+                        )
+
+                    # Get System capabilities - TLV type 7
+                    if "capabilities supported" in lower_case_line:
+
+                        # Code	Capability
+                        # B	    Bridge (Switch)
+                        # C	    DOCSIS Cable Device
+                        # O	    Other
+                        # P	    Repeater
+                        # R	    Router
+                        # S	    Station
+                        # T	    Telephone
+                        # W	    WLAN Access Point
+
+                        # Get all capabilities
+                        all_capabilities = line.split("= ", 1)[1][:-1].split()
+
+                        # Display info message
+                        log.info(
+                            f"get_lldp_neighbors: system_capabilities: all_capabilities: {all_capabilities}"
+                        )
+
+                        # Read each capability
+                        for capability in all_capabilities:
+
+                            # Check if string is not null
+                            if len(capability) > 0:
+
+                                # Get the first letter of the capability, convert this character in uppercase
+                                # and add it to a list
+                                system_capabilities.append(capability[0].upper())
+
+                    # Get Management address - TLV type 8
+                    if "management ip address" in lower_case_line:
+                        management_address = line.split("= ", 1)[1]
+
+                        # Display info message
+                        log.info(
+                            f"get_lldp_neighbors: management_address: {management_address}"
+                        )
+
+                # Create a dictionary
+                returned_dict = {
+                    "chassis_id": chassis_id,
+                    "port_id": port_id,
+                    "ttl": ttl,
+                    "port_description": port_description,
+                    "system_name": system_name,
+                    "system_description": system_description,
+                    "system_capabilities": system_capabilities,
+                    "management_address": management_address,
+                }
+
+                # Add the information to the dict
+                # Each interface can get several returned_dict in a list
+                returned_output[local_interface] = returned_output.get(
+                    local_interface, []
+                ) + [returned_dict]
+
+        # Return data
+        return returned_output
+
+    async def get_vlans(self):
+        """
+        Asyn method used to get the vlans information from the device
+
+        :return: VLANs of the device
+        :rtype: dict
+        """
+
+        # Display info message
+        log.info("get_vlans")
+
+        # By default nothing is returned
+        returned_output = {}
+
+        # Send a command
+        output = await self.send_command(self.cmd_get_vlans)
+
+        # Display info message
+        log.info(f"get_vlans:\n'{output}'")
+
+        # By default, the beginning of the first character of the VLAN name is not defined
+        vlan_name_starting_position = None
+
+        # By default the first lines read are the header
+        header_data = True
+
+        # Convert a string into a list of strings
+        lines = output.splitlines()
+
+        # Read each line
+        for line in lines:
+
+            # Is it the header data without usefull information?
+            if header_data:
+
+                # Yes
+
+                # Let's check if it is still the case
+                if line.startswith("---"):
+
+                    # Get the position of the first charater of the VLAN name
+                    list_of_plus = [i for i, letter in enumerate(line) if letter == "+"]
+
+                    # At least than 6 characters "+"?
+                    if len(list_of_plus) >= 6:
+
+                        # Yes
+
+                        # Saving the position of the first character of the VLAN name (last "+")
+                        vlan_name_starting_position = list_of_plus[-1]
+
+                    # Next time will be after header
+                    header_data = False
+
+            else:
+
+                # Data after header = usefull information
+
+                # Initialize data with default values
+                name = ""
+                vlan_id = 0
+                extra = None  # Extra is not used on Alcatel AOS
+
+                # Get VLAN name
+                name = line[vlan_name_starting_position:].strip()
+
+                # Display info message
+                log.info(f"get_vlans: name: {name}")
+
+                # Get VLAN ID
+                vlan_id = int(line.split()[0])
+
+                # Display info message
+                log.info(f"get_vlans: vlan_id: {vlan_id}")
+
+                # Create a dictionary
+                returned_dict = {
+                    "name": name,
+                    "extra": extra,
+                }
+
+                # Is VLAN ID not nul?
+                if vlan_id:
+
+                    # Yes
+
+                    # Add the information to the dict
+                    returned_output[vlan_id] = returned_dict
 
         # Return data
         return returned_output

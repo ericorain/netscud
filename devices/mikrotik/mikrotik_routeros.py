@@ -1308,6 +1308,9 @@ class MikrotikRouterOS(NetworkDevice):
             if " mac-address=" in line:
                 chassis_id = line.split(" mac-address=")[-1].split()[0]
 
+                # Convert the MAC address of the Chassis ID into a lower case string
+                chassis_id = chassis_id.lower()
+
                 # Display info message
                 log.info(f"get_lldp_neighbors: chassis_id: {chassis_id}")
 
@@ -1411,6 +1414,7 @@ class MikrotikRouterOS(NetworkDevice):
                 }
 
                 # Add the information to the dict
+                # Each interface can get several returned_dict in a list
                 returned_output[local_interface] = returned_output.get(
                     local_interface, []
                 ) + [returned_dict]
