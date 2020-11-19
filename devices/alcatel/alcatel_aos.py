@@ -74,6 +74,14 @@ class AlcatelAOS(NetworkDevice):
         self.cmd_get_arp = "show arp"
         self.cmd_get_lldp_neighbors = "show lldp remote-system"
         self.cmd_get_vlans = "show vlan"
+        self.cmd_add_vlan = 'vlan <VLAN> name "<VLAN_NAME>"'
+        self.cmd_remove_vlan = "no vlan <VLAN>"
+        self.cmd_add_interface_to_vlan = [
+            "vlan <VLAN> members port <INTERFACE> untagged",
+            "vlan <VLAN> port default <INTERFACE>",
+            "vlan <VLAN> members port <INTERFACE> tagged",
+            "vlan <VLAN> 802.1q <INTERFACE>",
+        ]
 
         # Layer 3 commands
 
@@ -2328,3 +2336,263 @@ class AlcatelAOS(NetworkDevice):
 
         # Return data
         return returned_output
+
+    async def add_vlan(self, vland_id, vlan_name="", **kwargs):
+        """
+        Asyn method used to add a vlan to a bridge from the device
+        VLAN to interface is not supported
+
+        :param vland_id: VLAN ID
+        :type vland_id: int
+
+        :param vlan_name: optional, name of the VLAN
+        :type vlan_name: str
+
+        :param kwargs: not used
+        :type kwargs: dict
+
+        :return: Status. True = no error, False = error
+        :rtype: bool
+        """
+
+        # Display info message
+        log.info("add_vlan")
+
+        # By default result status is having an error
+        return_status = False
+
+        # Adapt the command line
+        # self.cmd_add_vlan = 'vlan <VLAN> name "<VLAN_NAME>"'
+        cmd_add_vlan = self.cmd_add_vlan
+
+        # Replace <VLAN> with the VLAN number
+        cmd_add_vlan = cmd_add_vlan.replace("<VLAN>", str(vland_id))
+
+        # Replace <VLAN_NAME> with the VLAN name
+        cmd_add_vlan = cmd_add_vlan.replace("<VLAN_NAME>", vlan_name)
+
+        # Display info message
+        log.info(f"add_vlan: cmd_add_vlan: '{cmd_add_vlan}'")
+
+        # Add VLAN
+        output = await self.send_command(cmd_add_vlan)
+
+        # Display info message
+        log.info(f"add_vlan: output: '{output}'")
+
+        # Check if an error happened
+        # Example:
+        # ERROR: VLAN number should be from 1 to 4094
+        #
+        if "error" not in output.lower():
+
+            # No error
+            return_status = True
+
+        # Return status
+        return return_status
+
+    async def remove_vlan(self, vland_id):
+        """
+        Asyn method used to remove a vlan from a bridge of the device
+        VLAN to interface is not supported
+
+        :param vland_id: VLAN ID
+        :type vland_id: int
+
+        :return: Status. True = no error, False = error
+        :rtype: bool
+        """
+
+        # Display info message
+        log.info("remove_vlan")
+
+        # By default result status is having an error
+        return_status = False
+
+        # Adapt the command line
+        # self.cmd_remove_vlan = "no vlan <VLAN>"
+
+        # Replace <VLAN> with the VLAN number
+        cmd_remove_vlan = self.cmd_remove_vlan.replace("<VLAN>", str(vland_id))
+
+        # Display info message
+        log.info(f"remove_vlan: cmd_remove_vlan: '{cmd_remove_vlan}'")
+
+        # Add VLAN
+        output = await self.send_command(cmd_remove_vlan)
+
+        # Display info message
+        log.info(f"remove_vlan: output: '{output}'")
+
+        # No error?
+        # Example:
+        # ERROR: VLAN 4000 does not exist
+        #
+        if "error" not in output.lower():
+
+            # No error
+            return_status = True
+
+        # Return status
+        return return_status
+
+    async def add_interface_to_vlan(
+        self,
+        interface=None,
+        mode=None,
+        vlan=None,
+        **kwargs,
+    ):
+        """
+        Asyn method used to add an interface to a VLAN of the device
+
+
+        :param interface: the name of the interface
+        :type interface: str
+
+        :param mode: mode of the interface (access, trunk)
+        :type mode: str
+
+        :param vlan: VLAN number
+        :type vlan: int
+
+        :param kwargs: not used
+        :type kwargs: dict
+
+        :return: Status. True = no error, False = error
+        :rtype: bool
+        """
+
+        # Display info message
+        log.info("add_interface_to_vlan")
+
+        # self.cmd_add_interface_to_vlan = [
+        #     "vlan <VLAN> members port <INTERFACE> untagged",
+        #     "vlan <VLAN> port default <INTERFACE>",
+        #     "vlan <VLAN> members port <INTERFACE> tagged",
+        #     "vlan <VLAN> 802.1q <INTERFACE>",
+        # ]
+
+        # By default result status is having an error
+        return_status = False
+
+        # Display info message
+        log.info(f"add_interface_to_vlan: input: interface: {interface}")
+        log.info(f"add_interface_to_vlan: input: mode: {mode}")
+        log.info(f"add_interface_to_vlan: input: vlan: {vlan}")
+
+        # Get parameters
+
+        # "interface" found?
+        if interface == None:
+
+            # No
+
+            # So no action can be performed
+
+            # Display info message
+            log.info("add_interface_to_vlan: no interface specified")
+
+            # Return status
+            return return_status
+
+        # "mode" found?
+        if mode == None:
+
+            # No
+
+            # So no action can be performed
+
+            # Display info message
+            log.info("add_interface_to_vlan: no mode specified")
+
+            # Return status
+            return return_status
+
+        # "vlan" found?
+        if vlan == None:
+
+            # No
+
+            # So no action can be performed
+
+            # Display info message
+            log.info("add_interface_to_vlan: no vlan specified")
+
+            # Return status
+            return return_status
+
+        # Convert VLAN (integer) to string
+        vlan_string = str(vlan)
+
+        # Check if mode is "access"
+        if mode == "access":
+
+            # Access mode interface
+
+            # AOS 7+
+            #     "vlan <VLAN> members port <INTERFACE> untagged",
+
+            # Get command
+            # Replace <INTERFACE> with the interface
+            cmd = self.cmd_add_interface_to_vlan[0].replace("<INTERFACE>", interface)
+
+            # Replace <VLAN> with the VLAN number
+            cmd = cmd.replace("<VLAN>", vlan_string)
+
+            # Display info message
+            log.info(f"add_interface_to_vlan: set VLAN: aos 7+: cmd: {cmd}")
+
+            # Change the VLAN of the interface (in VLAN config of an access port)
+            output = await self.send_command(cmd)
+
+            # Check error
+            # Example:
+            #                                        ^
+            # ERROR: Invalid entry: "members"
+            if "members" in output.lower():
+
+                # Probably AOS 6
+
+                # "vlan <VLAN> port default <INTERFACE>",
+
+                # Replace <INTERFACE> with the interface
+                cmd = self.cmd_add_interface_to_vlan[1].replace(
+                    "<INTERFACE>", interface
+                )
+
+                # Replace <VLAN> with the VLAN number
+                cmd = cmd.replace("<VLAN>", vlan_string)
+
+                # Display info message
+                log.info(f"add_interface_to_vlan: set VLAN: aos 6: cmd: {cmd}")
+
+                # Change the VLAN of the interface (in VLAN config of an access port)
+                output = await self.send_command(cmd)
+
+            # Check if there is an error
+            # Example:
+            # ERROR: VLAN 2234 does not exist. First create the VLAN
+            #
+            if "error" in output.lower():
+
+                # Yes, there is an error
+
+                # Display info message
+                log.error(f"add_interface_to_vlan: add vlan to access: error: {output}")
+
+                # Return an error
+                return return_status
+
+        else:
+
+            # trunk mode
+
+            pass
+
+        # No error
+        return_status = True
+
+        # Return status
+        return return_status
