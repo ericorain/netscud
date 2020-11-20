@@ -2532,7 +2532,7 @@ class AlcatelAOS(NetworkDevice):
             # Access mode interface
 
             # AOS 7+
-            #     "vlan <VLAN> members port <INTERFACE> untagged",
+            # "vlan <VLAN> members port <INTERFACE> untagged",
 
             # Get command
             # Replace <INTERFACE> with the interface
@@ -2542,7 +2542,7 @@ class AlcatelAOS(NetworkDevice):
             cmd = cmd.replace("<VLAN>", vlan_string)
 
             # Display info message
-            log.info(f"add_interface_to_vlan: set VLAN: aos 7+: cmd: {cmd}")
+            log.info(f"add_interface_to_vlan: set VLAN: access: aos 7+: cmd: {cmd}")
 
             # Change the VLAN of the interface (in VLAN config of an access port)
             output = await self.send_command(cmd)
@@ -2566,7 +2566,7 @@ class AlcatelAOS(NetworkDevice):
                 cmd = cmd.replace("<VLAN>", vlan_string)
 
                 # Display info message
-                log.info(f"add_interface_to_vlan: set VLAN: aos 6: cmd: {cmd}")
+                log.info(f"add_interface_to_vlan: set VLAN: access: aos 6: cmd: {cmd}")
 
                 # Change the VLAN of the interface (in VLAN config of an access port)
                 output = await self.send_command(cmd)
@@ -2589,7 +2589,60 @@ class AlcatelAOS(NetworkDevice):
 
             # trunk mode
 
-            pass
+            # AOS 7+
+            # "vlan <VLAN> members port <INTERFACE> tagged",
+
+            # Get command
+            # Replace <INTERFACE> with the interface
+            cmd = self.cmd_add_interface_to_vlan[2].replace("<INTERFACE>", interface)
+
+            # Replace <VLAN> with the VLAN number
+            cmd = cmd.replace("<VLAN>", vlan_string)
+
+            # Display info message
+            log.info(f"add_interface_to_vlan: set VLAN: trunk: aos 7+: cmd: {cmd}")
+            # return return_status
+
+            # Change the VLAN of the interface
+            output = await self.send_command(cmd)
+
+            # Check error
+            # Example:
+            #                                        ^
+            # ERROR: Invalid entry: "members"
+            if "members" in output.lower():
+
+                # Probably AOS 6
+
+                # "vlan <VLAN> 802.1q <INTERFACE>",
+
+                # Replace <INTERFACE> with the interface
+                cmd = self.cmd_add_interface_to_vlan[3].replace(
+                    "<INTERFACE>", interface
+                )
+
+                # Replace <VLAN> with the VLAN number
+                cmd = cmd.replace("<VLAN>", vlan_string)
+
+                # Display info message
+                log.info(f"add_interface_to_vlan: set VLAN: aos 6: cmd: {cmd}")
+
+                # Change the VLAN of the interface (in VLAN config of an access port)
+                output = await self.send_command(cmd)
+
+            # Check if there is an error
+            # Example:
+            # ERROR: VLAN 2234 does not exist. First create the VLAN
+            #
+            if "error" in output.lower():
+
+                # Yes, there is an error
+
+                # Display info message
+                log.error(f"add_interface_to_vlan: add vlan to trunk: error: {output}")
+
+                # Return an error
+                return return_status
 
         # No error
         return_status = True
