@@ -82,8 +82,15 @@ class AlcatelAOS(NetworkDevice):
             "vlan <VLAN> members port <INTERFACE> tagged",
             "vlan <VLAN> 802.1q <INTERFACE>",
         ]
+        self.cmd_remove_interface_from_vlan = [
+            "no vlan <VLAN> members port <INTERFACE>",
+            "vlan <VLAN> no port default <INTERFACE>",
+            "no vlan <VLAN> members port <INTERFACE>",
+            "vlan <VLAN> no 802.1q <INTERFACE>",
+        ]
 
         # Layer 3 commands
+        self.cmd_get_routing_table = "show ip router database"
 
     def monkey_patch_dsa_512(self):
 
@@ -2601,7 +2608,6 @@ class AlcatelAOS(NetworkDevice):
 
             # Display info message
             log.info(f"add_interface_to_vlan: set VLAN: trunk: aos 7+: cmd: {cmd}")
-            # return return_status
 
             # Change the VLAN of the interface
             output = await self.send_command(cmd)
@@ -2649,3 +2655,336 @@ class AlcatelAOS(NetworkDevice):
 
         # Return status
         return return_status
+
+    async def remove_interface_from_vlan(
+        self,
+        interface=None,
+        mode=None,
+        vlan=None,
+        **kwargs,
+    ):
+        """
+        Asyn method used to remove an interface from a VLAN of the device
+
+
+        :param interface: the name of the interface
+        :type interface: str
+
+        :param mode: mode of the interface (access, trunk)
+        :type mode: str
+
+        :param vlan: VLAN number
+        :type vlan: int
+
+        :param kwargs: not used
+        :type kwargs: dict
+
+        :return: Status. True = no error, False = error
+        :rtype: bool
+        """
+
+        # self.cmd_remove_interface_from_vlan = [
+        #     "no vlan <VLAN> members port <INTERFACE>",
+        #     "vlan <VLAN> no port default <INTERFACE>",
+        #     "no vlan <VLAN> members port <INTERFACE>",
+        #     "vlan <VLAN> no 802.1q <INTERFACE>",
+        # ]
+
+        # Display info message
+        log.info("remove_interface_from_vlan")
+
+        # By default result status is having an error
+        return_status = False
+
+        # Display info message
+        log.info(f"remove_interface_from_vlan: input: interface: {interface}")
+        log.info(f"remove_interface_from_vlan: input: mode: {mode}")
+        log.info(f"remove_interface_from_vlan: input: vlan: {vlan}")
+
+        # Get parameters
+
+        # "interface" found?
+        if interface == None:
+
+            # No
+
+            # So no action can be performed
+
+            # Display info message
+            log.info("remove_interface_from_vlan: no interface specified")
+
+            # Return status
+            return return_status
+
+        # "mode" found?
+        if mode == None:
+
+            # No
+
+            # So no action can be performed
+
+            # Display info message
+            log.info("remove_interface_from_vlan: no mode specified")
+
+            # Return status
+            return return_status
+
+        # "vlan" found?
+        if vlan == None:
+
+            # No
+
+            # So no action can be performed
+
+            # Display info message
+            log.info("remove_interface_from_vlan: no vlan specified")
+
+            # Return status
+            return return_status
+
+        # Convert VLAN (integer) to string
+        vlan_string = str(vlan)
+
+        # Check if mode is "access"
+        if mode == "access":
+
+            # Access mode interface
+
+            # "no vlan <VLAN> members port <INTERFACE>",
+
+            # Replace <INTERFACE> with the interface name
+            cmd = self.cmd_remove_interface_from_vlan[0].replace(
+                "<INTERFACE>", interface
+            )
+
+            # Replace <VLAN> with the VLAN value
+            cmd = cmd.replace("<VLAN>", vlan_string)
+
+            # Display info message
+            log.info(f"remove_interface_from_vlan: access: aos 7+: cmd: {cmd}")
+
+            # Change the VLAN of the interface
+            output = await self.send_command(cmd)
+
+            # Check error
+            # Example:
+            #                                        ^
+            # ERROR: Invalid entry: "members"
+            if "members" in output.lower():
+
+                # Probably AOS 6
+
+                # "vlan <VLAN> no port default <INTERFACE>",
+
+                # Replace <INTERFACE> with the interface
+                cmd = self.cmd_remove_interface_from_vlan[1].replace(
+                    "<INTERFACE>", interface
+                )
+
+                # Replace <VLAN> with the VLAN number
+                cmd = cmd.replace("<VLAN>", vlan_string)
+
+                # Display info message
+                log.info(
+                    f"remove_interface_from_vlan: set VLAN: access: aos 6: cmd: {cmd}"
+                )
+
+                # Change the VLAN of the interface (in VLAN config of an access port)
+                output = await self.send_command(cmd)
+
+            # Check if there is an error
+            # Example:
+            # ERROR: VLAN 2234 does not exist. First create the VLAN
+            #
+            if "error" in output.lower():
+
+                # Yes, there is an error
+
+                # Display info message
+                log.error(
+                    f"remove_interface_from_vlan: add vlan to access: error: {output}"
+                )
+
+                # Return an error
+                return return_status
+
+        else:
+
+            # trunk mode
+
+            # "no vlan <VLAN> members port <INTERFACE>",
+
+            # Replace <INTERFACE> with the interface name
+            cmd = self.cmd_remove_interface_from_vlan[2].replace(
+                "<INTERFACE>", interface
+            )
+
+            # Replace <VLAN> with the VLAN value
+            cmd = cmd.replace("<VLAN>", vlan_string)
+
+            # Display info message
+            log.info(f"remove_interface_from_vlan: trunk: aos 7+: cmd: {cmd}")
+
+            # Change the VLAN of the interface
+            output = await self.send_command(cmd)
+
+            # Check error
+            # Example:
+            #                                        ^
+            # ERROR: Invalid entry: "members"
+            if "members" in output.lower():
+
+                # Probably AOS 6
+
+                # "vlan <VLAN> no 802.1q <INTERFACE>",
+
+                # Replace <INTERFACE> with the interface
+                cmd = self.cmd_remove_interface_from_vlan[3].replace(
+                    "<INTERFACE>", interface
+                )
+
+                # Replace <VLAN> with the VLAN number
+                cmd = cmd.replace("<VLAN>", vlan_string)
+
+                # Display info message
+                log.info(f"remove_interface_from_vlan: trunk: aos 6: cmd: {cmd}")
+
+                # Change the VLAN of the interface (in VLAN config of an access port)
+                output = await self.send_command(cmd)
+
+            # Check if there is an error
+            # Example:
+            # ERROR: VLAN 2234 does not exist. First create the VLAN
+            #
+            if "error" in output.lower():
+
+                # Yes, there is an error
+
+                # Display info message
+                log.error(
+                    f"remove_interface_from_vlan: remove vlan to trunk: error: {output}"
+                )
+
+                # Return an error
+                return return_status
+
+        # No error
+        return_status = True
+
+        # Return status
+        return return_status
+
+    async def get_routing_table(self):
+        """
+        Asyn method used to get the routing table of the device
+
+        :return: Routing table of the device
+        :rtype: dict
+        """
+
+        # Display info message
+        log.info("get_routing_table")
+
+        # By default nothing is returned
+        returned_output = {}
+
+        # Send a command
+        output = await self.send_command(self.cmd_get_routing_table)
+
+        # Display info message
+        log.info(f"get_routing_table:\n'{output}'")
+
+        # Convert a string into a list of strings
+        lines = output.splitlines()
+
+        # Read each line
+        for line in lines:
+
+            # Initialize data with default values
+            network = ""
+            address = ""
+            prefix = 0
+            protocol = "unknown"
+            administrative_distance = 0
+            gateway = ""
+            active = False
+            protocol_attributes = None
+
+            # Get network, address and prefix
+            if " dst-address=" in line:
+                network = line.split(" dst-address=")[-1].split()[0]
+                address = network.split("/")[0]
+                prefix = int(network.split("/")[1])
+
+            # Get protocol
+
+            # Save char with protocol letter
+            if len(line) > 5:
+
+                protocol_char = line[5]
+
+                if protocol_char == "C":
+
+                    # Connected
+                    protocol = "connected"
+
+                elif protocol_char == "S":
+
+                    # Static
+                    protocol = "static"
+
+                elif protocol_char == "r":
+
+                    # RIP
+                    protocol = "rip"
+
+                elif protocol_char == "b":
+
+                    # BGP
+                    protocol = "bgp"
+
+                elif protocol_char == "o":
+
+                    # OSPF
+                    protocol = "ospf"
+
+                elif protocol_char == "m":
+
+                    # MME
+                    protocol = "mme"
+
+            # Get administrative distance
+            if " distance=" in line:
+                administrative_distance = int(line.split(" distance=")[-1].split()[0])
+
+            # Get gateway
+            if " gateway=" in line:
+                gateway = line.split(" gateway=")[-1].split()[0]
+
+            # Get active status
+            if len(line) > 3:
+
+                if line[3] == "A":
+                    active = True
+
+            # Create a dictionary
+            returned_dict = {
+                "address": address,
+                "prefix": prefix,
+                "protocol": protocol,
+                "administrative_distance": administrative_distance,
+                "gateway": gateway,
+                "active": active,
+                "protocol_attributes": protocol_attributes,
+            }
+
+            # Is a network found?
+            if network:
+
+                # Yes
+
+                # Add the information to the dict
+                returned_output[network] = returned_dict
+
+        # Return data
+        return returned_output
