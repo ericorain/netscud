@@ -2894,97 +2894,242 @@ class AlcatelAOS(NetworkDevice):
         # Display info message
         log.info(f"get_routing_table:\n'{output}'")
 
+        # First let's divide the returned output in two parts:
+        # - one with the routing table
+        # - one witch inactive static routes (specific to Alcatel AOS 6 and 7+)
+
+        routing_information_string, inactive_static_routes = output.split(
+            "Inactive Static Routes"
+        )
+
+        # Display info message
+        log.info(
+            f"get_routing_table: routing_information_string\n'{routing_information_string}'"
+        )
+
+        # Display info message
+        log.info(
+            f"get_routing_table: inactive_static_routes\n'{inactive_static_routes}'"
+        )
+
+        # routing_information_string extracting information
+
         # Convert a string into a list of strings
-        lines = output.splitlines()
+        lines = routing_information_string.splitlines()
 
-        # Read each line
-        for line in lines:
+        # First search the end of the header of the data returned ("---")
+        for line_number, line in enumerate(lines):
+            if "---" in line:
+                break
 
-            # Initialize data with default values
-            network = ""
-            address = ""
-            prefix = 0
-            protocol = "unknown"
-            administrative_distance = 0
-            gateway = ""
-            active = False
-            protocol_attributes = None
+        # line_number has the value of the line with "---"
 
-            # Get network, address and prefix
-            if " dst-address=" in line:
-                network = line.split(" dst-address=")[-1].split()[0]
-                address = network.split("/")[0]
-                prefix = int(network.split("/")[1])
+        # Display info message
+        log.info(
+            f"get_routing_table: routing_information_string: line_number: '{line_number}'"
+        )
 
-            # Get protocol
+        # Increase line_number to the line number of the next data
+        line_number = line_number + 1
 
-            # Save char with protocol letter
-            if len(line) > 5:
+        # Check if there are still data (it should be the case)
+        if len(lines) > line_number:
 
-                protocol_char = line[5]
+            # Yes there data (routing table data)
 
-                if protocol_char == "C":
+            # Read lines
+            for line in lines[line_number:]:
 
-                    # Connected
-                    protocol = "connected"
+                # Initialize data with default values
+                network = ""
+                address = ""
+                prefix = 0
+                protocol = "unknown"
+                administrative_distance = 0
+                gateway = ""
+                active = False
+                protocol_attributes = None
 
-                elif protocol_char == "S":
+                # Get the 3 first characters
+                three_first_characters = line[:3]
 
-                    # Static
-                    protocol = "static"
+                # Get the data after the 3 first characters
+                after_the_three_first_characters = line[3:]
 
-                elif protocol_char == "r":
+                # Split the data after the 3 first characters
+                splitted_line = after_the_three_first_characters.split()
 
-                    # RIP
-                    protocol = "rip"
+                log.info(
+                    f"get_routing_table: routing_information_string: splitted_line: '{splitted_line}'"
+                )
 
-                elif protocol_char == "b":
+                # Check if there are 5 data at least
+                if len(splitted_line) >= 5:
 
-                    # BGP
-                    protocol = "bgp"
+                    # Yes, enought data
 
-                elif protocol_char == "o":
+                    # Get network, address and prefix
+                    network = splitted_line[0]
+                    address = network.split("/")[0]
+                    prefix = int(network.split("/")[1])
 
-                    # OSPF
-                    protocol = "ospf"
+                    # Get protocol and administrative distance
 
-                elif protocol_char == "m":
+                    # Save protocol name
+                    protocol_name = splitted_line[3].lower()
 
-                    # MME
-                    protocol = "mme"
+                    if protocol_name == "local":
 
-            # Get administrative distance
-            if " distance=" in line:
-                administrative_distance = int(line.split(" distance=")[-1].split()[0])
+                        # Connected
+                        protocol = "connected"
 
-            # Get gateway
-            if " gateway=" in line:
-                gateway = line.split(" gateway=")[-1].split()[0]
+                        # Administratice distance is 0
 
-            # Get active status
-            if len(line) > 3:
+                    elif protocol_name == "static":
 
-                if line[3] == "A":
-                    active = True
+                        # Static
+                        protocol = "static"
 
-            # Create a dictionary
-            returned_dict = {
-                "address": address,
-                "prefix": prefix,
-                "protocol": protocol,
-                "administrative_distance": administrative_distance,
-                "gateway": gateway,
-                "active": active,
-                "protocol_attributes": protocol_attributes,
-            }
+                        # Administratice distance
+                        administrative_distance = 1
 
-            # Is a network found?
-            if network:
+                    elif protocol_name == "rip":
 
-                # Yes
+                        # RIP
+                        protocol = "rip"
 
-                # Add the information to the dict
-                returned_output[network] = returned_dict
+                        # Administratice distance
+                        administrative_distance = 120
+
+                    elif protocol_name == "bgp":
+
+                        # BGP
+                        protocol = "bgp"
+
+                        # Administratice distance
+                        administrative_distance = 20
+
+                    elif protocol_name == "ospf":
+
+                        # OSPF
+                        protocol = "ospf"
+
+                        # Administratice distance
+                        administrative_distance = 110
+
+                    # Get gateway
+                    gateway = splitted_line[1]
+
+                    # Get active status
+                    if len(three_first_characters) > 0:
+
+                        # Check the status ("+" = active)
+                        if "+" in three_first_characters:
+
+                            # Active status
+                            active = True
+
+                    # Get protocole attribute
+                    protocol_attributes = {"metric": int(splitted_line[4])}
+
+                    # Create a dictionary
+                    returned_dict = {
+                        "address": address,
+                        "prefix": prefix,
+                        "protocol": protocol,
+                        "administrative_distance": administrative_distance,
+                        "gateway": gateway,
+                        "active": active,
+                        "protocol_attributes": protocol_attributes,
+                    }
+
+                    # Is a network found?
+                    if network:
+
+                        # Yes
+
+                        # Add the information to the dict
+                        returned_output[network] = returned_dict
+
+        # inactive_static_routes extracting information
+
+        # Convert a string into a list of strings
+        lines = inactive_static_routes.splitlines()
+
+        # First search the end of the header of the data returned ("---")
+        for line_number, line in enumerate(lines):
+            if "---" in line:
+                break
+
+        # line_number has the value of the line with "---"
+
+        # Display info message
+        log.info(
+            f"get_routing_table: inactive_static_routes: line_number: '{line_number}'"
+        )
+
+        # Increase line_number to the line number of the next data
+        line_number = line_number + 1
+
+        # Check if there are still data (it should be the case)
+        if len(lines) > line_number:
+
+            # Yes there data (routing table data)
+
+            # Read lines
+            for line in lines[line_number:]:
+
+                # Initialize data with default values
+                network = ""
+                address = ""
+                prefix = 0
+                protocol = "static"
+                administrative_distance = 1
+                gateway = ""
+                active = False
+                protocol_attributes = None
+
+                # Split the data
+                splitted_line = line.split()
+
+                log.info(
+                    f"get_routing_table: inactive_static_routes: splitted_line: '{splitted_line}'"
+                )
+
+                # Check if there are 3 data at least
+                if len(splitted_line) >= 3:
+
+                    # Yes, enought data
+
+                    # Get network, address and prefix
+                    network = splitted_line[0]
+                    address = network.split("/")[0]
+                    prefix = int(network.split("/")[1])
+
+                    # Get gateway
+                    gateway = splitted_line[1]
+
+                    # Get protocole attribute
+                    protocol_attributes = {"metric": int(splitted_line[2])}
+
+                    # Create a dictionary
+                    returned_dict = {
+                        "address": address,
+                        "prefix": prefix,
+                        "protocol": protocol,
+                        "administrative_distance": administrative_distance,
+                        "gateway": gateway,
+                        "active": active,
+                        "protocol_attributes": protocol_attributes,
+                    }
+
+                    # Is a network found?
+                    if network:
+
+                        # Yes
+
+                        # Add the information to the dict
+                        returned_output[network] = returned_dict
 
         # Return data
         return returned_output
