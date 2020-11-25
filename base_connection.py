@@ -16,9 +16,10 @@ asyncssh.set_debug_level(2)
 # Max data to read in read function
 MAX_BUFFER_DATA = 65535
 
-"""
+
 # Dictonary with all netmasks of IPv4
 ipv4_netmask_list = {
+    "0.0.0.0": "0",
     "128.0.0.0": "1",
     "192.0.0.0": "2",
     "224.0.0.0": "3",
@@ -52,7 +53,6 @@ ipv4_netmask_list = {
     "255.255.255.254": "31",
     "255.255.255.255": "32",
 }
-"""
 
 
 class NetworkDevice:

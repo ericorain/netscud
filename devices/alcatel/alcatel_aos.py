@@ -1,5 +1,5 @@
 # Python library import
-from netscud.base_connection import NetworkDevice, log
+from netscud.base_connection import NetworkDevice, log, ipv4_netmask_list
 import asyncio, asyncssh
 
 # Declaration of constant values
@@ -91,6 +91,8 @@ class AlcatelAOS(NetworkDevice):
 
         # Layer 3 commands
         self.cmd_get_routing_table = "show ip router database"
+        self.cmd_get_interfaces_ip = "show ip interface"
+        self.cmd_add_static_route = "ip static-route 1.1.1.1/24 gateway 2.2.2.2"
 
     def monkey_patch_dsa_512(self):
 
@@ -3133,3 +3135,106 @@ class AlcatelAOS(NetworkDevice):
 
         # Return data
         return returned_output
+
+    async def get_interfaces_ip(self):
+        """
+        Asyn method used to get IP addresses of the interfaces of the device
+        Only IPv4 is supported
+
+        :return: the interfaces and their IP addresses
+        :rtype: dict of dict
+        """
+
+        # Display info message
+        log.info("get_interfaces_ip")
+
+        # Get command
+        cmd = self.cmd_get_interfaces_ip
+
+        # Sending command
+        output = await self.send_command(cmd)
+
+        # Display info message
+        log.info(f"get_interfaces_ip: output: '{output}'")
+
+        # By default the dictionary returned is empty
+        returned_dict = {}
+
+        # Convert a string into a list of strings
+        lines = output.splitlines()
+
+        # First search the end of the header of the data returned ("---")
+        for line_number, line in enumerate(lines):
+            if "---" in line:
+                break
+
+        # line_number has the value of the line with "---"
+
+        # Display info message
+        log.info(
+            f"get_interfaces_ip: inactive_static_routes: line_number: '{line_number}'"
+        )
+
+        # Increase line_number to the line number of the next data
+        line_number = line_number + 1
+
+        # Return data
+        # return returned_dict
+
+        # Check if there are still data (it should be the case)
+        if len(lines) > line_number:
+
+            # Yes there data (ip addresses, insterfaces and netmask data)
+
+            # Read lines
+            for line in lines[line_number:]:
+
+                # Set default values for variables
+                interface = None
+                address = None
+                prefix = None
+                # status = False  # For future use
+
+                # Split current line
+                splitted_line = line.split()
+
+                # Check if there are 4 elements
+                if len(splitted_line) >= 4:
+
+                    # Yes
+
+                    # Get interface
+                    interface = splitted_line[0]
+
+                    # Get IP address
+                    address = splitted_line[1]
+
+                    # Get prefix
+
+                    # Get netmask
+                    netmask = splitted_line[2]
+
+                    # Convert netmask in prefix (integer)
+                    prefix = int(ipv4_netmask_list[netmask])
+
+                    # Get status
+                    # if "up" == splitted_line[3].lower():  # For future use
+                    #     status = True  # For future use
+
+                    # An interface found?
+                    if interface:
+
+                        # Yes
+
+                        # So the information can be saved into the returned dictionary
+                        returned_dict[interface] = {
+                            "ipv4": {address: {"prefix_length": prefix}}
+                        }
+                        # returned_dict[interface] = {
+                        #     "ipv4": {
+                        #         address: {"prefix_length": prefix, "status": status}
+                        #     }
+                        # }  # For future use
+
+        # Return data
+        return returned_dict
