@@ -88,11 +88,15 @@ class AlcatelAOS(NetworkDevice):
             "no vlan <VLAN> members port <INTERFACE>",
             "vlan <VLAN> no 802.1q <INTERFACE>",
         ]
+        self.cmd_get_links_aggregation = "show linkagg"  # Specific to Alcatel AOS
 
         # Layer 3 commands
         self.cmd_get_routing_table = "show ip router database"
         self.cmd_get_interfaces_ip = "show ip interface"
-        self.cmd_add_static_route = "ip static-route 1.1.1.1/24 gateway 2.2.2.2"
+        self.cmd_add_static_route = "ip static-route <NETWORK>/<PREFIXLENGTH> gateway <DESTINATION> metric <METRIC>"
+        self.cmd_remove_static_route = (
+            "no ip static-route <NETWORK>/<PREFIXLENGTH> gateway <DESTINATION>"
+        )
 
     def monkey_patch_dsa_512(self):
 
@@ -2937,7 +2941,7 @@ class AlcatelAOS(NetworkDevice):
         # Check if there are still data (it should be the case)
         if len(lines) > line_number:
 
-            # Yes there data (routing table data)
+            # Yes there is still data (routing table data)
 
             # Read lines
             for line in lines[line_number:]:
@@ -3238,3 +3242,490 @@ class AlcatelAOS(NetworkDevice):
 
         # Return data
         return returned_dict
+
+    async def add_static_route(
+        self,
+        network_ip=None,
+        prefix_length=None,
+        destination_ip=None,
+        metric=1,
+        **kwargs,
+    ):
+        """
+        Asyn method used to add a static route to the routing table the device
+        Only IPv4 is supported
+        EXPERIMENTAL (not tested)
+
+
+        :param network_ip: the network to add to the route
+        :type network_ip: str
+
+        :param prefix_length: length of the network mask (32, 31, 30 ... for /32, /31, /30 ...)
+        :type prefix_length: int
+
+        :param destination_ip: IP address as a destination
+        :type destination_ip: str
+
+        :param metric: optional, the metric to specify to the route. Default value is 1
+        :type metric: int
+
+        :param kwargs: not used
+        :type kwargs: dict
+
+        :return: Status. True = no error, False = error
+        :rtype: bool
+        """
+
+        # Display info message
+        log.info("add_static_route")
+
+        # By default result status is having an error
+        return_status = False
+
+        # Check if a network has been specified
+        if not network_ip:
+
+            # No
+
+            # Display info message
+            log.error(f"add_static_route: no network specified: {network_ip}")
+
+            # Return an error
+            return return_status
+
+        # Check if a prefix_length has been specified
+        if not prefix_length:
+
+            # No
+
+            # Display info message
+            log.error(f"add_static_route: no prefix_length specified: {prefix_length}")
+
+            # Return an error
+            return return_status
+
+        # Check if the prefix_length is between 1 and 32
+        if prefix_length < 1 or prefix_length > 32:
+
+            # No
+
+            # Display info message
+            log.error(
+                f"add_static_route: prefix_length incorrect value (1...32): {prefix_length}"
+            )
+
+            # Return an error
+            return return_status
+
+        # Check if a destination_ip has been specified
+        if not destination_ip:
+
+            # No
+
+            # Display info message
+            log.error(
+                f"add_static_route: no destination_ip specified: {destination_ip}"
+            )
+
+            # Return an error
+            return return_status
+
+        # Check if a metric has been specified
+        if not metric:
+
+            # No
+
+            # Display info message
+            log.error(f"add_static_route: no metric specified: {metric}")
+
+            # Return an error
+            return return_status
+
+        # self.cmd_add_static_route = "ip static-route <NETWORK>/<PREFIXLENGTH> gateway <DESTINATION> metric <METRIC>"
+
+        # Replace <NETWORK> with the network value
+        cmd = self.cmd_add_static_route.replace("<NETWORK>", network_ip)
+
+        # Replace <PREFIXLENGTH> with the prefix_length value
+        cmd = cmd.replace("<PREFIXLENGTH>", str(prefix_length))
+
+        # Replace <DESTINATION> with the destination value
+        cmd = cmd.replace("<DESTINATION>", destination_ip)
+
+        # Replace <METRIC> with the metric value
+        cmd = cmd.replace("<METRIC>", str(metric))
+
+        # Display info message
+        log.info(f"add_static_route: cmd: {cmd}")
+
+        # Sending command
+        output = await self.send_command(cmd)
+
+        # Checking error (warnings are ok. eg.: a route with no path is set in the routing table as not active)
+        # Example:
+        # ERROR: internal error
+        #
+        if "error" in output.lower():
+
+            # Yes, there is an error
+
+            # Display info message
+            log.error(f"add_static_route: error: {output}")
+
+            # Return an error
+            return return_status
+
+        # No error
+        return_status = True
+
+        # Return status
+        return return_status
+
+    async def remove_static_route(
+        self,
+        network_ip=None,
+        prefix_length=None,
+        destination_ip=None,
+        **kwargs,
+    ):
+        """
+        Asyn method used to remove a static route to the routing table the device
+        Only IPv4 is supported
+        EXPERIMENTAL (not tested)
+
+
+        :param network_ip: the network to remove to the route
+        :type network_ip: str
+
+        :param prefix_length: length of the network mask (32, 31, 30 ... for /32, /31, /30 ...)
+        :type prefix_length: int
+
+        :param destination_ip: IP address as a destination
+        :type destination_ip: str
+
+        :param kwargs: not used
+        :type kwargs: dict
+
+        :return: Status. True = no error, False = error
+        :rtype: bool
+        """
+
+        # Display info message
+        log.info("remove_static_route")
+
+        # By default result status is having an error
+        return_status = False
+
+        # Check if a network has been specified
+        if not network_ip:
+
+            # No
+
+            # Display info message
+            log.error(f"remove_static_route: no network specified: {network_ip}")
+
+            # Return an error
+            return return_status
+
+        # Check if a prefix_length has been specified
+        if not prefix_length:
+
+            # No
+
+            # Display info message
+            log.error(
+                f"remove_static_route: no prefix_length specified: {prefix_length}"
+            )
+
+            # Return an error
+            return return_status
+
+        # Check if the prefix_length is between 1 and 32
+        if prefix_length < 1 or prefix_length > 32:
+
+            # No
+
+            # Display info message
+            log.error(
+                f"remove_static_route: prefix_length incorrect value (1...32): {prefix_length}"
+            )
+
+            # Return an error
+            return return_status
+
+        # Check if a destination IP address has been specified
+        if not destination_ip:
+
+            # No
+
+            # Display info message
+            log.error(
+                f"remove_static_route: no destination IP address specified: {destination_ip}"
+            )
+
+            # Return an error
+            return return_status
+
+        # self.cmd_remove_static_route = "no ip static-route <NETWORK>/<PREFIXLENGTH> gateway <DESTINATION>"
+
+        # Replace <NETWORK> with the network value
+        cmd = self.cmd_remove_static_route.replace("<NETWORK>", network_ip)
+
+        # Replace <PREFIXLENGTH> with the prefix_length value
+        cmd = cmd.replace("<PREFIXLENGTH>", str(prefix_length))
+
+        # Replace <DESTINATION> with the destination_ip value
+        cmd = cmd.replace("<DESTINATION>", destination_ip)
+
+        # Display info message
+        log.info(f"remove_static_route: cmd: {cmd}")
+
+        # Sending command
+        output = await self.send_command(cmd)
+
+        # Checking error (warnings are ok. eg.: a route with no path is set in the routing table as not active)
+        # Example:
+        #                                                               ^
+        # ERROR: Incomplete command
+        if "error" in output.lower():
+
+            # Yes, there is an error
+
+            # Display info message
+            log.error(f"remove_static_route: error: {output}")
+
+            # Return an error
+            return return_status
+
+        # No error
+        return_status = True
+
+        # Return status
+        return return_status
+
+    async def get_links_aggregation(self):
+        """
+        Asyn method used to get the information of ALL the links aggregation of the device
+
+        The returned dictionaries inside the dictionary will return that information:
+
+                returned_dict = {
+                    "operational": operational,
+                    "admin_state": admin_state,
+                    "aggregate_type": aggregate_type,
+                    "size": size,
+                }
+        "size" is the number of interfaces.
+        "aggregate_type" is "dynamic" (LACP mostly) or "static".
+
+        :return: Interfaces of the device
+        :rtype: dict of dict
+        """
+
+        # Display info message
+        log.info("get_links_aggregation")
+
+        # By default nothing is returned
+        returned_output = {}
+
+        # self.cmd_get_links_aggregation = "show linkagg" # Specific to Alcatel AOS
+
+        # Command for the status of the links aggregation
+
+        # Send a command
+        output_status = await self.send_command(self.cmd_get_links_aggregation)
+
+        # Check if the returned value is not having an error (even though it should be compatible with AOS6+)
+        if "error" in output_status.lower():
+
+            # Yes, the command returns an error
+
+            # Display info message
+            log.error(
+                f"get_links_aggregation: returned output: error:\n'{output_status}'"
+            )
+
+            # Exit
+            return returned_output
+
+        # Display info message
+        log.info(f"get_links_aggregation: returned output\n'{output_status}'")
+
+        # Convert a string into a list of strings
+        lines = output_status.splitlines()
+
+        # First search the end of the header of the data returned ("---")
+        for line_number, line in enumerate(lines):
+            if "---" in line:
+                break
+
+        # line_number has the value of the line with "---"
+
+        # Display info message
+        log.info(f"get_links_aggregation: line_number: '{line_number}'")
+
+        # Increase line_number to the line number of the next data
+        line_number = line_number + 1
+
+        # Check if there are still data (it should be the case)
+        if len(lines) > line_number:
+
+            # Yes there is still data
+
+            # Read lines
+            for line in lines[line_number:]:
+
+                # Initialize data with default values
+                link_aggregation = None
+                aggregate_type = "static"
+                size = 0
+                admin_state = False
+                operational = False
+
+                # Get interface name and admin state
+                splitted_line = line.split()
+
+                # Check if there are 6 values at least
+                if len(splitted_line) >= 6:
+
+                    # Get link_aggregation
+                    link_aggregation = int(splitted_line[0])
+
+                    # Get aggregate_type
+                    # Check if dynamic
+                    if "dynamic" in splitted_line[1].lower():
+                        aggregate_type = "dynamic"
+
+                    # Get size
+                    size = int(splitted_line[3])
+
+                    # Get admin state
+                    # Check if enabled
+                    if "enabled" in splitted_line[4].lower():
+                        admin_state = True
+
+                    # Get operational state
+                    # Check if operationnal
+                    if "up" in splitted_line[5].lower():
+                        operational = True
+
+                    # Check if link_aggregation name is not empty
+                    if link_aggregation:
+
+                        # It is not empty
+
+                        # Create a dictionary
+                        returned_dict = {
+                            "operational": operational,
+                            "admin_state": admin_state,
+                            "aggregate_type": aggregate_type,
+                            "size": size,
+                        }
+
+                        # Display info message
+                        log.info(
+                            f"get_links_aggregation: link_aggregation: {link_aggregation} returned_dict: '{returned_dict}'"
+                        )
+
+                        # Add the information to the dict
+                        returned_output[link_aggregation] = returned_dict
+
+        # Return data
+        return returned_output
+
+    async def add_link_aggregation_to_vlan(
+        self,
+        link_aggregation=None,
+        mode=None,
+        vlan=None,
+        **kwargs,
+    ):
+        """
+        Asyn method used to add an link aggregation to a VLAN of the device
+
+
+        :param link_aggregation: the name of the link aggregation
+        :type link_aggregation: str
+
+        :param mode: mode of the link aggregation (access, trunk)
+        :type mode: str
+
+        :param vlan: VLAN number
+        :type vlan: int
+
+        :param kwargs: not used
+        :type kwargs: dict
+
+        :return: Status. True = no error, False = error
+        :rtype: bool
+        """
+
+        # Display info message
+        log.info("add_link_aggregation_to_vlan")
+
+        # self.cmd_add_interface_to_vlan = [
+        #     "vlan <VLAN> members port <INTERFACE> untagged",
+        #     "vlan <VLAN> port default <INTERFACE>",
+        #     "vlan <VLAN> members port <INTERFACE> tagged",
+        #     "vlan <VLAN> 802.1q <INTERFACE>",
+        # ]
+
+        # By default result status is having an error
+        return_status = False
+
+        # Display info message
+        log.info(
+            f"add_link_aggregation_to_vlan: input: link_aggregation: {link_aggregation}"
+        )
+        log.info(f"add_link_aggregation_to_vlan: input: mode: {mode}")
+        log.info(f"add_link_aggregation_to_vlan: input: vlan: {vlan}")
+
+        # Get parameters
+
+        # "link_aggregation" found?
+        if link_aggregation == None:
+
+            # No
+
+            # So no action can be performed
+
+            # Display info message
+            log.error("add_link_aggregation_to_vlan: no link aggregation specified")
+
+            # Return status
+            return return_status
+
+        # "mode" found?
+        if mode == None:
+
+            # No
+
+            # So no action can be performed
+
+            # Display info message
+            log.error("add_link_aggregation_to_vlan: no mode specified")
+
+            # Return status
+            return return_status
+
+        # "vlan" found?
+        if vlan == None:
+
+            # No
+
+            # So no action can be performed
+
+            # Display info message
+            log.error("add_link_aggregation_to_vlan: no vlan specified")
+
+            # Return status
+            return return_status
+
+        # Convert VLAN (integer) to string
+        vlan_string = str(vlan)
+
+        # No error
+        return_status = True
+
+        # Return status
+        return return_status

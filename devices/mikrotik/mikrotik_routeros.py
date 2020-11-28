@@ -3365,13 +3365,13 @@ class MikrotikRouterOS(NetworkDevice):
         cmd = self.cmd_add_static_route.replace("<NETWORK>", network_ip)
 
         # Replace <PREFIXLENGTH> with the prefix_length value
-        cmd = self.cmd_add_static_route.replace("<PREFIXLENGTH>", str(prefix_length))
+        cmd = cmd.replace("<PREFIXLENGTH>", str(prefix_length))
 
         # Replace <DESTINATION> with the destination value
-        cmd = self.cmd_add_static_route.replace("<DESTINATION>", destination_ip)
+        cmd = cmd.replace("<DESTINATION>", destination_ip)
 
         # Replace <METRIC> with the metric value
-        cmd = self.cmd_add_static_route.replace("<METRIC>", str(metric))
+        cmd = cmd.replace("<METRIC>", str(metric))
 
         # Display info message
         log.info(f"add_static_route: cmd: {cmd}")
@@ -3389,6 +3389,7 @@ class MikrotikRouterOS(NetworkDevice):
         self,
         network_ip=None,
         prefix_length=None,
+        destination_ip=None,
         **kwargs,
     ):
         """
@@ -3402,6 +3403,9 @@ class MikrotikRouterOS(NetworkDevice):
 
         :param prefix_length: length of the network mask (32, 31, 30 ... for /32, /31, /30 ...)
         :type prefix_length: int
+
+        :param destination_ip: not used
+        :type destination_ip: str
 
         :param kwargs: not used
         :type kwargs: dict
@@ -3456,10 +3460,10 @@ class MikrotikRouterOS(NetworkDevice):
         #  self.cmd_remove_static_route = "ip route remove [find dst-address=<NETWORK>/<PREFIXLENGTH>]"
 
         # Replace <NETWORK> with the network value
-        cmd = self.cmd_add_static_route.replace("<NETWORK>", network_ip)
+        cmd = self.cmd_remove_static_route.replace("<NETWORK>", network_ip)
 
         # Replace <PREFIXLENGTH> with the prefix_length value
-        cmd = self.cmd_add_static_route.replace("<PREFIXLENGTH>", str(prefix_length))
+        cmd = cmd.replace("<PREFIXLENGTH>", str(prefix_length))
 
         # Display info message
         log.info(f"remove_static_route: cmd: {cmd}")
