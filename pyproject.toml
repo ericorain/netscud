@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "netscud"
-version = "1.0.0"
+version = "1.1.0"
 description = "Network device Asynchronous python library"
 authors = ["ericorain <ericorain@hotmail.com>"]
 packages = [
