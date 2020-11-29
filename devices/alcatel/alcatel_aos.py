@@ -89,6 +89,18 @@ class AlcatelAOS(NetworkDevice):
             "vlan <VLAN> no 802.1q <INTERFACE>",
         ]
         self.cmd_get_links_aggregation = "show linkagg"  # Specific to Alcatel AOS
+        self.cmd_add_link_aggregation_to_vlan = [
+            "vlan <VLAN> members linkagg <LINK_AGGREGATION> untagged",
+            "vlan <VLAN> port default <LINK_AGGREGATION>",
+            "vlan <VLAN> members linkagg <LINK_AGGREGATION> tagged",
+            "vlan <VLAN> 802.1q <LINK_AGGREGATION>",
+        ]  # Specific to Alcatel AOS
+        self.cmd_remove_link_aggregation_to_vlan = [
+            "no vlan <VLAN> members linkagg <LINK_AGGREGATION>",
+            "vlan <VLAN> no port default <LINK_AGGREGATION>",
+            "no vlan <VLAN> members linkagg <LINK_AGGREGATION>",
+            "vlan <VLAN> no 802.1q <LINK_AGGREGATION>",
+        ]  # Specific to Alcatel AOS
 
         # Layer 3 commands
         self.cmd_get_routing_table = "show ip router database"
@@ -3641,7 +3653,7 @@ class AlcatelAOS(NetworkDevice):
         **kwargs,
     ):
         """
-        Asyn method used to add an link aggregation to a VLAN of the device
+        Asyn method used to add a link aggregation to a VLAN of the device
 
 
         :param link_aggregation: the name of the link aggregation
@@ -3663,12 +3675,12 @@ class AlcatelAOS(NetworkDevice):
         # Display info message
         log.info("add_link_aggregation_to_vlan")
 
-        # self.cmd_add_interface_to_vlan = [
-        #     "vlan <VLAN> members port <INTERFACE> untagged",
-        #     "vlan <VLAN> port default <INTERFACE>",
-        #     "vlan <VLAN> members port <INTERFACE> tagged",
-        #     "vlan <VLAN> 802.1q <INTERFACE>",
-        # ]
+        # self.cmd_add_link_aggregation_to_vlan = [
+        #     "vlan <VLAN> members linkagg <LINK_AGGREGATION> untagged",
+        #     "vlan <VLAN> port default <LINK_AGGREGATION>",
+        #     "vlan <VLAN> members linkagg <LINK_AGGREGATION> tagged",
+        #     "vlan <VLAN> 802.1q <LINK_AGGREGATION>",
+        # ] # Specific to Alcatel AOS
 
         # By default result status is having an error
         return_status = False
@@ -3723,6 +3735,374 @@ class AlcatelAOS(NetworkDevice):
 
         # Convert VLAN (integer) to string
         vlan_string = str(vlan)
+
+        # Remove possible "0/" before link aggregation reference (e.g: "0/1" -> "1")
+        # Necessary since those characters are not used in the folowing commands
+        link_aggregation = link_aggregation.replace("0/", "")
+
+        # Check if mode is "access"
+        if mode == "access":
+
+            # Access mode link aggregation
+
+            # AOS 7+
+            # "vlan <VLAN> members linkagg <LINK_AGGREGATION> untagged",
+
+            # Get command
+            # Replace <LINK_AGGREGATION> with the link aggregation
+            cmd = self.cmd_add_link_aggregation_to_vlan[0].replace(
+                "<LINK_AGGREGATION>", link_aggregation
+            )
+
+            # Replace <VLAN> with the VLAN number
+            cmd = cmd.replace("<VLAN>", vlan_string)
+
+            # Display info message
+            log.info(
+                f"add_link_aggregation_to_vlan: set VLAN: access: aos 7+: cmd: {cmd}"
+            )
+
+            # Change the VLAN of the link aggregation
+            output = await self.send_command(cmd)
+
+            # Check error
+            # Example:
+            #                                        ^
+            # ERROR: Invalid entry: "members"
+            if "members" in output.lower():
+
+                # Probably AOS 6
+
+                # "vlan <VLAN> port default <LINK_AGGREGATION>",
+
+                # Replace <LINK_AGGREGATION> with the link aggregation
+                cmd = self.cmd_add_link_aggregation_to_vlan[1].replace(
+                    "<LINK_AGGREGATION>", link_aggregation
+                )
+
+                # Replace <VLAN> with the VLAN number
+                cmd = cmd.replace("<VLAN>", vlan_string)
+
+                # Display info message
+                log.info(
+                    f"add_link_aggregation_to_vlan: set VLAN: access: aos 6: cmd: {cmd}"
+                )
+
+                # Change the VLAN of the link aggregation
+                output = await self.send_command(cmd)
+
+            # Check if there is an error
+            # Example:
+            # ERROR: VLAN 2234 does not exist. First create the VLAN
+            #
+            if "error" in output.lower():
+
+                # Yes, there is an error
+
+                # Display info message
+                log.error(
+                    f"add_link_aggregation_to_vlan: add vlan to access: error: {output}"
+                )
+
+                # Return an error
+                return return_status
+
+        else:
+
+            # trunk mode
+
+            # AOS 7+
+            # "vlan <VLAN> members linkagg <LINK_AGGREGATION> tagged",
+
+            # Get command
+            # Replace <LINK_AGGREGATION> with the link aggregation
+            cmd = self.cmd_add_link_aggregation_to_vlan[2].replace(
+                "<LINK_AGGREGATION>", link_aggregation
+            )
+
+            # Replace <VLAN> with the VLAN number
+            cmd = cmd.replace("<VLAN>", vlan_string)
+
+            # Display info message
+            log.info(
+                f"add_link_aggregation_to_vlan: set VLAN: trunk: aos 7+: cmd: {cmd}"
+            )
+
+            # Change the VLAN of the link aggregation
+            output = await self.send_command(cmd)
+
+            # Check error
+            # Example:
+            #                                        ^
+            # ERROR: Invalid entry: "members"
+            if "members" in output.lower():
+
+                # Probably AOS 6
+
+                # "vlan <VLAN> 802.1q <LINK_AGGREGATION>",
+
+                # Replace <LINK_AGGREGATION> with the link aggregation
+                cmd = self.cmd_add_link_aggregation_to_vlan[3].replace(
+                    "<LINK_AGGREGATION>", link_aggregation
+                )
+
+                # Replace <VLAN> with the VLAN number
+                cmd = cmd.replace("<VLAN>", vlan_string)
+
+                # Display info message
+                log.info(f"add_link_aggregation_to_vlan: set VLAN: aos 6: cmd: {cmd}")
+
+                # Change the VLAN of the link_aggregation
+                output = await self.send_command(cmd)
+
+            # Check if there is an error
+            # Example:
+            # ERROR: VLAN 2234 does not exist. First create the VLAN
+            #
+            if "error" in output.lower():
+
+                # Yes, there is an error
+
+                # Display info message
+                log.error(
+                    f"add_link_aggregation_to_vlan: add vlan to trunk: error: {output}"
+                )
+
+                # Return an error
+                return return_status
+
+        # No error
+        return_status = True
+
+        # Return status
+        return return_status
+
+    async def remove_link_aggregation_to_vlan(
+        self,
+        link_aggregation=None,
+        mode=None,
+        vlan=None,
+        **kwargs,
+    ):
+        """
+        Asyn method used to remove a link aggregation from a VLAN of the device
+
+        :param link_aggregation: the name of the link aggregation
+        :type link_aggregation: str
+
+        :param mode: mode of the link aggregation (access, trunk)
+        :type mode: str
+
+        :param vlan: VLAN number
+        :type vlan: int
+
+        :param kwargs: not used
+        :type kwargs: dict
+
+        :return: Status. True = no error, False = error
+        :rtype: bool
+        """
+
+        # Display info message
+        log.info("remove_link_aggregation_to_vlan")
+
+        # self.cmd_remove_link_aggregation_to_vlan = [
+        #     "no vlan <VLAN> members linkagg <LINK_AGGREGATION>",
+        #     "vlan <VLAN> no port default <LINK_AGGREGATION>",
+        #     "no vlan <VLAN> members linkagg <LINK_AGGREGATION>",
+        #     "vlan <VLAN> no 802.1q <LINK_AGGREGATION>",
+        # ]  # Specific to Alcatel AOS
+
+        # By default result status is having an error
+        return_status = False
+
+        # Display info message
+        log.info(
+            f"remove_link_aggregation_to_vlan: input: link_aggregation: {link_aggregation}"
+        )
+        log.info(f"remove_link_aggregation_to_vlan: input: mode: {mode}")
+        log.info(f"remove_link_aggregation_to_vlan: input: vlan: {vlan}")
+
+        # Get parameters
+
+        # "link_aggregation" found?
+        if link_aggregation == None:
+
+            # No
+
+            # So no action can be performed
+
+            # Display info message
+            log.error("remove_link_aggregation_to_vlan: no link aggregation specified")
+
+            # Return status
+            return return_status
+
+        # "mode" found?
+        if mode == None:
+
+            # No
+
+            # So no action can be performed
+
+            # Display info message
+            log.error("remove_link_aggregation_to_vlan: no mode specified")
+
+            # Return status
+            return return_status
+
+        # "vlan" found?
+        if vlan == None:
+
+            # No
+
+            # So no action can be performed
+
+            # Display info message
+            log.error("remove_link_aggregation_to_vlan: no vlan specified")
+
+            # Return status
+            return return_status
+
+        # Convert VLAN (integer) to string
+        vlan_string = str(vlan)
+
+        # Remove possible "0/" before link aggregation reference (e.g: "0/1" -> "1")
+        # Necessary since those characters are not used in the folowing commands
+        link_aggregation = link_aggregation.replace("0/", "")
+
+        # Check if mode is "access"
+        if mode == "access":
+
+            # Access mode link aggregation
+
+            # AOS 7+
+            # "no vlan <VLAN> members linkagg <LINK_AGGREGATION>",
+
+            # Get command
+            # Replace <LINK_AGGREGATION> with the link aggregation
+            cmd = self.cmd_remove_link_aggregation_to_vlan[0].replace(
+                "<LINK_AGGREGATION>", link_aggregation
+            )
+
+            # Replace <VLAN> with the VLAN number
+            cmd = cmd.replace("<VLAN>", vlan_string)
+
+            # Display info message
+            log.info(
+                f"remove_link_aggregation_to_vlan: set VLAN: access: aos 7+: cmd: {cmd}"
+            )
+
+            # Change the VLAN of the link aggregation
+            output = await self.send_command(cmd)
+
+            # Check error
+            # Example:
+            #                                        ^
+            # ERROR: Invalid entry: "members"
+            if "members" in output.lower():
+
+                # Probably AOS 6
+
+                # "vlan <VLAN> no port default <LINK_AGGREGATION>",
+
+                # Replace <LINK_AGGREGATION> with the link aggregation
+                cmd = self.cmd_remove_link_aggregation_to_vlan[1].replace(
+                    "<LINK_AGGREGATION>", link_aggregation
+                )
+
+                # Replace <VLAN> with the VLAN number
+                cmd = cmd.replace("<VLAN>", vlan_string)
+
+                # Display info message
+                log.info(
+                    f"remove_link_aggregation_to_vlan: set VLAN: access: aos 6: cmd: {cmd}"
+                )
+
+                # Change the VLAN of the link aggregation
+                output = await self.send_command(cmd)
+
+            # Check if there is an error
+            # Example:
+            # ERROR: VLAN 2234 does not exist. First create the VLAN
+            #
+            if "error" in output.lower():
+
+                # Yes, there is an error
+
+                # Display info message
+                log.error(
+                    f"remove_link_aggregation_to_vlan: remove vlan to access: error: {output}"
+                )
+
+                # Return an error
+                return return_status
+
+        else:
+
+            # trunk mode
+
+            # AOS 7+
+            # "no vlan <VLAN> members linkagg <LINK_AGGREGATION>",
+
+            # Get command
+            # Replace <LINK_AGGREGATION> with the link aggregation
+            cmd = self.cmd_remove_link_aggregation_to_vlan[2].replace(
+                "<LINK_AGGREGATION>", link_aggregation
+            )
+
+            # Replace <VLAN> with the VLAN number
+            cmd = cmd.replace("<VLAN>", vlan_string)
+
+            # Display info message
+            log.info(
+                f"remove_link_aggregation_to_vlan: set VLAN: trunk: aos 7+: cmd: {cmd}"
+            )
+
+            # Change the VLAN of the link aggregation
+            output = await self.send_command(cmd)
+
+            # Check error
+            # Example:
+            #                                        ^
+            # ERROR: Invalid entry: "members"
+            if "members" in output.lower():
+
+                # Probably AOS 6
+
+                # "vlan <VLAN> no 802.1q <LINK_AGGREGATION>",
+
+                # Replace <LINK_AGGREGATION> with the link aggregation
+                cmd = self.cmd_remove_link_aggregation_to_vlan[3].replace(
+                    "<LINK_AGGREGATION>", link_aggregation
+                )
+
+                # Replace <VLAN> with the VLAN number
+                cmd = cmd.replace("<VLAN>", vlan_string)
+
+                # Display info message
+                log.info(
+                    f"remove_link_aggregation_to_vlan: set VLAN: aos 6: cmd: {cmd}"
+                )
+
+                # Change the VLAN of the link_aggregation
+                output = await self.send_command(cmd)
+
+            # Check if there is an error
+            # Example:
+            # ERROR: VLAN 2234 does not exist. First create the VLAN
+            #
+            if "error" in output.lower():
+
+                # Yes, there is an error
+
+                # Display info message
+                log.error(
+                    f"remove_link_aggregation_to_vlan: remove vlan to trunk: error: {output}"
+                )
+
+                # Return an error
+                return return_status
 
         # No error
         return_status = True
