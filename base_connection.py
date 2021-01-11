@@ -5,10 +5,10 @@ import asyncio, asyncssh, logging
 log = logging.getLogger(__package__)
 
 # Debug level
-# logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.WARNING)
 # logging.basicConfig(level=logging.INFO)
-logging.basicConfig(level=logging.DEBUG)
-asyncssh.set_debug_level(2)
+# logging.basicConfig(level=logging.DEBUG)
+# asyncssh.set_debug_level(2)
 
 
 # Declaration of constant values
@@ -59,6 +59,8 @@ class NetworkDevice:
     """
     Base class for network object
 
+    :param name: Name of a device
+    :type name: str
 
     :param ip: IP address of a device
     :type ip: str
@@ -150,6 +152,7 @@ class NetworkDevice:
         # Display info message
         log.info("__init__")
 
+        self.name = "device"
         self.ip = ""
         self.username = ""
         self.password = ""
@@ -235,6 +238,15 @@ class NetworkDevice:
         log.debug("__init__: kwargs: " + str(kwargs))
 
         # Get information from dictionary
+
+        # "name" found?
+        if "name" in kwargs:
+
+            # Save "name" parameter
+            self.name = kwargs["name"]
+
+            # Display info message
+            log.info("__init__: name found: " + str(self.name))
 
         # "ip" found?
         if "ip" in kwargs:
