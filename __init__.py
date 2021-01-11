@@ -7,7 +7,7 @@ from netscud.device_selector import ConnectDevice
 __all__ = ("ConnectDevice",)
 
 # Version
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 # Supported devices
 __supported_devices__ = [

@@ -63,6 +63,7 @@ Right now the following devices are supported:
 
 ::
 
+    - Alcatel AOS
     - Cisco IOS
     - Cisco SG3XX
-    - Alcatel AOS
+    - Mikrotik RouterOS
